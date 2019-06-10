@@ -1,0 +1,29 @@
+{
+    "name": "daevsoft/ds",
+    "version": "1.0.0",
+    "type": "project",
+    "license": "MIT",
+    "homepage": "http://daevsoft.com",
+    "description": "The Ds Framework.",
+    "authors": [
+        {
+            "name": "Muhamad Deva Arofi",
+            "email": "deva@daevsoft.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/Daevsoft/ds/issues",
+        "source": "https://github.com/Daevsoft/ds"
+    },
+    "keywords": [
+        "framework",
+        "ds",
+        "dsframework",
+        "dsphp"
+    ],
+    "require": {
+        "php": "^7.1.1"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
