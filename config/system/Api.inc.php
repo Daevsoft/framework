@@ -58,7 +58,7 @@ class API
 
     public static function getTable($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND',  $__ord = "ASC")
     {
-        return BackEnd::table($__q_or_t, $__wh, $__bool, $__ord)::fetch_all(OBJ);
+        return BackEnd::table($__q_or_t, $__wh, $__bool, $__ord)::fetch_all();
     }
 
     public static function getRow($__q_or_t, $__wh = "", $__bool = "AND")
@@ -68,6 +68,6 @@ class API
 
     public static function select($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND')
     {
-        return BackEnd::table($__q_or_t, $__wh);
+        return BackEnd::table($__q_or_t, $__wh, $__bool);
     }
 }
