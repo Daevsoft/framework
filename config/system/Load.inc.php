@@ -108,7 +108,7 @@ class Load extends dsSystem
 		self::load_dir($mod_target.Key::MODEL, $alias, Key::MODELS, true, $_params);
 	}
 
-	static function get($alias_name) // get object with alias key
+	static function object($alias_name) // get object with alias key
 	{
 		global $_ms;
 		return $_ms[$alias_name];

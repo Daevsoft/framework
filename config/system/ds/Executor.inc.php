@@ -40,6 +40,8 @@ class Executor extends Ds
             case COMMAND_ADD:
                 self::CreateView($files);
                 break;
+            case COMMAND_DEL:
+                self::DeleteFile($files, VIEWS, STRING_EMPTY, FALSE);   
             default:
                 break;
         }
@@ -123,6 +125,7 @@ Api::register(\''.$file.'\');
 Api::'.$mtd.'(\'/\', function($_req, $sql){
     return [\'response\' => \'Created\'];
 });';
+$_filenames = ucfirst($_filenames);
             self::CreateFile($_filenames, APIS, API, $source);
         }
     }
@@ -157,13 +160,14 @@ class '.$_filenames.' extends dsController
         FrontEnd::page(\''.$file.'.slice\',$data);
     }
 }';
+$_filenames = ucfirst($_filenames);
             self::CreateFile($_filenames, CONTROLLERS, CONTROLLER, $source);
         }
     }
     public static function CreateModel($_files)
     {
         foreach ($_files as $file) {
-            $_filenames  = ucfirst(strtolower($file)).Key::MODEL;
+            $_filenames  = ucfirst(strtolower($file)).MODEL;
             $source = '<?php
 /**
  * '.$_filenames.'
@@ -184,6 +188,7 @@ class '.$_filenames.' extends dsModel
         return $this->select(\''.$_file.'\')::get_all();
     }
 }';
+$_filenames = ucfirst($_filenames);
             self::CreateFile($_filenames, MODELS, MODEL, $source);
         }
     }
@@ -218,7 +223,6 @@ class '.$_filenames.' extends dsModel
     }
     public static function CreateFile($filename, $folder, $type, $source)
     {
-        $filename = ucfirst($filename);
         $directory = MAIN_DIR.'/app'.$folder.'/'.$filename. '.php';
         if (file_exists($directory)) {
             msg('File ' . $filename . ' was exist.');
