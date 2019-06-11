@@ -1,15 +1,5 @@
 <?php
 secure_page();
-define('NUM', PDO::FETCH_NUM);
-define('ASSOC', PDO::FETCH_ASSOC);
-define('BOTH', PDO::FETCH_BOTH);
-define('BOUND', PDO::FETCH_BOUND);
-define('CLASS', PDO::FETCH_CLASS);
-define('INTO', PDO::FETCH_INTO);
-define('LAZY', PDO::FETCH_LAZY);
-define('NAMED', PDO::FETCH_NAMED);
-define('OBJ', PDO::FETCH_OBJ);
-
 /*
     BackEnd Class author by Muhamad Deva Arofi
 
@@ -81,13 +71,13 @@ class BackEnd extends dsSystem
     public static function fetch_row($target = NULL)
     {
         if($target == NULL)
-            $target = BOTH;
+            $target = PDO::FETCH_BOTH;
         return self::$pdo_result->fetch($target);
     }
     public static function fetch_all($target = NULL)
     {
         if($target == NULL)
-            $target = BOTH;
+            $target = PDO::FETCH_BOTH;
         return self::$pdo_result->fetchAll($target);
     }
     static function insert($__table, $__dt)

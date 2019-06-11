@@ -10,17 +10,45 @@ class dsModel
     private $backEnd;
     public function __construct() {
     }
-    public function get_all($target = NULL)
+    public function data_all($target = NULL)
     {
         if (!is_null($this->backEnd)) {
             $res = $this->backEnd::fetch_all($target);
             $this->backEnd = NULL;
             return $res;
         }else{
+            $target = is_null($target) ? PDO::FETCH_BOTH : $target;
             return BackEnd::query($this->queryClear())::fetch_all($target);
         }
     }
-    public function get_row($target = NULL)
+    public function data_array(){
+        return $this->data_all(PDO::FETCH_BOTH);
+    }
+    public function data_class(){
+        return $this->data_all(PDO::FETCH_OBJ);
+    }
+    public function data_assoc(){
+        return $this->data_all(PDO::FETCH_ASSOC);
+    }
+    public function data_numeric(){
+        return $this->data_all(PDO::FETCH_NUM);
+    }
+    public function data_both(){
+        return $this->data_all(PDO::FETCH_BOTH);
+    }
+    public function data_bound(){
+        return $this->data_all(PDO::FETCH_BOUND);
+    }
+    public function data_into(){
+        return $this->data_all(PDO::FETCH_INTO);
+    }
+    public function data_lazy(){
+        return $this->data_all(PDO::FETCH_LAZY);
+    }
+    public function data_named(){
+        return $this->data_all(PDO::FETCH_NAMED);
+    }
+    public function data_row($target = NULL)
     {
         if (!is_null($this->backEnd)) {
             $res = $this->backEnd::fetch_row($target);
