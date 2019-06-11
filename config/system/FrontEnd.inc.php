@@ -60,8 +60,8 @@ class FrontEnd
     if(count($requestTarget) == 1)
       $requestTarget[1] = Key::INDEX;
     // Get action based on structure
-    if($structure_app == MVC
-      || ($requestTarget[0] != API && $structure_app == MULTI)){
+    if($structure_app == Key::MVC
+      || ($requestTarget[0] != Key::API && $structure_app == Key::MULTI)){
         
       $controller = $requestTarget;
       // Get the first Controller will loaded
@@ -95,7 +95,7 @@ class FrontEnd
         die("dsController not extended in this Controller or contructor not called.");
       }
     }else{
-      $iRouteStep = ($structure_app == MULTI ? 1 : 0);
+      $iRouteStep = ($structure_app == Key::MULTI ? 1 : 0);
       $apiRequest = dsSystem::fill_text($requestTarget[0 + $iRouteStep]);
       $apiRequest = $apiRequest == STRING_EMPTY ? $first_load : $apiRequest;
       $filename = Indexes::$DIR_API.$apiRequest.'.php';
