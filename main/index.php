@@ -3,10 +3,6 @@
 define('root', TRUE);
 // Empty String
 define('STRING_EMPTY', '');
-// API or MVC
-define('MVC','mvc');
-define('API','Api');
-define('MULTI','both');
 
 class Key{
     public const FILES = 'files';
@@ -18,6 +14,9 @@ class Key{
     public const CONTROLLER = 'Controller';
     public const CONTROLLERS = 'controllers';
     public const GLOBAL_OBJECT_MAIN_SOURCE = '__dsObjectMainSource_ms';
+    public const API = 'Api';
+    public const MVC = 'mvc';
+    public const BOTH = 'both';
 
     
     // Ext Php Slice
