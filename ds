@@ -10,6 +10,7 @@ define('FIFTH_ARG',5);
 define(STRING_EMPTY, '');
 define('CONTROLLERS','/controllers');
 define('MODELS','/models');
+define('VIEWS','/views');
 define('APIS','/api');
 define('CONTROLLER','Controller');
 define('MODEL','Model');
