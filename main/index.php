@@ -26,9 +26,9 @@ class Key{
     public const CHAR_SLASH = '/';
     public const INDEX = 'index';
     public const D_BACK = '../';
-    public const D_APP = '/app/';
-    public const D_CONFIG = '/config/';
-    public const D_SYSTEM = '/system/';
+    public const D_APP = 'app/';
+    public const D_CONFIG = 'config/';
+    public const D_SYSTEM = 'system/';
 }
 class Indexes{
     public static $DIR_ROOT = STRING_EMPTY;
@@ -48,14 +48,14 @@ class Indexes{
     public static $LINK_FILES = STRING_EMPTY;
 
     public static function init(){
-        self::$DIR_ROOT = dirname(__DIR__);
+        self::$DIR_ROOT = dirname(__DIR__). Key::CHAR_SLASH;
         self::$SERVER_PROTOCOL = strtolower(explode('/',$_SERVER['SERVER_PROTOCOL'])[0]);
         // App Directory
         self::$DIR_APP = self::$DIR_ROOT. Key::D_APP;
         // Configuration Directory
         self::$DIR_CONFIG = self::$DIR_ROOT. Key::D_CONFIG;
         // System Directory
-        self::$DIR_SYSTEM = self::$DIR_CONFIG. Key::D_SYSTEM;
+        self::$DIR_SYSTEM = self::$DIR_CONFIG. Key::CHAR_SLASH. Key::D_SYSTEM;
         // Modules Directory
         self::$DIR_MODULES = self::$DIR_APP. Key::MODULES. Key::CHAR_SLASH;
         // Cache Directory

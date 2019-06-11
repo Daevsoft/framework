@@ -82,7 +82,7 @@ switch ($server['status']) {
 spl_autoload_register(function ($classname)
 {
 	$filename = STRING_EMPTY;
-	$filename = Indexes::$DIR_ROOT. Key::CHAR_SLASH.config('controller_path').'/'.$classname.'.php';
+	$filename = Indexes::$DIR_ROOT.config('controller_path').'/'.$classname.'.php';
 	if(file_exists($filename)){
 		require_once $filename;
 	}else {
