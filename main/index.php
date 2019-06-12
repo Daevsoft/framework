@@ -16,7 +16,7 @@ class Key{
     public const GLOBAL_OBJECT_MAIN_SOURCE = '__dsObjectMainSource_ms';
     public const API = 'Api';
     public const MVC = 'mvc';
-    public const BOTH = 'both';
+    public const MULTI = 'both';
 
     
     // Ext Php Slice
