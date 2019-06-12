@@ -76,7 +76,7 @@ class QueryBuilder
             }
             $__wh = $__dt;
         }
-        if ((string_contains('select',$__q_or_t)) && (string_contains('from',$__q_or_t))) {
+        if (!(string_contains('select',$__q_or_t)) && !(string_contains('from',$__q_or_t))) {
            $__q_or_t = 'SELECT * FROM '.string_quote_query($__q_or_t)
                        .(($__wh != STRING_EMPTY) ? ' WHERE '.$__wh : ''); // use WHERE when where is not null
         }

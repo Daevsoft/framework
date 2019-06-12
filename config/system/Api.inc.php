@@ -63,7 +63,7 @@ class API
 
     public static function getRow($__q_or_t, $__wh = "", $__bool = "AND")
     {
-        return BackEnd::row($__q_or_t, $__wh, $__bool)::fetch_row(BOTH);
+        return BackEnd::row($__q_or_t, $__wh, $__bool)::fetch_row();
     }
 
     public static function select($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND')
