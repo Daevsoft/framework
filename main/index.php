@@ -9,7 +9,9 @@ class Key{
     public const CACHE = 'cache';
     public const MODEL = 'Model';
     public const MODELS = 'models';
+    public const MODULE = 'Module';
     public const MODULES = 'modules';
+    public const LIBRARY = 'Library';
     public const LIBRARIES = 'libraries';
     public const CONTROLLER = 'Controller';
     public const CONTROLLERS = 'controllers';
