@@ -67,7 +67,7 @@ class Load extends dsSystem
 				}
 				if(is_string($_libName)){
 					if ($target == Key::LIBRARIES) {
-						self::libraries($_libName, (is_numeric($key) ? $_libName : $key ));
+						self::library($_libName, (is_numeric($key) ? $_libName : $key ));
 					}else{
 						self::module($_libName, (is_numeric($key) ? $_libName : $key ));
 					}
@@ -100,7 +100,7 @@ class Load extends dsSystem
 		$module_target = ucfirst($module_target);
 		self::load_dir($module_target, $alias, Key::MODULES, true, $_params);
 	}
-	public static function libraries($lib_target, $alias = '', $_params = [])
+	public static function library($lib_target, $alias = '', $_params = [])
 	{
 		self::load_dir($lib_target, $alias, Key::LIBRARIES, true, $_params);
 	}
@@ -110,13 +110,11 @@ class Load extends dsSystem
 		$con_target = ucfirst($con_target);
 		self::load_dir($con_target.Key::CONTROLLER, $alias, Key::CONTROLLERS, true, $_params);
 	}
-
 	public static function model($mod_target, $alias = '', $_params = [])
 	{
 		$mod_target = ucfirst($mod_target);
 		self::load_dir($mod_target.Key::MODEL, $alias, Key::MODELS, true, $_params);
 	}
-
 	static function object($alias_name) // get object with alias key
 	{
 		self::check_ms();

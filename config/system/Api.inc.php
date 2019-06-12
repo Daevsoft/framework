@@ -1,5 +1,5 @@
 <?php
-class API
+class API extends dsSystem
 {
     public static $tempRecordApi;
     public static $requestLink;
@@ -13,14 +13,20 @@ class API
         if(is_null(API::$sql))
             API::$sql = new dsModel();
         $seed = dsSystem::fill_text($_reqSeed);
+        $request_not_found = true;
         if(isset(self::$tempRecordApi[self::$requestLink][$seed])){
             if(self::$tempRecordApi[self::$requestLink][$seed]){
                 $response = $_funcResponse($_data, API::$sql);
+                $request_not_found = false;
                 if(is_array($response))
                     echo json_encode($response);
                 if(is_string($response))
                     echo json_encode([$response]);
+                die();
             }
+        }
+        if($request_not_found){
+            parent::MessageError('Api <b>'.$seed.'</b> not found !');
         }
     }
     public static function post($_reqSeed, $_funcResponse)
@@ -50,8 +56,8 @@ class API
     {
         if($_seed == Key::INDEX)
             $_seed = Key::CHAR_SLASH;
-        $seed = dsSystem::fill_text($_seed);
-        $reqSeed = dsSystem::fill_text($_reqSeed);
+        $seed = parent::fill_text($_seed);
+        $reqSeed = parent::fill_text($_reqSeed);
         self::$requestLink = $reqSeed;
         self::$tempRecordApi[self::$requestLink][$seed] = TRUE;
     }
