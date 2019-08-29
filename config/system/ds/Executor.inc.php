@@ -54,7 +54,7 @@ class Executor extends Ds
 
         switch ($_command) {
             case COMMAND_ADD:
-                self::CreateApi($files, $mtd);
+                self::CreateApi($files);
                 break;
             case COMMAND_DEL:
                 self::DeleteFile($files, APIS, STRING_EMPTY, FALSE);        
@@ -114,7 +114,7 @@ class Executor extends Ds
             self::CreateFile($_filenames, VIEWS, VIEW, $source);
         }
     }
-    public static function CreateApi($_files, $method)
+    public static function CreateApi($_files)
     {
         $mtd = count(get_command()) == 4 ? substr(get_command(THIRD_ARG), 1) : 'request';
         foreach ($_files as $file) {
@@ -149,7 +149,7 @@ class '.$_filenames.' extends dsController
         $data = array(
             \'demoVariable\' 		=> "this is sample text variable"
         );
-        FrontEnd::page(\''.$file.'\',$data);
+        page(\''.$file.'\',$data);
     }
 
     public function demoSlice()
@@ -157,7 +157,7 @@ class '.$_filenames.' extends dsController
         $data = array(
             \'demoVariable\'       => "Demo Variable"
         );
-        FrontEnd::page(\''.$file.'.slice\',$data);
+        page(\''.$file.'.slice\',$data);
     }
 }';
 $_filenames = ucfirst($_filenames);
@@ -185,7 +185,7 @@ class '.$_filenames.' extends dsModel
     // Demo function
     public function getData()
     {
-        return $this->select(\''.$_file.'\')::get_all();
+        return $this->select(\''.$file.'\')::get_all();
     }
 }';
 $_filenames = ucfirst($_filenames);
@@ -206,7 +206,7 @@ $_filenames = ucfirst($_filenames);
     }
     public static function RemoveFileTemporary($_filenames, $_target_directory, $_restore)
     {
-        $filenames = '/'.$_filenames;
+        $filenames = Key::CHAR_SLASH.$_filenames;
         $new_directory = TRASH_DIR.$_target_directory.$filenames;
         $directory = MAIN_DIR.'/app'.$_target_directory.$filenames;
         if(!$_restore){

@@ -3,12 +3,12 @@
 * Controller base class
 */
 
-class dsController
+class dsController extends dsCore
 {
 	function __construct()
 	{
         // Set filename is stated
-		dsCore::set_controller();
+		$this->set_controller();
 	}
 
 	public function property_modify_controller($_property, $_value = NULL){
@@ -21,7 +21,7 @@ class dsController
 		Load::$type($_class, $_alias);
 		$this->property_modify_controller($_alias, _get($_alias));
 	}
-	public function add_model($_model, $_alias = NULL)
+	public function add_model(string $_model, $_alias = NULL)
 	{
 		$this->add_object($_model, $_alias, Key::MODEL);
 	}

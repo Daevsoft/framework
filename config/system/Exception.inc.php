@@ -4,7 +4,7 @@ class dsException extends Exception
     private $exception;
     private $filename;
     private $filename_real;
-    public function __construct($_exception, $filename = '', $show_line = TRUE)
+    public function __construct($_exception, $filename = '',bool $show_line = TRUE)
     {
         $this->exception = $_exception;
         if($filename == STRING_EMPTY){
@@ -21,7 +21,7 @@ class dsException extends Exception
         }
         $this->show_exception($show_line);
     }
-    public function show_exception($_show_line)
+    public function show_exception(bool $_show_line)
     {
         // Get All Trace
         $arrTrace = $this->exception->getTrace();
@@ -93,7 +93,7 @@ class dsException extends Exception
         for ($i=$start_line; $i <= $end_line; $i++) { 
             $line = $i+1;
             $result .= '<div'.($line == $_line ? ' class="ds_line_break_error"' : STRING_EMPTY)
-            .'>'.$line.'. '.htmlspecialchars($_arrFile[$i]).'</div>';
+            .'><span style="display:inline-block;width:23px;text-align:right">'.$line.' </span>| '.htmlspecialchars($_arrFile[$i]).'</div>';
         }
         return $result;
     }

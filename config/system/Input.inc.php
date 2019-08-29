@@ -6,7 +6,7 @@ class Input extends dsSystem
         
     }
     private static function warn($__nm){
-        parent::MessageError(uri(0).'/'.uri(1),'Input Name : '. $__nm .' not found!');
+        parent::MessageError(uri(0).Key::CHAR_SLASH.uri(1),'Input Name : '. $__nm .' not found!');
     }
     public static function post($__nm, $_warn = true)
     {

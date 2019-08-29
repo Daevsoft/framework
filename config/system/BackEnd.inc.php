@@ -6,11 +6,12 @@ secure_page();
     BackEnd:
     - it can get data from database directly like get one row or table
 */
-class BackEnd extends dsSystem
+class BackEnd extends dsCore
 {
-    public static $pdo_result = NULL;
-    public static $sql = NULL;
-	function call($_model_v){ // call model object
+    protected $pdo_result = NULL;
+    protected $sql;
+    // call model object
+	function call($_model_v){
 		return $GLOBALS['__models'][$_model_v];
 	}
 
@@ -22,119 +23,144 @@ class BackEnd extends dsSystem
     }
     
 
-    public function set_cookie($__nm, $__value)
+    public static function set_cookie($__nm, $__value)
     { // Set cookie for expired
         global $server;
         $__nm = dsSystem::fill_text($__nm);
-        setcookie(sha1($__nm), $__value, $server['cookie_expired'] * 60 * 60 * 24);
+        setcookie(md5($__nm), $__value, $server['cookie_expired'] * 60 * 60 * 24);
         return $__value;
     }
 
-    public function _cookie($__nm)
+    public static function _cookie($__nm)
     { // Get value in cookie
         $__nm = dsSystem::fill_text($__nm);
-        return $_COOKIE[sha1($__nm)];
+        return $_COOKIE[md5($__nm)];
     }
-
-    public static function model($mod__,$alias__)
-    { // Add object model into variable __models
-	    require_once config('model_path').'/'.$mod__.'.php';
-    	$GLOBALS['__models'][$alias__] = new $mod__();
-    }
-    public static function row($__q_or_t, $__wh = "", $__bool = "AND") // can be input by query or table, with WHERE condition
+    public function row($__q_or_t, $__wh = "", $__bool = "AND") // can be input by query or table, with WHERE condition
     {
         // get connection to mysql
-        $__q = QueryBuilder::query($__q_or_t, $__wh, $__bool);
-        $__q['query'] .= " ORDER BY 1 DESC LIMIT 0,1";
-        self::execute($__q);
+        $this->sql = QueryBuilder::query($__q_or_t, $__wh, $__bool);
+        $this->sql['query'] .= " ORDER BY 1 DESC LIMIT 0,1";
         return __CLASS__;
     }
 
     // can be input by query or table, with
     // WHERE condition and Boolean AND/OR.
     // the default is AND
-    public static function table($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND',  $__ord = "ASC")
+    public function table($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND',  $__ord = "ASC")
     {
-        $__q = QueryBuilder::query($__q_or_t, $__wh, $__bool);
-        $__q['query'] .= ' ORDER BY 1 '.$__ord;
-        // Execute Query
-        self::execute($__q);
+        $this->sql = QueryBuilder::query($__q_or_t, $__wh, $__bool);
+        $this->sql['query'] .= ' ORDER BY 1 '.$__ord;
         // Return as Array
         return __CLASS__;
     }
 
-	public static function query($sql)
+	public function query($sql)
     {
-        self::execute(['query' => $sql, 'values' => []]);
+        $this->sql = ['query' => $sql, 'values' => []];
+        $this->execute();
         return __CLASS__;
     }
-    public static function fetch_row($target = NULL)
+    public function fetch_row($pdo_fetch_type = NULL)
     {
-        if($target == NULL)
-            $target = PDO::FETCH_BOTH;
-        return self::$pdo_result->fetch($target);
+        // Execute Query
+        $this->execute();
+        // get one row
+        return $this->fetch($pdo_fetch_type, FALSE);
     }
-    public static function fetch_all($target = NULL)
+    public function fetch_all($pdo_fetch_type = NULL)
     {
-        if($target == NULL)
-            $target = PDO::FETCH_BOTH;
-        return self::$pdo_result->fetchAll($target);
+        // Execute Query
+        $this->execute();
+        return $this->fetch($pdo_fetch_type);
     }
-    static function insert($__table, $__dt)
+    // Get pdo result
+    private function fetch($pdo_fetch_type, bool $all_data = TRUE){
+        if($pdo_fetch_type == NULL)
+            $pdo_fetch_type = PDO::FETCH_BOTH;
+        if($all_data)
+            return $this->pdo_result->fetchAll($pdo_fetch_type);
+        else
+            return $this->pdo_result->fetch($pdo_fetch_type);
+    }
+    public function top_all(Int $startRow, Int $limit = 100)
     {
-        $__q = QueryBuilder::prepare_insert($__table,$__dt);
+        $this->sql['query'] .= QueryBuilder::limit($startRow, $limit);
+        $result_data = [];
+        $result_counter = 0;
+        do {
+            $this->execute(FALSE);
+            $result_data = array_merge($this->fetch(NULL, TRUE));
+            // add 3000 for loop quick
+            $result_counter += 3000;
+        } while ($result_counter <= $limit);
+
+        // Execute Query
+        return $result_data;
+    }
+    public function top_row(Int $startRow , Int $limit = 100)
+    {
+        $this->sql['query'] .= QueryBuilder::limit($startRow, $limit);
+        // Execute Query
+        return $this->fetch_row();
+    }
+    public function insert($__table, $__dt)
+    {
+        $this->sql = QueryBuilder::prepare_insert($__table,$__dt);
         // insert
-        self::execute($__q);
-        if (self::$pdo_result) {
+        $this->execute();
+        if ($this->pdo_result) {
             return TRUE;
         }else{
             return FALSE;
         }
     }
-
-    static function insert_get($__table, $__dt) // Insert and get all values
+    public function insert_get($__table, $__dt) // Insert and get all values
     {
-        self::insert($__table, $__dt);
-        return self::row($__table, $__dt);
+        $this->insert($__table, $__dt);
+        return $this->row($__table, $__dt);
     }
 
-    static function xss_filtering($_value)
+    public static function xss_filtering($_value)
     {
         $escape_string = config('connection')."_real_escape_string";
         $escape = $escape_string($_value);
         return $escape;
     }
 
-    static function update($__table, $__dt, $__wh)
+    public function update($__table, $__dt, $__wh)
     {
-        $__q = QueryBuilder::update($__table, $__dt, $__wh);
-        self::execute($__q);
-        if (self::$pdo_result) {
+        $this->sql = QueryBuilder::update($__table, $__dt, $__wh);
+        $this->execute();
+        if ($this->pdo_result) {
             return TRUE;
         }else{
             return FALSE;
         }
     }
-    private static function execute($__q)
+    private function execute(bool $clean = TRUE)
     {
         try{
             // get connection to PDO
-            $pdo = dsCore::get_connection();
+            $pdo = $this->get_connection();
             // Set prepare query
-            $data = $pdo->prepare($__q['query']);
+            $data = $pdo->prepare($this->sql['query']);
             // Set values for prepared query
-            $data->execute($__q['values']);
-          // Set pdo_result as PDO Object result
-            self::$pdo_result = $data;
+            $data->execute($this->sql['values']);
+            // Set pdo_result as PDO Object result
+            $this->pdo_result = $data;
+            // set null sql properties
+            if($clean)
+                $this->sql = NULL;
         }catch(PDOException $ex){
             dsSystem::MessageError($ex->getMessage());
         }
     }
-    static function delete($__table, $__wh, $__bool = 'AND')
+    public function delete($__table, $__wh = NULL, $__bool = 'AND')
     {
-        $__q = QueryBuilder::delete($__table, $__wh, $__bool);
-        self::execute($__q);
-        if (self::$pdo_result) {
+        $this->sql = QueryBuilder::delete($__table, $__wh, $__bool);
+        $this->execute();
+        if ($this->pdo_result) {
             return TRUE;
         }else{
             return FALSE;

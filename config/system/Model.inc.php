@@ -3,38 +3,33 @@
     Model:
     - include simple method for build query and execute it directly.
 */
-class dsModel
+class dsModel extends BackEnd
 {
     private $Query;
     private $where;
-    private $backEnd;
+    // private $backEnd;
     public function __construct() {
     }
     public function data_all($target = NULL)
     {
-        if (!is_null($this->backEnd)) {
-            $res = $this->backEnd::fetch_all($target);
-            $this->backEnd = NULL;
+        if (!is_null($this->Query)) {
+            $this->sql['query'] = $this->queryClear();
+            $this->sql['values'] = [];
+            $res = $this->fetch_all($target);
             return $res;
         }else{
             $target = is_null($target) ? PDO::FETCH_BOTH : $target;
-            return BackEnd::query($this->queryClear())::fetch_all($target);
+            return $this->query($this->queryClear())::fetch_all($target);
         }
     }
     public function data_array(){
-        return $this->data_all(PDO::FETCH_BOTH);
+        return $this->data_all(PDO::FETCH_NUM);
     }
     public function data_class(){
         return $this->data_all(PDO::FETCH_OBJ);
     }
     public function data_assoc(){
         return $this->data_all(PDO::FETCH_ASSOC);
-    }
-    public function data_numeric(){
-        return $this->data_all(PDO::FETCH_NUM);
-    }
-    public function data_both(){
-        return $this->data_all(PDO::FETCH_BOTH);
     }
     public function data_bound(){
         return $this->data_all(PDO::FETCH_BOUND);
@@ -51,15 +46,19 @@ class dsModel
     public function data_row($target = NULL)
     {
         if (!is_null($this->backEnd)) {
-            $res = $this->backEnd::fetch_row($target);
+            $res = $this->backEnd->fetch_row($target);
             $this->backEnd = NULL;
         }else{
-            return BackEnd::query($this->queryClear())::fetch_row($target);
+            return $this->query($this->queryClear())::fetch_row($target);
         }
     }
     public function queryClear()
     {
-        return $this->Query.' '.$this->where;
+        // Merge to complete
+        $queries = $this->Query.' '.$this->where;
+        // Clear temporary query base
+        $this->state_clear();
+        return $queries;
     }
     // select($table : String)
     // or
@@ -75,7 +74,7 @@ class dsModel
         $this->Query .= $join;
         return $this;
     }
-    private function where_root($arg1, $arg2 = '', $operand='', $arg3 = 'AND'){
+    private function where_root($arg1, $arg2 = '', $operand='', $operator = 'AND'){
         $operand = string_empty($operand) ? '=' : $operand;
         if(is_array($arg1)){
             $this->where .= string_empty_or_null($this->where) ? ' WHERE ' : ' '.$arg2.' ' ;
@@ -90,7 +89,7 @@ class dsModel
         }
         if(is_string($arg1)){
             // Check where is empty or not then add AND or WHERE clause
-            $this->where .= string_empty_or_null($this->where) ? ' WHERE ' : ' '.$arg3.' ' ;
+            $this->where .= string_empty_or_null($this->where) ? ' WHERE ' : ' '.$operator.' ' ;
             if(string_empty($arg2)){
                 $this->where .= $arg1;
             }else{
@@ -141,7 +140,22 @@ class dsModel
     }
     public function table($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND',  $__ord = "ASC")
     {
-        $this->backEnd = BackEnd::table($__q_or_t, $__wh, $__bool,  $__ord);
+        $this->backEnd = $this->table($__q_or_t, $__wh, $__bool,  $__ord);
         return $this;
+    }
+    public function delete($tableName, $__wh = NULL, $__bool = 'AND')
+    {
+        if(string_empty_or_null($this->where))
+            parent::delete($tableName, $__wh);
+        else
+            parent::delete($tableName, $this->where);
+        // Clear query state
+        $this->state_clear();
+    }
+    private function state_clear()
+    {
+        $this->sql = ['query' => STRING_EMPTY, 'values' => STRING_EMPTY];
+        $this->Query = 
+        $this->where = STRING_EMPTY;
     }
 }

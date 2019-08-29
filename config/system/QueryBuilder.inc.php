@@ -7,15 +7,22 @@
 */
 class QueryBuilder
 {
+    private static $limit = STRING_EMPTY;
+
 	function __construct()
 	{
 	}
-    
     public static function select($arg1, $arg2){
         $q = STRING_EMPTY;
         if ($arg2 != STRING_EMPTY) {
             $col = STRING_EMPTY;
             if(is_array($arg1)){
+                /*
+                if array
+                [
+                    'ColumnName' => 'AliasName'
+                ];
+                */
                 $len = count($arg1);
                 $i = 1;
                 foreach ($arg1 as $column => $as) {
@@ -25,14 +32,18 @@ class QueryBuilder
                     $i++;
                 }
             }
-            if(is_string($arg1)){
-                $col = $arg1;
-            }
+            // if string ('columnName, columnName,..')
+            if(is_string($arg1))
+                $col = $arg1; 
+            
             $q = 'SELECT '.$col.' FROM '.$arg2;
         }else{
             $q = 'SELECT * FROM '.$arg1;
         }
         return $q;
+    }
+    public static function limit($start, $end){
+        return self::$limit = ' LIMIT '.$start. ', '.$end;
     }
     public static function join($_table, $onCondition)
     {
@@ -78,7 +89,7 @@ class QueryBuilder
         }
         if (!(string_contains('select',$__q_or_t)) && !(string_contains('from',$__q_or_t))) {
            $__q_or_t = 'SELECT * FROM '.string_quote_query($__q_or_t)
-                       .(($__wh != STRING_EMPTY) ? ' WHERE '.$__wh : ''); // use WHERE when where is not null
+                       .str_allow(!string_empty($__wh),' WHERE '.$__wh); // use WHERE when where is not null
         }
         return array(
             'query' => $__q_or_t,
@@ -90,16 +101,44 @@ class QueryBuilder
         $_keys = STRING_EMPTY;
         $_values = [];
         $_seeds = STRING_EMPTY;
-        $_q = 'insert into '.string_quote_query($tableName).'(';
+        $_q = 'insert into '.string_quote_query($tableName);
         $i = 0;
-        foreach ($_dt_arr as $key => $value) {
-            $i++;
-            $boolComma = ($i != count($_dt_arr)) ? ',' : '';
-            $_q .= string_quote_query($key).$boolComma;
-            $_values[] = $value;
-            $_seeds .= '?'.$boolComma;
+        // parameter
+        $_params = [];
+        $bIsBatchInsert = FALSE;
+        foreach ($_dt_arr as $item) {
+            $bIsBatchInsert = (is_array($item));
+            break;
         }
-        $_q .= ')values('.$_seeds.');';
+        $_params = $bIsBatchInsert ? $_dt_arr : [$_dt_arr];
+        // count params insert data
+        $len_params = count($_params);
+        for ($i = 0; $i < $len_params; $i++) {
+            $param = $_params[$i]; // DataInsert[i]
+            $len_param = count($param);
+            $last_param = $param[array_key_last($param)];
+            // loop for child
+            
+            if($i >= 1 && $i < $len_params)
+                $_seeds .= ',';
+
+            if($i == 0)
+                $_q .= '(';
+            $_seeds .= '(';
+            $j = 0;
+            foreach ($param as $key => $value) {
+                if($i == 0)
+                    $_q .= string_quote_query($key).str_allow($last_param != $value ,',');
+                $_values[] = $value;
+                $_seeds .= str_allow($j > 0 , ',').' ?';
+
+                $j++;
+            }
+            $_seeds .= ')';
+            if($i == 0)
+                $_q .= ')'. str_allow($i < $len_param && $i > 1 , ',');
+        }
+        $_q .= 'values'.$_seeds;
         return ['query' => $_q, 'values' => $_values];
     }
     public static function get_key_values($__dt_arr)
@@ -121,8 +160,8 @@ class QueryBuilder
         $__value = [];
         if (is_string($__wh)) {
             // $__wh = dsCore::get_connection()->escape_string($__wh);
-            if ($__wh != STRING_EMPTY) {
-                $__q .= ' WHERE '.$__wh;
+            if (!string_empty_or_null($__wh)) {
+                $__q['query'] .= str_allow(!string_contains('WHERE', substr($__wh, 0, 7)), ' WHERE ').$__wh;
             }
         }else if (is_array($__wh)) {
             $index = 0;

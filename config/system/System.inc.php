@@ -4,13 +4,13 @@ class dsSystem
 	public static function Message($msg)
 	{
 		$status = config('status');
-		if ($status != 'publish' && $status != 'development') {
+		if ($status != Key::PUBLISHED && $status != Key::DEVELOPMENT) {
 			echo '<br><div style="background-color:darkorange;color:white"><b>Message</b> : </div>';
 		}
 		if ($status == 'debugging') {
 			echo $msg.'</div>';
 		}
-		if ($status == 'development') {
+		if ($status == Key::DEVELOPMENT) {
 			
 		}
 	}
@@ -23,7 +23,7 @@ class dsSystem
 		echo $_file_name.'<br>(#'.$status.') : ';
 		if ($status == 'debugging') {
 			echo $msg;
-		}else if ($status == 'development') {
+		}else if ($status == Key::DEVELOPMENT) {
 			die($msg);
 		}else{
 			die('Sorry Nothing to do Here');

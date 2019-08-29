@@ -13,9 +13,9 @@ return array(
     'Controller.inc.php',
     'FrontEnd.inc.php',
     'QueryBuilder.inc.php',
-    'Model.inc.php',
     'Input.inc.php',
     'Api.inc.php',
     'BackEnd.inc.php',
+    'Model.inc.php',
     'Cache.inc.php'
 );

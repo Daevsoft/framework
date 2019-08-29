@@ -20,7 +20,14 @@ class Server extends Ds
             msg('Ds server started on http://'. $_serverRun.
             "\nCtrl+C to exit the server");
             // Open browser automatically
-            exec("start chrome http://".$_serverRun);
+            $win = parent::string_contains($_SERVER['OS'], 'windows');
+            $mac = parent::string_contains($_SERVER['OS'], 'mac');
+            // For Windows OS
+            if($win)
+                parent::force_cmd("explorer \"http://".$_serverRun."\"");
+            if($mac)
+                parent::force_cmd("open \"http://".$_serverRun."\"");
+            
             // Start web server command
             exec('php -S '.$_serverRun.' '.$root);
         }else{

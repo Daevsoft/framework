@@ -21,11 +21,26 @@ class Ds
   }
   public function GetArgValue($_Arg)
   {
-    // get value command like 'make:controller' the value is 'controller' only
+    // get value command like 'make:controller' get value at 'controller' only
     return explode(':',$_Arg)[FIRST_ARG];
   }
   public function IsContain($_string_text, $_find)
   {
     return (strstr($_string_text, $_find) != '');
+  }
+  public static function force_cmd($command)
+  {
+    try{
+      if(is_string($command))
+        exec($command);
+    }catch(Exeption $ex){
+    }
+  }
+  public static function string_contains($string, $contain)
+  {
+		if(strpos(strtolower($string), strtolower($contain)) === false)
+			return false;
+		else
+			return true;
   }
 }

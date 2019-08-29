@@ -10,7 +10,7 @@ if (!(($array_ip[0] == "*" || $array_ip[0] == $ip_request[0]) &&
 }
 // Validate ip address in ip_list
 if ($ipAddress['ip_list'] != 'any') {
-	if (strstr($ipAddress['ip_list'], $_SERVER['REMOTE_ADDR']) == "") {
+	if (!string_contains($_SERVER['REMOTE_ADDR'], $ipAddress['ip_list'])) {
 		die("Cannot access this website because permission is not allowed!");
 	}
 }

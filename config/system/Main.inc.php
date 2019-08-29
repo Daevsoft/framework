@@ -70,24 +70,29 @@ if(! function_exists('set_notice_handler')){
 }
 // If published some error will be hidden.
 switch ($server['status']) {
-	case 'development':
+	case Key::DEVELOPMENT:
 	// Code for development here
 	set_notice_handler();
 	set_exception_handler('dsException');
 	break;
-	case 'published':error_reporting(0);break;
+	case Key::PUBLISHED:error_reporting(0);break;
 	default:break;
 }
 // Load Controller class
 spl_autoload_register(function ($classname)
 {
 	$filename = STRING_EMPTY;
-	$filename = Indexes::$DIR_ROOT.config('controller_path').'/'.$classname.'.php';
+	// generate physical directory file name
+	$filename = Indexes::$DIR_ROOT.config('controller_path').Key::CHAR_SLASH.$classname.'.php';
 	if(file_exists($filename)){
 		require_once $filename;
 	}else {
-		// If File Controller not exist !
-		dsSystem::MessageError(__FILE__,'Error '.$classname.' Not Found');
+		// page not found function has 3 argument 
+		// (condition, alternate_function, argument1, argument2, ...)
+		Page::not_found(config('status') == Key::PUBLISHED, function($args){
+			// If File Controller not exist !
+			dsSystem::MessageError(__FILE__,'Error '.$args[0].' Not Found');
+		}, $classname);
 	}
 });
 
@@ -101,11 +106,12 @@ if (! function_exists('uri')) {
 	function uri($uri_position)
 	{
 		// Get Uri Address
-		$uri = explode('/', substr($_SERVER['REQUEST_URI'], 1));
+		$uri = explode(Key::CHAR_SLASH, substr($_SERVER['REQUEST_URI'], 1));
 		if(count($uri) < $uri_position) MessageError('URI Not Found at position '. $uri_position);
 		return $uri[$uri_position];
 	}
 }
+
 // get Uri Request
 if (! function_exists('view')) {
 	function view($view_target, $data = [])
@@ -134,7 +140,7 @@ if (! function_exists('string_empty')) {
 if (! function_exists('string_empty_or_null')) {
 	function string_empty_or_null($_string)
 	{
-		// Get boolean
+		// Get result condition
 		return (is_null($_string) || string_empty($_string));
 	}
 }
@@ -225,6 +231,7 @@ if (! function_exists('lang')) {
 		}
 	}
 }
+
 if (! function_exists('string_contains')) {
 	function string_contains($_seed, $_value){
 		if(strpos($_value, $_seed) === false)
@@ -233,11 +240,25 @@ if (! function_exists('string_contains')) {
 			return true;
 	}
 }
+if (! function_exists('string_crop')) {
+	function string_crop(string $_string, int $startIndex , string $_cropTo = '', int $offset = 0){
+		if(!string_empty($_string)){
+			$endIndex = string_empty($_cropTo) ? 0 : strpos($_string, $_cropTo, $offset);
+			$endIndex = $endIndex == 0 ? strlen($_string) : $endIndex;
+			return substr($_string, $startIndex, $endIndex);
+		} return $_string;
+	}
+}
+if (! function_exists('str_allow')) {
+	function str_allow(bool $_condition, string $_allow = '', string $_replace = STRING_EMPTY){
+		return $_condition ? $_allow : $_replace;
+	}
+}
 if (! function_exists('site')) {
 	function site($_routeLink)
 	{
 		// Get Uri Address
-		return Indexes::$BASE_URL.'/'.$_routeLink;
+		return Indexes::$BASE_URL.Key::CHAR_SLASH.$_routeLink;
 	}
 }
 // File downloader from header
@@ -253,7 +274,7 @@ if (! function_exists('force_download')) {
 if (! function_exists('redirect')) {
 	function redirect($target='')
 	{
-		header('Location:'.Indexes::$BASE_URL.'/'.$target);
+		header('Location:'.Indexes::$BASE_URL.Key::CHAR_SLASH.$target);
 	}
 }
 
@@ -271,7 +292,7 @@ if (! function_exists('_request')) {
 if (! function_exists('get_file')) {
 	function get_file($_path_file = '')
 	{
-		$_path = Indexes::$BASE_URL.'/assets/files/'.$_path_file;
+		$_path = Indexes::$BASE_URL.Key::CHAR_SLASH.'assets/files'.Key::CHAR_SLASH.$_path_file;
 		return $_path;
 	}
 }
@@ -286,7 +307,7 @@ if (! function_exists('secure_page')) {
 if (! function_exists('css_source')) {
 	function css_source($_fileName)
 	{
-	echo '<link rel=\'stylesheet\' href=\''.Indexes::$BASE_URL.('/assets/css/'.$_fileName).'.css\'>';
+	echo '<link rel=\'stylesheet\' href=\''.Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets/css'.Key::CHAR_SLASH.$_fileName).'.css\'>';
 	}
 }
 if (! function_exists('css_url')) {
@@ -299,7 +320,7 @@ if (! function_exists('css_url')) {
 if (! function_exists('js_source')) {
 	function js_source($_fileName)
 	{
-	echo '<script type=\'text/javascript\' src=\''. Indexes::$BASE_URL.('/assets/js/'.$_fileName).'.js\'></script>';
+	echo '<script type=\'text/javascript\' src=\''. Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets/js'.Key::CHAR_SLASH.$_fileName).'.js\'></script>';
 	}
 }
 
@@ -313,6 +334,6 @@ if (! function_exists('js_url')) {
 if (! function_exists('assets_source')) {
 	function assets_source($_fileName)
 	{
-		echo Indexes::$BASE_URL.('/assets/'.$_fileName);
+		echo Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets'.Key::CHAR_SLASH.$_fileName);
 	}
 }

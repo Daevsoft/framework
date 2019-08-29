@@ -1,6 +1,7 @@
 <?php
 class dsCache
-{   
+{
+
     public function __construct(){
     }
     

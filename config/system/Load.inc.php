@@ -13,15 +13,15 @@ if (count($autoload[Key::MODELS])) {
 	Load::load_libraries_and_modules($autoload[Key::MODELS],Key::MODELS);
 }
 // end object load
-function _get($_ind)
+function _get($_object_name)
 {
-    $_mz = Load::object($_ind) or printf("<h3>Object <i>$_ind</i> not registered !</h3>");
-	return $_mz;
+    $_instance_init = Load::object($_object_name) or printf("<h3>Object <i>$_object_name</i> not registered !</h3>");
+	return $_instance_init;
 }
 function _set($_initVar, $objInstance = NULL){
 	Load::set_object($_initVar, $objInstance);
 }
-class Load extends dsSystem
+class Load extends dsCore
 {
 	// Array for load class modules,libraries,controller
 	private static $_ms;
@@ -40,19 +40,24 @@ class Load extends dsSystem
 			if(file_exists($_target_location_dirname)){
 				// Include File model
 				require_once $_target_location_dirname;
-				if ($InstanceClass && is_array(self::$_ms)) {
-					$__alias = ($__alias == '') ? $__target : $__alias;
-					if(count($_params) > 0){
-						$r_object = new ReflectionClass($__target);
-						self::$_ms[$__alias] = $r_object->newInstanceArgs($_params);
-					}else{
-						Load::set_object($__alias, new $__target());
-					}
+				if(class_exists($__target) && $InstanceClass){
+					self::set_instance_active($__target, $__alias, $__dir, $_params = []);
 				}
 			}else{
 				parent::MessageError($__target,'Cannot load object <b><i>'.$__target.'</i></b> from <b>'.ucfirst($__dir).'</b>, cause <i>'.$__target . '</i> not found!');
 			}
-    }
+	}
+	private static function set_instance_active($__target, $__alias, $__dir, $_params = []){
+		if ( is_array(self::$_ms)) {
+			$__alias = ($__alias == '') ? $__target : $__alias;
+			if(count($_params) > 0){
+				$r_object = new ReflectionClass($__target);
+				self::$_ms[$__alias] = $r_object->newInstanceArgs($_params);
+			}else{
+				Load::set_object($__alias, new $__target());
+			}
+		}
+	}
 
 		public static function set_object($__alias, $__target)
 		{
@@ -74,18 +79,15 @@ class Load extends dsSystem
 				}
 			}
     }
-
-	static function inc_module($module_target)
+	public static function inc_module($module_target)
 	{
 		self::load_dir($module_target, '', Key::MODULES, false);
 	}
-
-	static function inc_libraries($libraries_target)
+	public static function inc_libraries($libraries_target)
 	{
 		self::load_target($libraries_target, Key::LIBRARIES);
 	}
-
-	static function load_target($target, $folderName){
+	public static function load_target($target, $folderName){
 		if(is_array($target)){
 			foreach ($target as $sub) {
 				self::load_dir($sub, '', $folderName, false);
@@ -94,7 +96,6 @@ class Load extends dsSystem
 			self::load_dir($target, '', $folderName, false);
 		}
 	}
-
     public static function module($module_target , $alias = '', $_params = [])
 	{
 		$module_target = ucfirst($module_target);
@@ -104,7 +105,6 @@ class Load extends dsSystem
 	{
 		self::load_dir($lib_target, $alias, Key::LIBRARIES, true, $_params);
 	}
-
 	public static function controller($con_target, $alias = '', $_params = [])
 	{
 		$con_target = ucfirst($con_target);
