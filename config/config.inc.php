@@ -5,12 +5,12 @@ defined('root') or die('<h3>Sorry, nothing to do here !</h3> Config');
 // (default: $_SERVER['HTTP_HOST'].'/index.php')
 define('HTTP_HOST', $_SERVER['HTTP_HOST']); // .'/index.php'
 
-// Connection for server
+// Configuration application
 $server = [
 
 	// APP NAME
 	// Your web name
-	'app_name'				=> 'Ds Web App',
+	'app_name'				=> 'My App',
 	
 	// SERVER HOST
 	// your database server host
@@ -85,12 +85,20 @@ $server = [
 	// file from composer such as library from other source.
 	'composer_path'			=> 'vendor',
 
-	// STATUS REPORTING
-	// Status is Web Status. It will impact to any crash or error reporting
-	// if published any crash/error reporting will be hidden.
-	// option : debugging/development/published
-	'status'				=> 'development'
+	/* STATUS REPORTING
+	Status is Web Status. It will impact to any crash or error reporting
+	if published any crash/error reporting will be hidden.
+	option : 
+		- dev (development)
+		- pub (published)
+	*/
+	'status'				=> 'dev',
 
+	// 404 Page Not Found
+	// If address url not found the system will open file view in the views/404/index.php.
+	// Fill name if file 404 able in views/404.
+	// Default empty it mean call the index.php in 404 folder.
+	'404_not_found_file'			=> ''
 ];
 
 // Autoload libraries
@@ -107,17 +115,21 @@ $autoload = [
 	Key::MODELS		=> []
 ];
 
-// RouteList
-// write like this 'RouteName' => 'RouteTarget'.
-// For example 'myController/welcome' => 'welcomepage/hello'
-$routeList = [
+// Rename Controller
+// used when you want to replace/manipulate your Controller Name
+// write like this 'YourController' => 'replaceName'
+// For example : 'MyController' => 'admin'
+$renameController = [
+	'Welcome' => 'oke'
 ];
 
-// Rename Controller/Route
-// used when you want to replace/manipulate your Controller Name
-// write like this 'renamedName' => 'YourController'
-// For example : 'homepage' => 'MyController'
-$renameController = [
+// RouteList
+// write like this 'RouteName' => 'RouteTarget'.
+// For example 'myController/myFunction' => 'pageone'
+// Then open your browser like 'localhost:8000/pageone' same as 'localhost:8000/myController/myFunction'
+$routeList = [
+	'oke/index' => 'sample',
+	'oke/other' => 'pass'
 ];
 
 //IP Address validation
