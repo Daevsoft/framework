@@ -149,7 +149,7 @@ class '.$_filenames.' extends dsController
         $data = array(
             \'demoVariable\' 		=> "this is sample text variable"
         );
-        page(\''.$file.'\',$data);
+        view(\''.$file.'\',$data);
     }
 
     public function demoSlice()
@@ -157,7 +157,7 @@ class '.$_filenames.' extends dsController
         $data = array(
             \'demoVariable\'       => "Demo Variable"
         );
-        page(\''.$file.'.slice\',$data);
+        view(\''.$file.'.slice\',$data);
     }
 }';
 $_filenames = ucfirst($_filenames);
@@ -185,7 +185,7 @@ class '.$_filenames.' extends dsModel
     // Demo function
     public function getData()
     {
-        return $this->select(\''.$file.'\')::get_all();
+        return $this->select(\''.$file.'\')->data_all();
     }
 }';
 $_filenames = ucfirst($_filenames);

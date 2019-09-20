@@ -5,53 +5,60 @@ class Input extends dsSystem
     {
         
     }
-    private static function warn($__nm){
-        parent::MessageError(uri(0).Key::CHAR_SLASH.uri(1),'Input Name : '. $__nm .' not found!');
+    private static function warn($inputName){
+        parent::MessageError(uri(0).Key::CHAR_SLASH.uri(1),'Input Name : '. $inputName .' not found!');
     }
-    public static function post($__nm, $_warn = true)
+    public static function post($inputName, $_warn = true)
     {
         // Check is Input Key able
         if($_warn)
-            if(!array_key_exists($__nm,$_POST))
-                self::warn($__nm);
+            if(!array_key_exists($inputName,$_POST))
+                self::warn($inputName);
          // Get value from post value form method
-        $__nm = $_POST[$__nm];
-        $__nm = parent::fill_text($__nm);
-    	return $__nm;
+        $inputName = $_POST[$inputName];
+        $inputName = parent::fill_text($inputName);
+    	return $inputName;
     }
 
-    public static function request($__nm, $_warn = true)
+    public static function date($inputName, $format = 'Y-m-d', $_warn = true)
     {
-        // Check is Input Key able
-        if($_warn)
-            if(!array_key_exists($__nm,$_REQUEST))
-                self::warn($__nm);
-         // Get value from post value form method
-        $__nm = $_REQUEST[$__nm];
-        $__nm = parent::fill_text($__nm);
-    	return $__nm;
+        $inputData = self::request($inputName, $_warn);
+        $datetime = date($format, strtotime($inputData));
+        return $datetime;
     }
-    public static function get($__nm, $_warn = true)
+
+    public static function request($inputName, $_warn = true)
     {
         // Check is Input Key able
         if($_warn)
-            if(!array_key_exists($__nm,$_GET))
-                self::warn($__nm);
+            if(!array_key_exists($inputName,$_REQUEST))
+                self::warn($inputName);
+         // Get value from post value form method
+        $inputName = $_REQUEST[$inputName];
+        $inputName = parent::fill_text($inputName);
+    	return $inputName;
+    }
+    public static function get($inputName, $errWarning = true)
+    {
+        // Check is Input Key able
+        if($errWarning)
+            if(!array_key_exists($inputName,$_GET))
+                self::warn($inputName);
         // Get value from get value form method
-    	$__nm = $_GET[$__nm];
-        $__nm = parent::fill_text($__nm);
-        return $__nm;
+    	$inputName = $_GET[$inputName];
+        $inputName = parent::fill_text($inputName);
+        return $inputName;
     }
 
-    public static function header($__nm, $_warn = true)
+    public static function header($inputName, $errWarning = true)
     {
         $header = getallheaders();
-        if($_warn)
-            if(!array_key_exists($__nm,$header))
-                self::warn($__nm);
+        if($errWarning)
+            if(!array_key_exists($inputName,$header))
+                self::warn($inputName);
         // Get value from get value form method
-        $__nm = $header[$__nm];
-        $__nm = parent::fill_text($__nm);
-        return $__nm;
+        $inputName = $header[$inputName];
+        $inputName = parent::fill_text($inputName);
+        return $inputName;
     }
 }

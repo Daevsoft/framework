@@ -28,7 +28,11 @@ class QueryBuilder
                 foreach ($arg1 as $column => $as) {
                     if($i <= $len && $i > 1)
                         $col .= ',';
-                    $col .= $column . ' AS ' . $as;
+                    
+                    $col .= str_allow(
+                        is_string($column),
+                        $column . ' AS \'' . $as . '\'', 
+                        $as);
                     $i++;
                 }
             }
@@ -66,6 +70,17 @@ class QueryBuilder
         }
         $join = ' JOIN '.$_tableRef.' ON '.$on;
         return $join;
+    }
+    // String $by = 'column1, column2, ...'
+    // Array $by = ['column1', 'column2', ...]
+    public static function group($by){
+        $groupQuery = ' GROUP BY ';
+        if(is_string($by)){
+            return $groupQuery.$by;
+        }else if(is_array($by)){
+            return $groupQuery. implode(',', $by);
+        }
+        return STRING_EMPTY;
     }
     public static function like_separator($val, $operand = '=')
     {

@@ -41,7 +41,7 @@ class BackEnd extends dsCore
         // get connection to mysql
         $this->sql = QueryBuilder::query($__q_or_t, $__wh, $__bool);
         $this->sql['query'] .= " ORDER BY 1 DESC LIMIT 0,1";
-        return __CLASS__;
+        return $this;
     }
 
     // can be input by query or table, with
@@ -52,14 +52,14 @@ class BackEnd extends dsCore
         $this->sql = QueryBuilder::query($__q_or_t, $__wh, $__bool);
         $this->sql['query'] .= ' ORDER BY 1 '.$__ord;
         // Return as Array
-        return __CLASS__;
+        return $this;
     }
 
 	public function query($sql)
     {
         $this->sql = ['query' => $sql, 'values' => []];
         $this->execute();
-        return __CLASS__;
+        return $this;
     }
     public function fetch_row($pdo_fetch_type = NULL)
     {
@@ -104,6 +104,11 @@ class BackEnd extends dsCore
         // Execute Query
         return $this->fetch_row();
     }
+    public function get_column($__tablename){
+        $this->sql['query'] = 'DESC '.string_quote_query($__tablename);
+        $this->sql['values'] = [];
+        return $this->fetch_all(PDO::FETCH_NAMED);
+    }
     public function insert($__table, $__dt)
     {
         $this->sql = QueryBuilder::prepare_insert($__table,$__dt);
@@ -127,7 +132,6 @@ class BackEnd extends dsCore
         $escape = $escape_string($_value);
         return $escape;
     }
-
     public function update($__table, $__dt, $__wh)
     {
         $this->sql = QueryBuilder::update($__table, $__dt, $__wh);

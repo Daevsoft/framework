@@ -2,7 +2,7 @@
 class Page
 {
     // true for testing slice cache, false for validate cache timing 
-    private static $testing_cache = false;
+    private static $testing_cache = true;
 
     // for slice render
     private static $slice_source;
