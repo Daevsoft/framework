@@ -99,7 +99,7 @@ class WelcomeController extends dsController
         $data = array(
             'WelcomeVariable' 		=> "this is sample text variable"
         );
-        FrontEnd::page('Welcome',$data);
+        view('Welcome',$data);
     }
 
     public function WelcomeSlice()
@@ -107,13 +107,13 @@ class WelcomeController extends dsController
         $data = array(
             'WelcomeVariable'       => "Welcome Variable"
         );
-        FrontEnd::page('Welcome.slice',$data);
+        view('Welcome.slice',$data);
     }
 }
 ```
 write http://localhost:8000/welcome to access the index page. make sure view of welcome file is exist in 'app/views' folder, if not exist it will be crashed, because 
 ```php
-  FrontEnd::page('Welcome', $data);
+  view('Welcome', $data);
 ```
 same to call 'app/views/Welcome.php' file. So, the 'Welcome.php' must be created before trying to call it.<br />
 Write command 'php ds add:view welcome'. Response message will appear in terminal
