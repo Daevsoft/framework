@@ -107,7 +107,7 @@ if (! function_exists('uri')) {
 	{
 		// Get Uri Address
 		$uri = explode(Key::CHAR_SLASH, substr($_SERVER['REQUEST_URI'], 1));
-		if(count($uri) < $uri_position) MessageError('URI Not Found at position '. $uri_position);
+		if(count($uri) < $uri_position) dsSystem::MessageError('URI Not Found at position '. $uri_position);
 		return $uri[$uri_position];
 	}
 }
@@ -283,7 +283,7 @@ if (! function_exists('_request')) {
 	function _request($__nm)
 	{
 		$__nm = $_REQUEST[$__nm] or die("Request <b>$__nm</b> not found !");
-		$__nm = fill_text($__nm);
+		$__nm = dsSystem::fill_text($__nm);
 		return $__nm;
 	}
 }

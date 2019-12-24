@@ -3,19 +3,30 @@ class API extends dsSystem
 {
     public static $tempRecordApi;
     public static $requestLink;
+    public static $requestMtd;
     private static $sql;
 
     public function __construct()
     {
     }
+    public static function init($_initCallback, $_failureCallback = NULL){
+        $run = $_initCallback($_REQUEST, self::$sql);
+        if(is_bool($run))
+            if(!$run)
+                if($_failureCallback != NULL){
+                    $_failureCallback();
+                    die();
+                }else{
+                    die('Access is denied!');
+                }
+    }
     private static function apiRequestReceiver($_reqSeed, $_funcResponse, $_data)
     {
         if(is_null(API::$sql))
             API::$sql = new dsModel();
-        $seed = dsSystem::fill_text($_reqSeed);
         $request_not_found = true;
-        if(isset(self::$tempRecordApi[self::$requestLink][$seed])){
-            if(self::$tempRecordApi[self::$requestLink][$seed]){
+        if(isset(self::$tempRecordApi[self::$requestLink][self::$requestMtd])){
+            if(self::$requestMtd == $_reqSeed){
                 $response = $_funcResponse($_data, API::$sql);
                 $request_not_found = false;
                 if(is_array($response))
@@ -24,9 +35,8 @@ class API extends dsSystem
                     echo json_encode([$response]);
                 die();
             }
-        }
-        if($request_not_found){
-            parent::MessageError('Api <b>'.$seed.'</b> not found !');
+        }else if($request_not_found){
+            parent::MessageError('Api <b>'.self::$requestLink.'</b> not found !');
         }
     }
     public static function post($_reqSeed, $_funcResponse)
@@ -52,13 +62,14 @@ class API extends dsSystem
             self::$tempRecordApi[$_reqApi] = NULL;
         }
     }
-    public static function route($_reqSeed, $_seed)
+    public static function route($_reqApiClass, $_reqMtd)
     {
-        if($_seed == Key::INDEX)
-            $_seed = Key::CHAR_SLASH;
-        $seed = parent::fill_text($_seed);
-        $reqSeed = parent::fill_text($_reqSeed);
+        if($_reqMtd == Key::INDEX)
+            $_reqMtd = Key::CHAR_SLASH;
+        $seed = parent::fill_text($_reqMtd);
+        $reqSeed = parent::fill_text($_reqApiClass);
         self::$requestLink = $reqSeed;
+        self::$requestMtd = $seed;
         self::$tempRecordApi[self::$requestLink][$seed] = TRUE;
     }
 

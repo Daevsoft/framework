@@ -147,6 +147,7 @@ class BackEnd extends dsCore
         try{
             // get connection to PDO
             $pdo = $this->get_connection();
+            echo $this->sql['query'];
             // Set prepare query
             $data = $pdo->prepare($this->sql['query']);
             // Set values for prepared query

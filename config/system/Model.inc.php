@@ -7,8 +7,7 @@ class dsModel extends BackEnd
 {
     private $Query;
     private $isWhereDefine = FALSE;
-
-    // private $backEnd;
+    
     public function __construct() {
     }
     public function data_all($target = NULL)
@@ -89,7 +88,7 @@ class dsModel extends BackEnd
     private function where_root($arg1, $arg2 = '', $operand='', $operator = 'AND'){
         $operand = string_empty($operand) ? '=' : $operand;
         if(is_array($arg1)){
-            $this->Query .= $this->isWhereDefine ? ' WHERE ' : ' '.$arg2.' ' ;
+            $this->Query .= !$this->isWhereDefine ? ' WHERE ' : ' '.$arg2.' ' ;
             $i = 1;
             foreach ($arg1 as $col => $value) {
                 if($i > 1 )
@@ -100,14 +99,14 @@ class dsModel extends BackEnd
         }
         if(is_string($arg1)){
             // Check where is empty or not then add AND or WHERE clause
-            $this->Query .= $this->isWhereDefine ? ' WHERE ' : ' '.$operator.' ' ;
+            $this->Query .= !$this->isWhereDefine ? ' WHERE ' : ' '.$operator.' ' ;
             if(string_empty($arg2)){
                 $this->Query .= $arg1;
             }else{
                 $this->Query .= $arg1.QueryBuilder::like_separator($arg2, $operand).'\''.$arg2.'\'';
             }
         }
-        // Set WhereDefine Condition to TRUE,
+        // Set WhereDefine Condition TRUE,
         // that mean WHERE clause have been initialize before
         $this->isWhereDefine = TRUE;
         // Return Object For Next Query

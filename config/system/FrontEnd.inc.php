@@ -13,7 +13,7 @@ class FrontEnd extends dsCore
 		// Set Default Controller First Load
 		$req_uri = (!isset($_SERVER['REQUEST_URI'])) ?
 		config('first_load') : trim($_SERVER['REQUEST_URI'],Key::CHAR_SLASH);
-		$this->view($GLOBALS['routeList'],$GLOBALS['renameController'], strtolower($req_uri) );
+		$this->view($GLOBALS['routeList'],$GLOBALS['renameController'], lcfirst($req_uri) );
   }
 
   // $_seed => string : ind,end
@@ -92,7 +92,7 @@ class FrontEnd extends dsCore
       // find rute value and get key
       $route_found = array_search($controller[0],$renameController);
       // rename controller
-      $controller[0] = strtolower(($route_found) ? 
+      $controller[0] = lcfirst(($route_found) ? 
       // Rename controller is able ?
       $route_found : $controller[0]);
       $controller[0] .= Key::CONTROLLER;
@@ -129,21 +129,28 @@ class FrontEnd extends dsCore
         die('dsController not extended in this Controller or contructor not called.');
       }
     }else{
+      $this->on_attach_api($requestTarget, $structure_app, $first_load, $path);
+    }
+  }
+  private function on_attach_api($requestTarget, $structure_app, $first_load, $path)
+  {
       $iRouteStep = ($structure_app == Key::MULTI ? 1 : 0);
       $apiRequest = dsSystem::fill_text($requestTarget[0 + $iRouteStep]);
       $apiRequest = $apiRequest == STRING_EMPTY ? $first_load : $apiRequest;
-      $filename   = Indexes::$DIR_API.$apiRequest.'.php';
+      $filename   = Indexes::$DIR_API.ucfirst($apiRequest).'.php';
       $apiTarget  = count($requestTarget) > 1 + $iRouteStep ? $requestTarget[1 + $iRouteStep] : Key::CHAR_SLASH;
+      
       $indexOf    = strpos($apiTarget,'?');
-      $apiRoute   = $indexOf != 0 ? substr($apiTarget, 0, $indexOf) : $apiTarget;
+      $apiRoute   = $indexOf < 0 ? substr($apiTarget, 0, $indexOf) : $apiTarget;
+      // set attribute of api requirement
       API::route($apiRequest, $apiRoute);
-      if(file_exists($filename))
+      if(file_exists($filename)){
         require_once $filename;
+      }
       else{
         $ex = new Exception($filename.' file is not found or not registered!');
         $ex = new dsException($ex,'URI Address -> '. $path,FALSE);
       }
-    }
   }
   public static function route($_routeTarget, $_routeName)
   {

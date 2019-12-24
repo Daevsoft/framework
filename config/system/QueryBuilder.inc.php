@@ -11,7 +11,15 @@ class QueryBuilder
 
 	function __construct()
 	{
-	}
+    }
+    /* 
+    arg1 = collection of column
+    arg2 = table name
+    if arg1 = array then
+        arg1 as column
+    if arg2 is empty then
+        arg1 as table name
+    */
     public static function select($arg1, $arg2){
         $q = STRING_EMPTY;
         if ($arg2 != STRING_EMPTY) {
@@ -163,7 +171,7 @@ class QueryBuilder
         foreach ($__dt_arr as $key => $value) {
             $dot = ($index == (count($__dt_arr) - 1) ? STRING_EMPTY : ',' );
             $keys .= string_quote_query($key).$dot;
-            $value = fill_text($value);
+            $value = dsSystem::fill_text($value);
             $values .= "'$value'".$dot;
             $index++;
         }

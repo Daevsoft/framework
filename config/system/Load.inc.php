@@ -44,7 +44,7 @@ class Load extends dsCore
 					self::set_instance_active($__target, $__alias, $__dir, $_params = []);
 				}
 			}else{
-				parent::MessageError($__target,'Cannot load object <b><i>'.$__target.'</i></b> from <b>'.ucfirst($__dir).'</b>, cause <i>'.$__target . '</i> not found!');
+				dsSystem::MessageError($__target,'Cannot load object <b><i>'.$__target.'</i></b> from <b>'.ucfirst($__dir).'</b>, cause <i>'.$__target . '</i> not found!');
 			}
 	}
 	private static function set_instance_active($__target, $__alias, $__dir, $_params = []){
