@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 264">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: gray;
+      }
+
+      .cls-2 {
+        fill: #fff;
+        stroke: #707070;
+      }
+
+      .cls-3 {
+        fill: #24f332;
+      }
+
+      .cls-4 {
+        fill: #91f4ff;
+      }
+
+      .cls-5 {
+        fill: #dcdcdc;
+      }
+
+      .cls-6 {
+        fill: #f58181;
+      }
+
+      .cls-7 {
+        fill: #ffb300;
+      }
+
+      .cls-8 {
+        fill: #8181f5;
+      }
+
+      .cls-9 {
+        fill: #e6e6e6;
+      }
+
+      .cls-10 {
+        stroke: none;
+      }
+
+      .cls-11 {
+        fill: none;
+      }
+    </style>
+  </defs>
+  <g id="PC" transform="translate(-1156 -276)">
+    <g id="Group_1" data-name="Group 1" transform="translate(-186)">
+      <rect id="Rectangle_3" data-name="Rectangle 3" class="cls-1" width="352" height="242" rx="22" transform="translate(1342 276)"/>
+      <g id="Rectangle_4" data-name="Rectangle 4" class="cls-2" transform="translate(1354 298)">
+        <rect class="cls-10" width="329" height="183"/>
+        <rect class="cls-11" x="0.5" y="0.5" width="328" height="182"/>
+      </g>
+      <rect id="Rectangle_5" data-name="Rectangle 5" class="cls-1" width="99" height="22" transform="translate(1469 518)"/>
+      <rect id="Rectangle_6" data-name="Rectangle 6" class="cls-1" width="225" height="14" rx="7" transform="translate(1406 526)"/>
+      <g id="Ellipse_1" data-name="Ellipse 1" class="cls-2" transform="translate(1512 282)">
+        <circle class="cls-10" cx="6.5" cy="6.5" r="6.5"/>
+        <circle class="cls-11" cx="6.5" cy="6.5" r="6"/>
+      </g>
+    </g>
+    <g id="Group_4" data-name="Group 4" transform="translate(102 -3)">
+      <circle id="Ellipse_3" data-name="Ellipse 3" class="cls-3" cx="57.5" cy="57.5" r="57.5" transform="translate(1258 319)"/>
+      <path id="Intersection_1" data-name="Intersection 1" class="cls-4" d="M55,60V.053Q56.243,0,57.5,0A57.5,57.5,0,0,1,115,57.5q0,1.256-.053,2.5Z" transform="translate(1258 319)"/>
+    </g>
+    <g id="Group_6" data-name="Group 6">
+      <rect id="Rectangle_16" data-name="Rectangle 16" class="cls-5" width="117" height="14" rx="7" transform="translate(1193 326)"/>
+      <rect id="Rectangle_17" data-name="Rectangle 17" class="cls-5" width="86" height="4" rx="2" transform="translate(1193 358)"/>
+      <rect id="Rectangle_18" data-name="Rectangle 18" class="cls-5" width="86" height="4" rx="2" transform="translate(1193 368)"/>
+      <rect id="Rectangle_19" data-name="Rectangle 19" class="cls-5" width="59" height="5" rx="2.5" transform="translate(1193 378)"/>
+      <rect id="Rectangle_20" data-name="Rectangle 20" class="cls-5" width="72" height="9" rx="4.5" transform="translate(1193 401)"/>
+      <rect id="Rectangle_21" data-name="Rectangle 21" class="cls-5" width="112" height="5" rx="2.5" transform="translate(1193 417)"/>
+      <rect id="Rectangle_22" data-name="Rectangle 22" class="cls-5" width="103" height="5" rx="2.5" transform="translate(1193 426)"/>
+    </g>
+    <g id="Group_5" data-name="Group 5">
+      <rect id="Rectangle_23" data-name="Rectangle 23" class="cls-6" width="7.875" height="7.875" rx="3.938" transform="translate(1360 435)"/>
+      <rect id="Rectangle_24" data-name="Rectangle 24" class="cls-7" width="7.875" height="7.875" rx="3.938" transform="translate(1360 445)"/>
+      <rect id="Rectangle_25" data-name="Rectangle 25" class="cls-8" width="7.875" height="7.875" rx="3.938" transform="translate(1360 455.125)"/>
+      <rect id="Rectangle_26" data-name="Rectangle 26" class="cls-9" width="51" height="4" transform="translate(1374 437)"/>
+      <rect id="Rectangle_27" data-name="Rectangle 27" class="cls-9" width="38" height="4" transform="translate(1374 447)"/>
+      <rect id="Rectangle_28" data-name="Rectangle 28" class="cls-9" width="12" height="4" transform="translate(1374 457)"/>
+    </g>
+  </g>
+</svg>

@@ -18,7 +18,7 @@ class dsController extends dsCore
 	{
 		if(is_null($_alias))
 			$_alias = $_class;
-		Load::$type($_class, $_alias);
+		forward_static_call_array([Load::class, $type], [$_class, $_alias]);
 		$this->property_modify_controller($_alias, _get($_alias));
 	}
 	public function add_model(string $_model, $_alias = NULL)

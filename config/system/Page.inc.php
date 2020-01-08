@@ -13,7 +13,7 @@ class Page
     {
         
     }
-    public static function __page($__fl='',$__dt = array())
+    public static function __page($__fl=STRING_EMPTY,$__dt = array())
     {
         self::$collection_temp = $__dt;
         self::$_filenames = dirname(dirname(__DIR__)).Key::CHAR_SLASH.config('view_path').Key::CHAR_SLASH.$__fl.'.php';

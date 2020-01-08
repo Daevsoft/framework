@@ -19,7 +19,7 @@ class dsSystem
 		$status = config('status');
 		$ArgLen = func_num_args();
 		$msg = $ArgLen == 2 ? func_get_arg(1) : func_get_arg(0);
-		$_file_name = $ArgLen  == 2 ? '<br>(file:'.func_get_arg(0).')' : '';
+		$_file_name = $ArgLen  == 2 ? '<br>(file:'.func_get_arg(0).')' : STRING_EMPTY;
 		echo $_file_name.'<br>(#'.$status.') : ';
 		if ($status == 'debugging') {
 			echo $msg;
@@ -32,10 +32,10 @@ class dsSystem
 	// Filtering text input form
 	public static function fill_text($__tx)
 	{
+		$__tx = trim($__tx);
 		$__tx = htmlspecialchars($__tx);
 		$__tx = strip_tags($__tx);
 		$__tx = stripslashes($__tx);
-		$__tx = trim($__tx);
 		$__tx = filter_var($__tx, FILTER_SANITIZE_STRING);
 		return $__tx;
 	}

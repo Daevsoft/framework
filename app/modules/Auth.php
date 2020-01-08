@@ -10,7 +10,7 @@ class Auth
     {
         if(!string_empty($key_code)){
             if(!$this->isRegistered($key_code))
-                $_SESSION[$key_code] = md5(time().sha1('ds'));
+                $_SESSION[$key_code] = md5(time().'ds');
         }
     }
 

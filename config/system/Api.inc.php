@@ -1,5 +1,5 @@
 <?php
-class API extends dsSystem
+class Api extends dsSystem
 {
     public static $tempRecordApi;
     public static $requestLink;

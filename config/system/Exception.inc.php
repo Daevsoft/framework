@@ -4,7 +4,7 @@ class dsException extends Exception
     private $exception;
     private $filename;
     private $filename_real;
-    public function __construct($_exception, $filename = '',bool $show_line = TRUE)
+    public function __construct($_exception, $filename = STRING_EMPTY,bool $show_line = TRUE)
     {
         $this->exception = $_exception;
         if($filename == STRING_EMPTY){

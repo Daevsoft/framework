@@ -83,7 +83,7 @@ class FrontEnd extends dsCore
     // Get action based on structure
     if($structure_app == Key::MVC
       || ($requestTarget[0] != Key::API && $structure_app == Key::MULTI)){
-        
+
       $controller = $requestTarget;
       // Get the first Controller will loaded
       $controller[0] = string_empty($controller[0]) ?
@@ -156,7 +156,7 @@ class FrontEnd extends dsCore
   {
     Route::set_route(site($_routeTarget), $_routeName);
   }
-  static function page($__fl='',$__dt = array())
+  static function page($__fl=STRING_EMPTY,$__dt = array())
   {
     // Create your security filter here
     Page::__page($__fl, $__dt); // Load file view

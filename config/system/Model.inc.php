@@ -55,6 +55,12 @@ class dsModel extends BackEnd
             return $this->fetch_row($target);
         }
     }
+    public function data_exist()
+    {
+        $data = $this->data_row();
+        die();
+        return count($data) > 0;
+    }
     public function queryClear()
     {
         // Merge to complete
@@ -66,7 +72,7 @@ class dsModel extends BackEnd
     // select($table : String)
     // or
     // select($selectColumn : String, $tableName)
-    public function select($arg1, $arg2 = '')
+    public function select($arg1, $arg2 = STRING_EMPTY)
     {
         $this->Query = QueryBuilder::select($arg1, $arg2);
         return $this;
@@ -85,7 +91,7 @@ class dsModel extends BackEnd
         $this->Query .= $join;
         return $this;
     }
-    private function where_root($arg1, $arg2 = '', $operand='', $operator = 'AND'){
+    private function where_root($arg1, $arg2 = STRING_EMPTY, $operand=STRING_EMPTY, $operator = 'AND'){
         $operand = string_empty($operand) ? '=' : $operand;
         if(is_array($arg1)){
             $this->Query .= !$this->isWhereDefine ? ' WHERE ' : ' '.$arg2.' ' ;
@@ -113,42 +119,42 @@ class dsModel extends BackEnd
         return $this;
     }
     // function where ($arg1: Array[], $arg2: String)
-    public function where($arg1, $arg2 = '', $operand='=', $arg3 = 'AND')
+    public function where($arg1, $arg2 = STRING_EMPTY, $operand='=', $arg3 = 'AND')
     {
         return $this->where_root($arg1, $arg2, $operand, $arg3);
     }
     // where x like y
-    public function like($arg1, $arg2 = '', $arg3 = 'AND')
+    public function like($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
     {
         return $this->where_root($arg1, $arg2, ' like ', $arg3);
     }
     // where x = y
-    public function equal($arg1, $arg2 = '', $arg3 = 'AND')
+    public function equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
     {
         return $this->where_root($arg1, $arg2, ' = ', $arg3);
     }
     // where x != y
-    public function not_equal($arg1, $arg2 = '', $arg3 = 'AND')
+    public function not_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
     {
         return $this->where_root($arg1, $arg2, ' != ', $arg3);
     }
     // where x > y
-    public function greater($arg1, $arg2 = '', $arg3 = 'AND')
+    public function greater($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
     {
         return $this->where_root($arg1, $arg2, ' > ', $arg3);
     }
     // where x >= y
-    public function greater_equal($arg1, $arg2 = '', $arg3 = 'AND')
+    public function greater_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
     {
         return $this->where_root($arg1, $arg2, ' > ', $arg3);
     }
     // where x < y
-    public function lower($arg1, $arg2 = '', $arg3 = 'AND')
+    public function lower($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
     {
         return $this->where_root($arg1, $arg2, ' < ', $arg3);
     }
     // where x <= y
-    public function lower_equal($arg1, $arg2 = '', $arg3 = 'AND')
+    public function lower_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
     {
         return $this->where_root($arg1, $arg2, ' <= ', $arg3);
     }
@@ -159,10 +165,10 @@ class dsModel extends BackEnd
     }
     public function delete($tableName, $__wh = NULL, $__bool = 'AND')
     {
-        if(string_empty_or_null($this->where))
+        if(string_empty_or_null($__wh))
             parent::delete($tableName, $__wh);
         else
-            parent::delete($tableName, $this->where);
+            parent::delete($tableName, string_part($this->Query, 'WHERE'));
         // Clear query state
         $this->state_clear();
     }

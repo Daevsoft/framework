@@ -2,7 +2,7 @@
 $GLOBALS = array(
 	'renameController' => $renameController,
 	'routeList' => $routeList,
-	'server' => $server,
+	'server' => $config,
 	'__models' => [] // For models objects
 );
 
@@ -22,11 +22,10 @@ if (! function_exists('cache_record')) {
 	{
 		$dir_temporary_record_time = $GLOBALS['dir_temporary_record_time'];
 		// Get Cache Index
-		if(isset($dir_temporary_record_time[$_record_index])){
+		if(isset($dir_temporary_record_time[$_record_index]))
 			return $dir_temporary_record_time[$_record_index];
-		}else{
+		else
 			return STRING_EMPTY;
-		}
 	}
 }
 
@@ -69,13 +68,14 @@ if(! function_exists('set_notice_handler')){
 	}
 }
 // If published some error will be hidden.
-switch ($server['status']) {
+switch ($config['status']) {
 	case Key::DEVELOPMENT:
-	// Code for development here
-	set_notice_handler();
-	set_exception_handler('dsException');
+		// Code for development here
+		set_notice_handler();
+		set_exception_handler('dsException');
 	break;
-	case Key::PUBLISHED:error_reporting(0);break;
+	case Key::PUBLISHED:
+		error_reporting(0);break;
 	default:break;
 }
 // Load Controller class
@@ -83,6 +83,7 @@ spl_autoload_register(function ($classname)
 {
 	$filename = STRING_EMPTY;
 	// generate physical directory file name
+
 	$filename = Indexes::$DIR_ROOT.config('controller_path').Key::CHAR_SLASH.$classname.'.php';
 	if(file_exists($filename)){
 		require_once $filename;
@@ -207,25 +208,22 @@ if (! function_exists('lang')) {
 									return $_langValue[$key];
 								}else{
 									$arrRange = explode('-',$key);
-									if($_countable >= $arrRange[0]){
-										if(count($arrRange) > 1){
+									if($_countable >= $arrRange[0])
+										if(count($arrRange) > 1)
 											if($_countable <= $arrRange[1])
 												return $msg;
-										}
-									}
 								}
 							}elseif(string_contains('+',$key)){
-								
-							}
-						}
-					}
-			}else{
-				return $_langValue;
-			}
-			return $_msg;
-		}else{
-			// return translate from index json
-			return $lang[0]->$_seed[0]->$_msg;			}
+								// TODO
+							} // end if
+						} // end if
+					} // end foreach
+				}else
+					return $_langValue;
+				return $_msg;
+			}else
+				// return translate from index json
+				return $lang[0]->$_seed[0]->$_msg;
 		}else{
 			return $_msg;
 		}
@@ -241,7 +239,7 @@ if (! function_exists('string_contains')) {
 	}
 }
 if (! function_exists('string_crop')) {
-	function string_crop(string $_string, int $startIndex , string $_cropTo = '', int $offset = 0){
+	function string_crop(string $_string, int $startIndex , string $_cropTo = STRING_EMPTY, int $offset = 0){
 		if(!string_empty($_string)){
 			$endIndex = string_empty($_cropTo) ? 0 : strpos($_string, $_cropTo, $offset);
 			$endIndex = $endIndex == 0 ? strlen($_string) : $endIndex;
@@ -249,8 +247,19 @@ if (! function_exists('string_crop')) {
 		} return $_string;
 	}
 }
+if (! function_exists('string_part')){
+	function string_part($string, $string_start, $string_end = NULL)
+	{
+		if($string_end == NULL)
+			return substr($string, strlen($string_start) + strpos($string, $string_start));
+		else
+			return substr($string, strlen($string_start) + strpos($string, $string_start), 
+				strlen($string_end) + strpos($string, $string_end));
+	}
+}
 if (! function_exists('str_allow')) {
-	function str_allow(bool $_condition, string $_allow = '', string $_replace = STRING_EMPTY){
+	function str_allow(bool $_condition, string $_allow = STRING_EMPTY, string $_replace = STRING_EMPTY)
+	{
 		return $_condition ? $_allow : $_replace;
 	}
 }
@@ -272,7 +281,7 @@ if (! function_exists('force_download')) {
 }
 // Direct linking
 if (! function_exists('redirect')) {
-	function redirect($target='')
+	function redirect($target=STRING_EMPTY)
 	{
 		header('Location:'.Indexes::$BASE_URL.Key::CHAR_SLASH.$target);
 	}
@@ -290,7 +299,7 @@ if (! function_exists('_request')) {
 
 // Call path file in files folder
 if (! function_exists('get_file')) {
-	function get_file($_path_file = '')
+	function get_file($_path_file = STRING_EMPTY)
 	{
 		$_path = Indexes::$BASE_URL.Key::CHAR_SLASH.'assets/files'.Key::CHAR_SLASH.$_path_file;
 		return $_path;
@@ -299,35 +308,35 @@ if (! function_exists('get_file')) {
 if (! function_exists('secure_page')) {
 	function secure_page()
 	{
-		$server = $GLOBALS['server'];
-		(defined('root') && !empty($server)) or die('<h3>Sorry, nothing to do here !</h3> Secure');
+		$config = $GLOBALS['server'];
+		(defined('root') && !empty($config)) or die('<h3>Sorry, nothing to do here !</h3> Secure');
 	}
 }
 
 if (! function_exists('css_source')) {
 	function css_source($_fileName)
 	{
-	echo '<link rel=\'stylesheet\' href=\''.Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets/css'.Key::CHAR_SLASH.$_fileName).'.css\'>';
+		echo '<link rel=\'stylesheet\' href=\''.Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets/css'.Key::CHAR_SLASH.$_fileName).'.css\'>';
 	}
 }
 if (! function_exists('css_url')) {
 	function css_url($_fileName)
 	{
-	echo '<link rel=\'stylesheet\' href=\''.$_fileName.'.css\'>';
+		echo '<link rel=\'stylesheet\' href=\''.$_fileName.'.css\'>';
 	}
 }
 
 if (! function_exists('js_source')) {
 	function js_source($_fileName)
 	{
-	echo '<script type=\'text/javascript\' src=\''. Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets/js'.Key::CHAR_SLASH.$_fileName).'.js\'></script>';
+		echo '<script type=\'text/javascript\' src=\''. Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets/js'.Key::CHAR_SLASH.$_fileName).'.js\'></script>';
 	}
 }
 
 if (! function_exists('js_url')) {
 	function js_url($_fileName)
 	{
-	echo '<script type=\'text/javascript\' src=\''.$_fileName.'.js\'></script>';
+		echo '<script type=\'text/javascript\' src=\''.$_fileName.'.js\'></script>';
 	}
 }
 

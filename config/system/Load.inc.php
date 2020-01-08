@@ -47,9 +47,10 @@ class Load extends dsCore
 				dsSystem::MessageError($__target,'Cannot load object <b><i>'.$__target.'</i></b> from <b>'.ucfirst($__dir).'</b>, cause <i>'.$__target . '</i> not found!');
 			}
 	}
-	private static function set_instance_active($__target, $__alias, $__dir, $_params = []){
+	private static function set_instance_active($__target, $__alias = NULL, $__dir, $_params = []){
 		if ( is_array(self::$_ms)) {
-			$__alias = ($__alias == '') ? $__target : $__alias;
+			// check is class need alias instance name
+			$__alias = string_empty_or_null($__alias) ? $__target : $__alias;
 			if(count($_params) > 0){
 				$r_object = new ReflectionClass($__target);
 				self::$_ms[$__alias] = $r_object->newInstanceArgs($_params);
@@ -70,6 +71,8 @@ class Load extends dsCore
 				if(is_array($_libName)){
 					self::load_dir($_libName[0], $key , $target, true, array_slice($_libName, 1));
 				}
+				if(is_bool($_libName))
+					self::load_dir($key, NULL , $target, $_libName);
 				if(is_string($_libName)){
 					if ($target == Key::LIBRARIES) {
 						self::library($_libName, (is_numeric($key) ? $_libName : $key ));
@@ -81,7 +84,7 @@ class Load extends dsCore
     }
 	public static function inc_module($module_target)
 	{
-		self::load_dir($module_target, '', Key::MODULES, false);
+		self::load_dir($module_target, STRING_EMPTY, Key::MODULES, false);
 	}
 	public static function inc_libraries($libraries_target)
 	{
@@ -90,27 +93,27 @@ class Load extends dsCore
 	public static function load_target($target, $folderName){
 		if(is_array($target)){
 			foreach ($target as $sub) {
-				self::load_dir($sub, '', $folderName, false);
+				self::load_dir($sub, STRING_EMPTY, $folderName, false);
 			}
 		}else if (is_string($target)) {
-			self::load_dir($target, '', $folderName, false);
+			self::load_dir($target, STRING_EMPTY, $folderName, false);
 		}
 	}
-    public static function module($module_target , $alias = '', $_params = [])
+    public static function module($module_target , $alias = STRING_EMPTY, $_params = [])
 	{
 		$module_target = ucfirst($module_target);
 		self::load_dir($module_target, $alias, Key::MODULES, true, $_params);
 	}
-	public static function library($lib_target, $alias = '', $_params = [])
+	public static function library($lib_target, $alias = STRING_EMPTY, $_params = [])
 	{
 		self::load_dir($lib_target, $alias, Key::LIBRARIES, true, $_params);
 	}
-	public static function controller($con_target, $alias = '', $_params = [])
+	public static function controller($con_target, $alias = STRING_EMPTY, $_params = [])
 	{
 		$con_target = ucfirst($con_target);
 		self::load_dir($con_target.Key::CONTROLLER, $alias, Key::CONTROLLERS, true, $_params);
 	}
-	public static function model($mod_target, $alias = '', $_params = [])
+	public static function model($mod_target, $alias = STRING_EMPTY, $_params = [])
 	{
 		$mod_target = ucfirst($mod_target);
 		self::load_dir($mod_target.Key::MODEL, $alias, Key::MODELS, true, $_params);

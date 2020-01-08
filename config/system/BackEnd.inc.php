@@ -25,9 +25,9 @@ class BackEnd extends dsCore
 
     public static function set_cookie($__nm, $__value)
     { // Set cookie for expired
-        global $server;
+        global $config;
         $__nm = dsSystem::fill_text($__nm);
-        setcookie(md5($__nm), $__value, $server['cookie_expired'] * 60 * 60 * 24);
+        setcookie(md5($__nm), $__value, $config['cookie_expired'] * 60 * 60 * 24);
         return $__value;
     }
 

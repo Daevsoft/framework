@@ -20,9 +20,13 @@ class Key{
     public const MVC = 'mvc';
     public const MULTI = 'both';
 
+    // State Working
+    public const DEVELOPMENT = 'dev';
+    public const PUBLISHED = 'pub';
     
     // Ext Php Slice
     public const EXT_SLICE = '.slice.php';
+    public const EXT_PHP = '.php';
 
     public const CHAR_SLASH = '/';
     public const INDEX = 'index';
@@ -30,6 +34,7 @@ class Key{
     public const D_APP = 'app/';
     public const D_CONFIG = 'config/';
     public const D_SYSTEM = 'system/';
+    public const D_STORAGE = 'storage/';
 }
 class Indexes{
     public static $DIR_ROOT = STRING_EMPTY;
@@ -40,6 +45,7 @@ class Indexes{
     public static $DIR_MODULES = STRING_EMPTY;
     public static $DIR_CACHE = STRING_EMPTY;
     public static $DIR_API = STRING_EMPTY;
+    public static $DIR_STORAGE = STRING_EMPTY;
     public static $DIR_CACHE_TIME = STRING_EMPTY;
     public static $DIR_CACHE_VIEW = STRING_EMPTY;
     public static $DIR_CACHE_OBJECT = STRING_EMPTY;
@@ -50,11 +56,13 @@ class Indexes{
 
     public static function init(){
         self::$DIR_ROOT = dirname(__DIR__). Key::CHAR_SLASH;
-        self::$SERVER_PROTOCOL = strtolower(explode('/',$_SERVER['SERVER_PROTOCOL'])[0]);
+        self::$SERVER_PROTOCOL = strtolower(explode(Key::CHAR_SLASH,$_SERVER['SERVER_PROTOCOL'])[0]);
         // App Directory
         self::$DIR_APP = self::$DIR_ROOT. Key::D_APP;
         // Configuration Directory
         self::$DIR_CONFIG = self::$DIR_ROOT. Key::D_CONFIG;
+        // Storage Directory for Cache location
+        self::$DIR_STORAGE = self::$DIR_ROOT. Key::D_STORAGE;
         // System Directory
         self::$DIR_SYSTEM = self::$DIR_CONFIG. Key::CHAR_SLASH. Key::D_SYSTEM;
         // Modules Directory
@@ -62,33 +70,33 @@ class Indexes{
         // Cache Directory
         self::$DIR_CACHE = self::$DIR_APP. Key::CACHE. Key::CHAR_SLASH;
         // API Directory
-        self::$DIR_API = self::$DIR_APP.'api/';
+        self::$DIR_API = self::$DIR_APP.'api'.Key::CHAR_SLASH;
         // Cache Time Directory
-        self::$DIR_CACHE_TIME = self::$DIR_APP.'cache/times/temp';
+        self::$DIR_CACHE_TIME = self::$DIR_STORAGE.'cache/times/temp';
         // Cache View Directory
-        self::$DIR_CACHE_VIEW = self::$DIR_APP.'cache/views/';
+        self::$DIR_CACHE_VIEW = self::$DIR_STORAGE.'cache/views/';
         // Cache Object Directory
-        self::$DIR_CACHE_OBJECT = self::$DIR_APP.'cache/object/ref';
+        self::$DIR_CACHE_OBJECT = self::$DIR_STORAGE.'cache/object/ref';
         // View Directory
-        self::$DIR_VIEWS = self::$DIR_APP.'views/';
+        self::$DIR_VIEWS = self::$DIR_APP.'views'.Key::CHAR_SLASH;
         // your web server host (ex:localhost/index.php)
         // (default: $_SERVER['HTTP_HOST'].'/index.php')
         self::$HTTP_HOST = $_SERVER['HTTP_HOST']; // .'/index.php'
         // Base url
         self::$BASE_URL = self::$SERVER_PROTOCOL.'://'.self::$HTTP_HOST;
         // Asset files url
-        self::$LINK_FILES = self::$BASE_URL.'/assets/files';
+        self::$LINK_FILES = self::$BASE_URL.Key::CHAR_SLASH.'assets/files';
     }
 }
 Indexes::init();
 
 // Get global variable
-require_once Indexes::$DIR_APP.'constants/define.php';
+require_once Indexes::$DIR_APP.'constants/define' . Key::EXT_PHP;
 // Start the session
 session_start();
 
-// Include All required files in Core.php
-require_once '../config/system/autoload.php';
+// Include All required files for Core.php
+require_once '../config/system/autoload'. Key::EXT_PHP;
 _autoload2f40af1f10ad60c89a4b333ee7943d49::getLoader();
 
 // Set Core as Null Value
@@ -98,10 +106,10 @@ $core_cache = file_get_contents(Indexes::$DIR_CACHE_OBJECT);
 // Unserialize Core object from cache
 $core = unserialize($core_cache);
 // If Core is never cached then reinitialize Core Object
-if(!is_object($core)){
-    $core = new dsCore();
-    $ref = serialize($core);
-    file_put_contents(Indexes::$DIR_CACHE_OBJECT, $ref);
+if(!is_object($core) && config('status') == Key::DEVELOPMENT){
+   $core = new dsCore();
+   $ref = serialize($core);
+   file_put_contents(Indexes::$DIR_CACHE_OBJECT, $ref);
 }
 // Connect Web from Core Object to running All Process
 $core->connect();
