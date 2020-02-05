@@ -16,7 +16,7 @@ class Key{
     public const CONTROLLER = 'Controller';
     public const CONTROLLERS = 'controllers';
     public const GLOBAL_OBJECT_MAIN_SOURCE = '__dsObjectMainSource_ms';
-    public const API = 'Api';
+    public const API = 'api';
     public const MVC = 'mvc';
     public const MULTI = 'both';
 
@@ -35,6 +35,7 @@ class Key{
     public const D_CONFIG = 'config/';
     public const D_SYSTEM = 'system/';
     public const D_STORAGE = 'storage/';
+    public const D_STORAGE_FILES = 'files/';
 }
 class Indexes{
     public static $DIR_ROOT = STRING_EMPTY;
@@ -52,6 +53,7 @@ class Indexes{
     public static $DIR_VIEWS = STRING_EMPTY;
     public static $HTTP_HOST = STRING_EMPTY;
     public static $BASE_URL = STRING_EMPTY;
+    public static $BASE_ASSETS = STRING_EMPTY;
     public static $LINK_FILES = STRING_EMPTY;
 
     public static function init(){
@@ -80,12 +82,13 @@ class Indexes{
         // View Directory
         self::$DIR_VIEWS = self::$DIR_APP.'views'.Key::CHAR_SLASH;
         // your web server host (ex:localhost/index.php)
-        // (default: $_SERVER['HTTP_HOST'].'/index.php')
-        self::$HTTP_HOST = $_SERVER['HTTP_HOST']; // .'/index.php'
+        self::$HTTP_HOST = $_SERVER['HTTP_HOST'];
         // Base url
         self::$BASE_URL = self::$SERVER_PROTOCOL.'://'.self::$HTTP_HOST;
+        // Assets folder
+        self::$BASE_ASSETS = self::$BASE_URL.Key::CHAR_SLASH.'assets/';
         // Asset files url
-        self::$LINK_FILES = self::$BASE_URL.Key::CHAR_SLASH.'assets/files';
+        self::$LINK_FILES = self::$BASE_URL. Key::D_STORAGE_FILES;
     }
 }
 Indexes::init();
