@@ -9,7 +9,13 @@ class Api extends dsSystem
     public function __construct()
     {
     }
+    private static function setSql()
+    {
+        if(is_null(API::$sql))
+            API::$sql = new dsModel();
+    }
     public static function init($_initCallback, $_failureCallback = NULL){
+        self::setSql();
         $run = $_initCallback($_REQUEST, self::$sql);
         if(is_bool($run))
             if(!$run)
@@ -22,8 +28,7 @@ class Api extends dsSystem
     }
     private static function apiRequestReceiver($_reqSeed, $_funcResponse, $_data)
     {
-        if(is_null(API::$sql))
-            API::$sql = new dsModel();
+        self::setSql();
         $request_not_found = true;
         if(isset(self::$tempRecordApi[self::$requestLink][self::$requestMtd])){
             if(self::$requestMtd == $_reqSeed){
@@ -31,8 +36,9 @@ class Api extends dsSystem
                 $request_not_found = false;
                 if(is_array($response))
                     echo json_encode($response);
-                if(is_string($response))
-                    echo json_encode([$response]);
+                else
+                    if(!is_null($response))
+                        echo json_encode([$response]);
                 die();
             }
         }else if($request_not_found){

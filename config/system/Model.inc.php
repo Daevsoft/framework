@@ -165,12 +165,16 @@ class dsModel extends BackEnd
     }
     public function delete($tableName, $__wh = NULL, $__bool = 'AND')
     {
-        if(string_empty_or_null($__wh))
-            parent::delete($tableName, $__wh);
+        $result = false;
+        if(!string_empty_or_null($__wh))
+            $result = parent::delete($tableName, $__wh);
         else
-            parent::delete($tableName, string_part($this->Query, 'WHERE'));
+            $result = parent::delete($tableName, string_part($this->Query, 'WHERE'));
+        
         // Clear query state
         $this->state_clear();
+
+        return $result;
     }
     private function state_clear()
     {

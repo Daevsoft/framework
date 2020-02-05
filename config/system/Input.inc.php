@@ -73,7 +73,8 @@ class Input extends dsSystem
     }
     private static function checkValidation(&$inputValue, $inputName, $options)
     {
-        $arrOption = explode('|', $options);
+        
+        $arrOption = (is_array($options)) ? $options : explode('|', $options);
         $passed = true;
         foreach ($arrOption as $option) {
 

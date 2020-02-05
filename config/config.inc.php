@@ -40,7 +40,7 @@ $config = [
 	|	your selected database
 	|	Multiple database coming soon
 	*/
-	'database'				=> 'nasr_archery',
+	'database'				=> '',
 
 	/* PORT
 	|	Default Port :
@@ -62,16 +62,6 @@ $config = [
 	|	- pub (published)
 	*/
 	'status'				=> 'dev',
-
-	/* USE INDEX PHP
-	| 	Some server host may need index.php url to access it
-	| 	ex : http://localhost/index.php/samplepage/
-	| 	set as		=> 'index.php',
-	|	for use index.php
-	|	or set as	=> STRING_EMPTY,
-	|	for not
-	*/
-	'use_index'				=> 'index.php',
 
 	/* -----------------------------------------------------\
 	|			Structure and Folder Configuration
@@ -104,7 +94,7 @@ $config = [
 	|	use ControllerName when 'structure_app' is 'mvc' or 'both'
 	|	sample for 'controllers/MainController.php' is 'main'
 	*/
-	'first_load'			=> 'Welcome', 
+	'first_load'			=> 'archer', 
 
 	/* 404 Page Not Found
 	|	If address url not found the system will open file view in the views/404/index.php.
@@ -164,7 +154,7 @@ $config = [
 */
 $autoload = [
 	Key::LIBRARIES	=> [],
-	Key::MODULES	=> [],
+	Key::MODULES	=> ['DbScheme' => false],
 	Key::MODELS		=> []
 ];
 

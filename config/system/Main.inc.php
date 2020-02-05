@@ -83,7 +83,6 @@ spl_autoload_register(function ($classname)
 {
 	$filename = STRING_EMPTY;
 	// generate physical directory file name
-
 	$filename = Indexes::$DIR_ROOT.config('controller_path').Key::CHAR_SLASH.$classname.'.php';
 	if(file_exists($filename)){
 		require_once $filename;
@@ -247,13 +246,16 @@ if (! function_exists('string_crop')) {
 		} return $_string;
 	}
 }
+// string_part = substring start from string_start to string_end
 if (! function_exists('string_part')){
 	function string_part($string, $string_start, $string_end = NULL)
 	{
+		$startPos = strpos($string, $string_start);
+		$startPos = $startPos >= 0 ? $startPos + strlen($string_start) : 0;
 		if($string_end == NULL)
-			return substr($string, strlen($string_start) + strpos($string, $string_start));
+			return substr($string, $startPos);
 		else
-			return substr($string, strlen($string_start) + strpos($string, $string_start), 
+			return substr($string, $startPos, 
 				strlen($string_end) + strpos($string, $string_end));
 	}
 }
@@ -316,7 +318,7 @@ if (! function_exists('secure_page')) {
 if (! function_exists('css_source')) {
 	function css_source($_fileName)
 	{
-		echo '<link rel=\'stylesheet\' href=\''.Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets/css'.Key::CHAR_SLASH.$_fileName).'.css\'>';
+		echo '<link rel=\'stylesheet\' href=\''.Indexes::$BASE_ASSETS.('css'.Key::CHAR_SLASH.$_fileName).'.css\'>';
 	}
 }
 if (! function_exists('css_url')) {
@@ -329,7 +331,7 @@ if (! function_exists('css_url')) {
 if (! function_exists('js_source')) {
 	function js_source($_fileName)
 	{
-		echo '<script type=\'text/javascript\' src=\''. Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets/js'.Key::CHAR_SLASH.$_fileName).'.js\'></script>';
+		echo '<script type=\'text/javascript\' src=\''. Indexes::$BASE_ASSETS.('js'.Key::CHAR_SLASH.$_fileName).'.js\'></script>';
 	}
 }
 

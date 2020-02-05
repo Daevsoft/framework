@@ -60,6 +60,18 @@ class dsException extends Exception
             background-color: orange;
             color: black;
         }
+        .boxErrorTree{
+            border:0.5px solid black;
+            padding:5px; 
+            margin-top: 5px;
+        }
+        .boxErrorTree:hover{
+            background-color:midnightblue;
+            color:white;
+        }
+        .orange{
+            color:orange;
+        }
         </style>';
         echo '
         <div class="BoxDsException__">
@@ -75,9 +87,10 @@ class dsException extends Exception
         .$this->exception->getMessage();
         echo '</div></div>';
 		foreach ($arrTrace as $trace) {
-			echo '<div style="border:0.5px solid black; padding:5px; margin-top: 5px;">';
+			echo '<div class="boxErrorTree">';
 			foreach ($trace as $traceKey => $traceValue) {
-				echo '<b>'.ucfirst($traceKey).'</b> : '.$traceValue.'<br />';
+                $errorDesc = is_array($traceValue) ? print_r($traceValue) : $traceValue;
+				echo '<b class="orange">'.ucfirst($traceKey).'</b> : '.$errorDesc.'<br />';
 			}
 			echo '</div>';
         }
