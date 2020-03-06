@@ -10,7 +10,7 @@ class dsModel extends BackEnd
     
     public function __construct() {
     }
-    public function data_all($target = NULL)
+    public function get_all($target = NULL)
     {
         if (!string_empty_or_null($this->Query)) {
             $this->sql['query'] = $this->queryClear();
@@ -22,28 +22,28 @@ class dsModel extends BackEnd
             return $this->fetch_all($target);
         }
     }
-    public function data_array(){
-        return $this->data_all(PDO::FETCH_NUM);
+    public function get_array(){
+        return $this->get_all(PDO::FETCH_NUM);
     }
-    public function data_class(){
-        return $this->data_all(PDO::FETCH_OBJ);
+    public function get_object(){
+        return $this->get_all(PDO::FETCH_OBJ);
     }
-    public function data_assoc(){
-        return $this->data_all(PDO::FETCH_ASSOC);
+    public function get_assoc(){
+        return $this->get_all(PDO::FETCH_ASSOC);
     }
-    public function data_bound(){
-        return $this->data_all(PDO::FETCH_BOUND);
+    public function get_bound(){
+        return $this->get_all(PDO::FETCH_BOUND);
     }
-    public function data_into(){
-        return $this->data_all(PDO::FETCH_INTO);
+    public function get_into(){
+        return $this->get_all(PDO::FETCH_INTO);
     }
-    public function data_lazy(){
-        return $this->data_all(PDO::FETCH_LAZY);
+    public function get_lazy(){
+        return $this->get_all(PDO::FETCH_LAZY);
     }
-    public function data_named(){
-        return $this->data_all(PDO::FETCH_NAMED);
+    public function get_named(){
+        return $this->get_all(PDO::FETCH_NAMED);
     }
-    public function data_row($target = NULL)
+    public function get_row($target = NULL)
     {
         if (!string_empty_or_null($this->Query)) {
             $this->sql['query'] = $this->queryClear();
@@ -55,13 +55,13 @@ class dsModel extends BackEnd
             return $this->fetch_row($target);
         }
     }
-    public function data_exist()
+    public function get_exist()
     {
-        $data = $this->data_row();
+        $data = $this->get_row();
         die();
         return count($data) > 0;
     }
-    public function queryClear()
+    private function queryClear()
     {
         // Merge to complete
         $queries = $this->Query;
@@ -83,6 +83,14 @@ class dsModel extends BackEnd
     {
         $group = QueryBuilder::group($Columns);
         $this->Query .= $group;
+        return $this;
+    }
+    public function asc($column_name){
+        $this->Query .= QueryBuilder::order_by($column_name, 'ASC');
+        return $this;
+    }
+    public function desc($column_name){
+        $this->Query .= QueryBuilder::order_by($column_name, 'DESC');
         return $this;
     }
     public function join($_table, $onCondition)
@@ -157,11 +165,6 @@ class dsModel extends BackEnd
     public function lower_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
     {
         return $this->where_root($arg1, $arg2, ' <= ', $arg3);
-    }
-    public function table($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND',  $__ord = "ASC")
-    {
-        $this->backEnd = $this->table($__q_or_t, $__wh, $__bool,  $__ord);
-        return $this;
     }
     public function delete($tableName, $__wh = NULL, $__bool = 'AND')
     {

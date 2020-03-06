@@ -94,7 +94,7 @@ $config = [
 	|	use ControllerName when 'structure_app' is 'mvc' or 'both'
 	|	sample for 'controllers/MainController.php' is 'main'
 	*/
-	'first_load'			=> 'archer', 
+	'first_load'			=> 'Welcome',
 
 	/* 404 Page Not Found
 	|	If address url not found the system will open file view in the views/404/index.php.
@@ -154,7 +154,7 @@ $config = [
 */
 $autoload = [
 	Key::LIBRARIES	=> [],
-	Key::MODULES	=> ['DbScheme' => false],
+	Key::MODULES	=> [],
 	Key::MODELS		=> []
 ];
 

@@ -55,7 +55,7 @@ class BackEnd extends dsCore
         return $this;
     }
 
-	public function query($sql)
+	protected function query($sql)
     {
         $this->sql = ['query' => $sql, 'values' => []];
         $this->execute();

@@ -94,6 +94,9 @@ class QueryBuilder
     {
         return (strstr($val,'%') != STRING_EMPTY) ? ' LIKE ' : ' '.$operand.' ';
     }
+    public static function order_by($column, $type){
+        return ' ORDER BY ' . $column . ' ' . $type;
+    }
     public static function query($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND')
     {
         $__dt = STRING_EMPTY;

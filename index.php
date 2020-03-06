@@ -26,8 +26,8 @@ class Key{
     public const DEVELOPMENT = 'dev';
     public const PUBLISHED = 'pub';
     
-    // Ext Php Slice
-    public const EXT_SLICE = '.slice.php';
+    // Ext Php pie
+    public const EXT_pie = '.pie.php';
     public const EXT_PHP = '.php';
 
     public const CHAR_SLASH = '/';

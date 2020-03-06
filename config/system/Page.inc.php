@@ -1,11 +1,11 @@
 <?php
 class Page
 {
-    // true for testing slice cache, false for validate cache timing 
+    // true for testing pie cache, false for validate cache timing 
     private static $testing_cache = true;
 
-    // for slice render
-    private static $slice_source;
+    // for pie render
+    private static $pie_source;
     public static $_filenames;
     private static $collection_temp;
 
@@ -21,7 +21,7 @@ class Page
             dsSystem::MessageError('File view <b>' . $__fl . '</b> not found!');
         };
         // Check is Using template or not
-        if(!string_contains('.slice', $__fl)){
+        if(!string_contains('.pie', $__fl)){
             // Extract All Variable
             extract($__dt);
             require_once(self::$_filenames);
@@ -55,82 +55,82 @@ class Page
     private static function render_page($dir_cache)
     {
         $html = file_get_contents(self::$_filenames);
-        $initialize_slice = self::slice_initialize($html);
-        $initialize_syntax = self::php_initialize($initialize_slice);
+        $initialize_pie = self::pie_initialize($html);
+        $initialize_syntax = self::php_initialize($initialize_pie);
         $php_cache = fopen($dir_cache,'w');
         fwrite($php_cache, $initialize_syntax);
         fclose($php_cache);
     }
 
-    private static function slice_join($render_temp)
+    private static function pie_join($render_temp)
     {
         // get all string with @join
-        $slice_join_precompile_temp = [];
-        $slice_filter_pattern = '/\@join\s(.*)\;/iXsuUm';
+        $pie_join_precompile_temp = [];
+        $pie_filter_pattern = '/\@join\s(.*)\;/iXsuUm';
         // get all join text
-        preg_match_all($slice_filter_pattern, $render_temp, $slice_join_precompile_temp);
+        preg_match_all($pie_filter_pattern, $render_temp, $pie_join_precompile_temp);
 
         // count join text
-        $tab_next_slice = count($slice_join_precompile_temp[0]);
+        $tab_next_pie = count($pie_join_precompile_temp[0]);
         // replace content one by one
-        for ($i=0; $i < $tab_next_slice; $i++) { 
-            // put slice content into index 1
-            $slice_join_precompile_temp[1][$i]
+        for ($i=0; $i < $tab_next_pie; $i++) { 
+            // put pie content into index 1
+            $pie_join_precompile_temp[1][$i]
                 = file_get_contents(Indexes::$DIR_VIEWS.
-            $slice_join_precompile_temp[1][$i].Key::EXT_PHP);
+            $pie_join_precompile_temp[1][$i].Key::EXT_PHP);
             // replace @join with view content
-            $render_temp = str_replace($slice_join_precompile_temp[0][$i],
-            $slice_join_precompile_temp[1][$i], $render_temp);
+            $render_temp = str_replace($pie_join_precompile_temp[0][$i],
+            $pie_join_precompile_temp[1][$i], $render_temp);
         }
 
         return $render_temp;
     }
-    private static function slice_import($render_temp)
+    private static function pie_import($render_temp)
     {
         // get all string with @import
-        $slice_import_precompile_temp = [];
-        $slice_filter_pattern = '/\@import\s(.*)\s(.*)\;/iXsuUm';
+        $pie_import_precompile_temp = [];
+        $pie_filter_pattern = '/\@import\s(.*)\s(.*)\;/iXsuUm';
         // get all import text
-        preg_match_all($slice_filter_pattern, $render_temp, $slice_import_precompile_temp);
-        // count string has slice
-        $tab_next_slice = count($slice_import_precompile_temp[0]);
-        // get slice source[] contents
-        for ($i=0; $i < $tab_next_slice; $i++) { 
-            // put slice content into slice_source
-            self::$slice_source[
-                $slice_import_precompile_temp[2][$i]
+        preg_match_all($pie_filter_pattern, $render_temp, $pie_import_precompile_temp);
+        // count string has pie
+        $tab_next_pie = count($pie_import_precompile_temp[0]);
+        // get pie source[] contents
+        for ($i=0; $i < $tab_next_pie; $i++) { 
+            // put pie content into pie_source
+            self::$pie_source[
+                $pie_import_precompile_temp[2][$i]
                 ] = file_get_contents(Indexes::$DIR_VIEWS.
-                $slice_import_precompile_temp[1][$i].Key::EXT_SLICE);
+                $pie_import_precompile_temp[1][$i].Key::EXT_pie);
             // remove @import from view
-            $render_temp = str_replace($slice_import_precompile_temp[0][$i],STRING_EMPTY, $render_temp);
+            $render_temp = str_replace($pie_import_precompile_temp[0][$i],STRING_EMPTY, $render_temp);
         }
-        for ($i=0; $i < $tab_next_slice; $i++) { 
-            // fill slice part by regex ex:@comp('message')
-            $rgx_slice = '/\@'.$slice_import_precompile_temp[2][$i].'\(\'(.*)\'\)/i';
-            $rgx_slice_match = [];
-            preg_match_all($rgx_slice, $render_temp, $rgx_slice_match);
-            $rgx_slice_count = count($rgx_slice_match[0]);
-            if($rgx_slice_count > 0){
-                for ($j=0; $j < $rgx_slice_count; $j++) { 
-                    $rgx_slice_compile = '/\@'.$slice_import_precompile_temp[2][$i].'\(\''.
-                    $rgx_slice_match[1][$j].'\'\)/i';
-                    // slice source for slicing
-                    $rgx_slice_source = self::$slice_source[
-                        $slice_import_precompile_temp[2][$i]
+        for ($i=0; $i < $tab_next_pie; $i++) { 
+            // fill pie part by regex ex:@comp('message')
+            $rgx_pie = '/\@'.$pie_import_precompile_temp[2][$i].'\(\'(.*)\'\)/i';
+            $rgx_pie_match = [];
+            preg_match_all($rgx_pie, $render_temp, $rgx_pie_match);
+            $rgx_pie_count = count($rgx_pie_match[0]);
+            if($rgx_pie_count > 0){
+                for ($j=0; $j < $rgx_pie_count; $j++) { 
+                    $rgx_pie_compile = '/\@'.$pie_import_precompile_temp[2][$i].'\(\''.
+                    $rgx_pie_match[1][$j].'\'\)/i';
+                    // pie source for slicing
+                    $rgx_pie_source = self::$pie_source[
+                        $pie_import_precompile_temp[2][$i]
                     ];
                     $rgx_source_compiled = [];
-                    preg_match('/(?s)(?<=\@slice\s'.$rgx_slice_match[1][$j].'\:)(.*?)(?=\@endslice)/i',
-                    $rgx_slice_source, $rgx_source_compiled);
-                    $render_temp = preg_replace($rgx_slice_compile, $rgx_source_compiled[0], $render_temp);
+                    preg_match('/(?s)(?<=\@pie\s'.$rgx_pie_match[1][$j].'\:)(.*?)(?=\@endpie)/i',
+                    $rgx_pie_source, $rgx_source_compiled);
+                    $render_temp = preg_replace($rgx_pie_compile, $rgx_source_compiled[0], $render_temp);
                 }
             }
         }
         return $render_temp;
     }
-    private static function slice_initialize($render_temp)
+    private static function pie_initialize($render_temp)
     {
-        $render_temp = self::slice_import($render_temp);
-        $render_temp = self::slice_join($render_temp);
+        $render_temp = self::pie_import($render_temp);
+        $render_temp = self::pie_join($render_temp);
         return $render_temp;
     }
 

@@ -107,7 +107,7 @@ class Executor extends Ds
     {
         foreach ($_files as $file) {
             $_filenames  = $file;
-            if(strstr($file, '.slice') != STRING_EMPTY)
+            if(strstr($file, '.pie') != STRING_EMPTY)
                 $source = '_(( "'.$file.' created !" ))';
             else
                 $source = '<?php echo "'.$file.' created !"; ?>';
@@ -152,12 +152,12 @@ class '.$_filenames.' extends dsController
         view(\''.$file.'\',$data);
     }
 
-    public function demoSlice()
+    public function demopie()
     {
         $data = array(
             \'demoVariable\'       => "Demo Variable"
         );
-        view(\''.$file.'.slice\',$data);
+        view(\''.$file.'.pie\',$data);
     }
 }';
 $_filenames = ucfirst($_filenames);
