@@ -1,5 +1,5 @@
 # Ds Framework PHP
-Php framework with MVC structure & <i>slice</i> templating.
+Php framework with MVC structure & <i>pie</i> template for views.
 This framework required php version 7.1.1 or higher.
 
 ## Getting Started
@@ -36,15 +36,15 @@ it's in <code>/dscommunity/config/config.inc.php</code> file
 Create controller file with command <code>php ds add:controller controllername</code> <br />
 and controller file will generate automatically created in <code>'/app/controllers/controllernameController.php'</code> folder.<br />
 
-### Generate Many Controller
-To generate many controller  file just adding controller name separate by comma.<br />
-Examples : <code>php ds add:controller controllername1,controllername2,controllername3,....</code><br />
+### Generate Controllers
+To generate many controllers just adding controller name separate by comma.<br />
+Examples : <code>php ds add:controller Name1,Name2,Name3,....</code><br />
 and response message will be shown :
 ```
-X:\xxx\dscommunity> php ds add:controller controllername1,controllername2,controllername3
-DsResponse : controllername1Controller has been successfully created!
-DsResponse : controllername2Controller has been successfully created!
-DsResponse : controllername3Controller has been successfully created!
+X:\xxx\dscommunity> php ds add:controller Flight1,Plane2,Office3
+DsResponse : Flight1Controller has been successfully created!
+DsResponse : Plane2Controller has been successfully created!
+DsResponse : Office3Controller has been successfully created!
 ```
 
 ### Remove Controller File
@@ -75,12 +75,40 @@ Don't worry when accidentally remove controller file or model file. The Controll
 ### Why Ds use MVC structure?
 Ds Framework is a php framework with MVC structure. Why we use that structure? Because a php web application must have efficient, organized, and easy to maintenance. If a feature is under repair or development it will not affect other features without having to change the structure.<br />
 
-### What is Slice Template?
-Slice template is php template engine for write php code with simple and reuseable code. <br />Slice PHP written with file extension <code>'.slice.php'</code>.
-When use `<?php $var ?>` it can be implement with `<< $var >>` in slice file, the slice engine will generate `<?php $var ?>` automatically in <code>'app/cache'</code> folder.
+### What is Pie Template?
+Pie template is php template engine for write php code with simple and reuseable code. <br />Pie PHP written with <code>'.pie.php'</code> file extension.
+When use `<?php $var ?>` it can be simple write with `<< $var >>`, the pie engine will generate `<?php $var ?>` automatically in <code>'app/cache'</code> folder.
 
 ### How it Work?
-When ds is running, web server is active in the background as http://localhost:8000. Ds web server will response by address request. for example WelcomeController file :
+When ds is running, web server is active in the background as <code>http://localhost:8000</code>. Ds web server will response by address request. 
+for example:
+create <code>welcome.php</code>(or <code>welcome.pie.php</code> if you want to use pie template) in <code>app/views/</code> folder.
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Demo Page</title>
+  </head>
+  <body>
+    <h2> <?php echo $WelcomeVariable ?> </h2>
+  </body>
+</html>
+```
+or if you want to implement pie template in 'welcome.pie' you can replace ```php echo ``` with \_(( value )) syntax.
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Demo Page</title>
+  </head>
+  <body>
+    <h2> _(( $WelcomeVariable )) </h2>
+  </body>
+</html>
+```
+(note: more guide about pie template will comming soon)
+then, create controller file with name <code>'welcome'</code> for example <code>'app/controllers/WelcomeController.php'</code> file, then see it:
 
 ```php
 <?php
@@ -102,20 +130,22 @@ class WelcomeController extends dsController
         view('Welcome',$data);
     }
 
-    public function WelcomeSlice()
+    public function WelcomeWithPie()
     {
         $data = array(
             'WelcomeVariable'       => "Welcome Variable"
         );
-        view('Welcome.slice',$data);
+        view('Welcome.pie',$data);
     }
 }
 ```
-write http://localhost:8000/welcome to access the index page. make sure view of welcome file is exist in 'app/views' folder, if not exist it will be crashed, because 
+write http://localhost:8000/welcome.
+'index()' method is default page from controller, the pattern to write url 'host/controllername/methodname'.
+make sure view of welcome file is exist in 'app/views' folder, if not exist it will be crashed, because 
 ```php
   view('Welcome', $data);
 ```
-same to call 'app/views/Welcome.php' file. So, the 'Welcome.php' must be created before trying to call it.<br />
+it's the same to call 'app/views/Welcome.php' file. So, the 'Welcome.php' must be created before trying to call it.<br />
 Write command 'php ds add:view welcome'. Response message will appear in terminal
 ```
 DsResponse: welcome has been successfully created!
