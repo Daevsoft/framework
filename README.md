@@ -1,6 +1,6 @@
 # Ds Framework PHP
 Php framework with MVC structure & <i>pie</i> template for views.
-This framework required php version 7.1.1 or higher.
+This framework required php version 7.3 or higher.
 
 ## Getting Started
 ### Terminal Command
