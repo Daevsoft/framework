@@ -60,7 +60,7 @@ and controller file will be restored automatically. <br />
 ## View
 Create view file in <code>'/app/views/yourview.php'</code> folder. <br />
 Or generate via command 'php ds add:view yourviewname'<br />
-view with format <code>'.slice.php'</code> it will render as slice engine.<br />
+view with format <code>'.pie.php'</code> it will render as pie file.<br />
 
 ## Model
 ### Creating Model File
