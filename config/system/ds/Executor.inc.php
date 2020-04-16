@@ -235,6 +235,7 @@ $_filenames = ucfirst($_filenames);
                 return;
             }
         }
+        echo $directory;
         // Generate file decission
         $file = fopen($directory, 'w');
         fwrite($file, $source);

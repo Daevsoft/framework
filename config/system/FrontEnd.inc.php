@@ -13,7 +13,7 @@ class FrontEnd extends dsCore
 		// Set Default Controller First Load
 		$req_uri = (!isset($_SERVER['REQUEST_URI'])) ?
 		config('first_load') : trim($_SERVER['REQUEST_URI'],Key::CHAR_SLASH);
-		$this->view($GLOBALS['routeList'],$GLOBALS['renameController'], $req_uri);
+		$this->view($GLOBALS['routeList'],$GLOBALS['renameController'], lcfirst($req_uri) );
   }
 
   // $_seed => string : ind,end
@@ -91,7 +91,7 @@ class FrontEnd extends dsCore
         substr($controller[0], 0, strpos($controller[0], Key::CHAR_SLASH)) : $controller[0]);
       // find rute value and get key
       $route_found = array_search($controller[0],$renameController);
-      // rename controller
+      // is empty controller
       $controller[0] = $route_found ? 
       // Rename controller is able ?
       $route_found : $controller[0];
