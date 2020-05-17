@@ -1,5 +1,4 @@
 <?php
-$sys_dir  = STRING_EMPTY;
 require_once Indexes::$DIR_ROOT. Key::D_CONFIG. 'config.inc.php';
 return array(
     'Main.inc.php',

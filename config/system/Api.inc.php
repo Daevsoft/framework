@@ -72,11 +72,11 @@ class Api extends dsSystem
     {
         if($_reqMtd == Key::INDEX)
             $_reqMtd = Key::CHAR_SLASH;
-        $seed = parent::fill_text($_reqMtd);
-        $reqSeed = parent::fill_text($_reqApiClass);
-        self::$requestLink = $reqSeed;
-        self::$requestMtd = $seed;
-        self::$tempRecordApi[self::$requestLink][$seed] = TRUE;
+        parent::fill_text($_reqMtd);
+        parent::fill_text($_reqApiClass);
+        self::$requestLink = $_reqApiClass;
+        self::$requestMtd = $_reqMtd;
+        self::$tempRecordApi[self::$requestLink][$_reqMtd] = TRUE;
     }
 
     public static function getTable($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND',  $__ord = "ASC")

@@ -3,13 +3,13 @@
  * Load class for load file
  */
 // Add object into ms variable from config file
-if (count($autoload[Key::LIBRARIES])) {
+if (isset($autoload[Key::LIBRARIES])) {
 	Load::load_libraries_and_modules($autoload[Key::LIBRARIES], Key::LIBRARIES);
 }
-if (count($autoload[Key::MODULES])) {
+if (isset($autoload[Key::MODULES])) {
 	Load::load_libraries_and_modules($autoload[Key::MODULES],Key::MODULES);
 }
-if (count($autoload[Key::MODELS])) {
+if (isset($autoload[Key::MODELS])) {
 	Load::load_libraries_and_modules($autoload[Key::MODELS],Key::MODELS);
 }
 // end object load
@@ -51,7 +51,7 @@ class Load extends dsCore
 		if ( is_array(self::$_ms)) {
 			// check is class need alias instance name
 			$__alias = string_empty_or_null($__alias) ? $__target : $__alias;
-			if(count($_params) > 0){
+			if(isset($_params[0])){
 				$r_object = new ReflectionClass($__target);
 				self::$_ms[$__alias] = $r_object->newInstanceArgs($_params);
 			}else{

@@ -2,7 +2,7 @@
 class Page
 {
     // true for testing pie cache, false for validate cache timing 
-    private static $testing_cache = true;
+    private static $testing_cache = false;
 
     // for pie render
     private static $pie_source;
@@ -13,7 +13,7 @@ class Page
     {
         
     }
-    public static function __page($__fl=STRING_EMPTY,$__dt = array())
+    public static function __page(&$__fl=STRING_EMPTY, &$__dt = array())
     {
         self::$collection_temp = $__dt;
         self::$_filenames = dirname(dirname(__DIR__)).Key::CHAR_SLASH.config('view_path').Key::CHAR_SLASH.$__fl.'.php';
@@ -37,12 +37,15 @@ class Page
     private static function render_template_alternate()
     {
         // initial cache file directory
-        $file_gen_md5 = md5(self::$_filenames);
-        $dir_cache = Indexes::$DIR_CACHE_VIEW.$file_gen_md5;
+        $file_gen_enc = sha1(self::$_filenames);
+        $dir_cache = Indexes::$DIR_CACHE_VIEW.$file_gen_enc;
+        $cache = new dsCache($file_gen_enc);
 
         // Checking cache time
-        if((dsCache::is_modified($file_gen_md5) || config('status') == Key::DEVELOPMENT) 
-        && self::$testing_cache){
+        if(!file_exists($file_gen_enc) || ($cache->is_modified() || config('status') == Key::DEVELOPMENT) 
+        || self::$testing_cache){
+            // record into temp file
+            $cache->record_file();
             // render cache into new file generate
             self::render_page($dir_cache, self::$collection_temp);
         }
@@ -52,7 +55,7 @@ class Page
         extract(self::$collection_temp);
         require_once $dir_cache;
     }
-    private static function render_page($dir_cache)
+    private static function render_page(&$dir_cache)
     {
         $html = file_get_contents(self::$_filenames);
         $initialize_pie = self::pie_initialize($html);
@@ -144,6 +147,8 @@ class Page
                 '/\(\!\s(.*)\s\!\)/iXsuUm',
                 // << Syntax >>
                 '/\<\<\s(.*)\s\>\>/iXsuUm',
+                // @elseif
+                '/\@(elseif)\((.*)[^\n]/i',
                 // @loop and @condition
                 '/\@(foreach|for|if|elseif|while)\((.*)[^\n]/i',
                 // Else
@@ -169,6 +174,8 @@ class Page
                 '<?php echo(htmlspecialchars("\1")); ?>',
                 // << Syntax >>
                 '<?php \1 ?>',
+                // @elseif
+                '<?php }\1(\2{ ?>',
                 // @loop and @condition
                 '<?php \1(\2{ ?>',
                 // Else

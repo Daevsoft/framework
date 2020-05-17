@@ -7,23 +7,24 @@ class dsCore
 	 * Main of class dsCore
 	 */
 	protected $_access = FALSE;
-	protected $_frontend;
 	protected $Connection;
+	protected $_frontend;
 
 	function __construct()
 	{
 		dsSystem::secure();
+		$this->_frontend = new FrontEnd();
 	}
 
 	public function set_controller()
 	{
+		// permission to access the controller object
 		$this->_access = TRUE;
 	}
 
 	public function connect()
 	{
-		if(is_null($this->_frontend))
-			$this->_frontend = new FrontEnd();
+		$this->_frontend->setup();
 	}
 
 	protected function get_connection()

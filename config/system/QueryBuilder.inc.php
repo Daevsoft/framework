@@ -7,8 +7,6 @@
 */
 class QueryBuilder
 {
-    private static $limit = STRING_EMPTY;
-
 	function __construct()
 	{
     }
@@ -20,8 +18,9 @@ class QueryBuilder
     if arg2 is empty then
         arg1 as table name
     */
-    public static function select($arg1, $arg2){
-        $q = STRING_EMPTY;
+    public static function select($arg1, $arg2, $distinct = FALSE){
+        $q = 'SELECT ';
+        if($distinct) $q .= 'DISTINCT ';
         if ($arg2 != STRING_EMPTY) {
             $col = STRING_EMPTY;
             if(is_array($arg1)){
@@ -48,14 +47,14 @@ class QueryBuilder
             if(is_string($arg1))
                 $col = $arg1; 
             
-            $q = 'SELECT '.$col.' FROM '.$arg2;
+            $q .= $col.' FROM '.$arg2;
         }else{
-            $q = 'SELECT * FROM '.$arg1;
+            $q .= '* FROM '.$arg1;
         }
         return $q;
     }
     public static function limit($start, $end){
-        return self::$limit = ' LIMIT '.$start. ', '.$end;
+        return ' LIMIT '.$start. ', '.$end;
     }
     public static function join($_table, $onCondition)
     {
@@ -64,7 +63,6 @@ class QueryBuilder
         $_tableRef = $_table;
         // $_tableExp = 'TableName' asName
         if(is_array($onCondition)){
-            $len = count($onCondition);
             $index = 1;
             foreach ($onCondition as $key => $value) {
                 if($index > 1){
@@ -95,7 +93,19 @@ class QueryBuilder
         return (strstr($val,'%') != STRING_EMPTY) ? ' LIKE ' : ' '.$operand.' ';
     }
     public static function order_by($column, $type){
-        return ' ORDER BY ' . $column . ' ' . $type;
+        $col = NULL;
+        if(is_string($column)){
+            $col = $column;
+        }else if(is_array($column)){
+            $count = count($column);
+            for ($i=0; $i < $count; $i++) {
+                $col .= $column[$i]; 
+                if($i < $count){
+                    $col .= ',';
+                }
+            }
+        }
+        return ' ORDER BY ' . $col . ' ' . $type;
     }
     public static function query($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND')
     {
@@ -174,7 +184,7 @@ class QueryBuilder
         foreach ($__dt_arr as $key => $value) {
             $dot = ($index == (count($__dt_arr) - 1) ? STRING_EMPTY : ',' );
             $keys .= string_quote_query($key).$dot;
-            $value = dsSystem::fill_text($value);
+            dsSystem::fill_text($value);
             $values .= "'$value'".$dot;
             $index++;
         }
@@ -210,7 +220,8 @@ class QueryBuilder
         $index = 0;
         $_values = [];
         foreach ($__dt as $key => $value) {
-            $_values[] = dsSystem::fill_text($value);
+            dsSystem::fill_text($value);
+            $_values[] = $value;
             $__get_data_set .= string_quote_query($key).' = ?'.($index == (count($__dt) - 1) ? "" : "," );
             $index++;
         }
@@ -221,7 +232,8 @@ class QueryBuilder
             }
         }else if(is_array($__wh)){
             foreach ($__wh as $key => $value) {
-                $_values[] = dsSystem::fill_text($value);
+                dsSystem::fill_text($value);
+                $_values[] = $value;
                 $__get_data_where .= string_quote_query($key).' = ?'.
                 ($index == (count($__wh) - 1) ? STRING_EMPTY : ' AND ' );
                 $index++;

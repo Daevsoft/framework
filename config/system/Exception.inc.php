@@ -86,7 +86,7 @@ class dsException extends Exception
         .'</pre>') : '<br />Error : ')
         .$this->exception->getMessage();
         echo '</div></div>';
-        if(config('status') != 'pub')
+if(config('status') != 'pub')
 		foreach ($arrTrace as $trace) {
 			echo '<div class="boxErrorTree">';
 			foreach ($trace as $traceKey => $traceValue) {

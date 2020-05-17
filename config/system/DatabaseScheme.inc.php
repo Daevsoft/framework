@@ -9,7 +9,6 @@ class DatabaseScheme
         $scheme_path = Indexes::$DIR_MODULES . $filename;
 
         if (file_exists($scheme_path)){
-            // $properties = STRING_EMPTY;
             $file = fopen($scheme_path, 'r+');
             $code_split = file(htmlspecialchars($scheme_path));
 
@@ -34,7 +33,6 @@ class DatabaseScheme
             // Generate file decission
             fwrite($file, $file_code);
             fclose($file);
-            // echo($filename.' has been successfully created!'."\n");
         }
         die();
     }

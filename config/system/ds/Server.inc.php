@@ -5,6 +5,11 @@ class Server extends Ds
     }
     public static function Run($_host, $_args)
     {
+        // clear cache before running
+        $cache = new Cache();
+        $cache->clearAllPages();
+        $cache->clearReferences();
+
         // get directory target, if it's root=main/
         $dir = $_args[SECOND_ARG];
         $_host = $_host == '' ? 'localhost' : $_host ;

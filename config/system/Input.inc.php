@@ -24,7 +24,7 @@ class Input extends dsSystem
                 self::warn($inputName);
          // Get value from post value form method
         $inputName = $_POST[$inputName];
-        $inputName = parent::fill_text($inputName);
+        parent::fill_text($inputName);
     	return $inputName;
     }
     public static function date($inputName, $format = 'Y-m-d', $_warn = true)
@@ -36,7 +36,7 @@ class Input extends dsSystem
     public static function request($inputName, $validation = NULL)
     {
         $inputValue = $_POST[$inputName];
-        $inputValue = parent::fill_text($inputValue);
+        parent::fill_text($inputValue);
         if (!is_null($validation))
             self::checkValidation($inputValue, $inputName, $validation);
     	return $inputValue;
@@ -99,7 +99,7 @@ class Input extends dsSystem
                 self::warn($inputName);
         // Get value from get value form method
     	$inputName = $_GET[$inputName];
-        $inputName = parent::fill_text($inputName);
+        parent::fill_text($inputName);
         return $inputName;
     }
     public static function header($inputName, $errWarning = true)
@@ -110,7 +110,7 @@ class Input extends dsSystem
                 self::warn($inputName);
         // Get value from get value form method
         $inputName = $header[$inputName];
-        $inputName = parent::fill_text($inputName);
+        parent::fill_text($inputName);
         return $inputName;
     }
 }

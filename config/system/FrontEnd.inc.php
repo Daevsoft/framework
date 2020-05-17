@@ -9,18 +9,20 @@ class FrontEnd extends dsCore
   private static $_lang_json;
 
   public function __construct()
-  {
-		// Set Default Controller First Load
-		$req_uri = (!isset($_SERVER['REQUEST_URI'])) ?
-		config('first_load') : trim($_SERVER['REQUEST_URI'],Key::CHAR_SLASH);
-		$this->view($GLOBALS['routeList'],$GLOBALS['renameController'], lcfirst($req_uri) );
+  { }
+  public function setup()
+  {	
+    // Set Default Controller First Load
+    $req_uri = (!isset($_SERVER['REQUEST_URI'])) ?
+    config('first_load') : trim($_SERVER['REQUEST_URI'],Key::CHAR_SLASH);
+    $this->view($GLOBALS['routeList'],$GLOBALS['renameController'], $req_uri);
   }
 
-  // $_seed => string : ind,end
-  // $_type => string : php, json
+  // $_seed => string : ind | eng
+  // $_type => string : php | json
   public static function set_lang($_seed, $_type = STRING_EMPTY)
   {
-    $_type = empty_or_value($_type, config('language_type'));
+    $_type = string_condition($_type, config('language_type'));
     switch ($_type) {
       case 'json':
         if (is_null(self::$_lang_json)) {
@@ -38,7 +40,7 @@ class FrontEnd extends dsCore
   }
   public static function get_lang($_seed, $_type = STRING_EMPTY)
   {
-    $_type = empty_or_value($_type, config('language_type'));
+    $_type = string_condition($_type, config('language_type'));
     if ($_type == 'json') {
       // return json lang
       if (!is_null(self::$_lang_json)) {
@@ -78,7 +80,7 @@ class FrontEnd extends dsCore
     // Get first load thing
     $first_load = config('first_load');
     // if first load not include index uri then add index
-    if(count($requestTarget) == 1)
+    if(!isset($requestTarget[1])) 
       $requestTarget[1] = Key::INDEX;
     // Get action based on structure
     if($structure_app == Key::MVC
@@ -91,7 +93,7 @@ class FrontEnd extends dsCore
         substr($controller[0], 0, strpos($controller[0], Key::CHAR_SLASH)) : $controller[0]);
       // find rute value and get key
       $route_found = array_search($controller[0],$renameController);
-      // is empty controller
+      // rename controller
       $controller[0] = $route_found ? 
       // Rename controller is able ?
       $route_found : $controller[0];
@@ -102,9 +104,9 @@ class FrontEnd extends dsCore
       $obj = new $object_name(); // Create object controller for check parentController has been extended
       
       if ($obj->_access) { // Load Access if dsCore->_access is TRUE
-        if (count($controller) <= 2) { // Get Uri From Address request
+        if (!isset($controller[2])) { // Get Uri From Address request
           $_function_name = $controller[1]; // Get Function Name from Controller
-          $__params = array_slice($controller, 2,count($controller)); // Get Argument of function in classController
+          $__params = array_slice($controller, 2); // Get Argument of function in classController
           // Check the function existing
           if(method_exists($obj, $_function_name)){
             if ($__params == array()) { // Is Array 0 index or not
@@ -119,10 +121,9 @@ class FrontEnd extends dsCore
               $object_name.'\'</i>. Function not exist!'), $object_name.'.php', false);
           }
         }else {
-          //call_user_method_array(array_slice($controller, 0,2), $obj, array_slice($controller, 2,count($controller)));
           call_user_func_array(
             [$obj, $controller[1]], // Controller class & method name
-            array_slice($controller, 2,count($controller)) // parameter value
+            array_slice($controller, 2) // parameter value
           );
         }
       }else{
@@ -135,8 +136,8 @@ class FrontEnd extends dsCore
   private function on_attach_api($requestTarget, $structure_app, $first_load, $path)
   {
       $iRouteStep = ($structure_app == Key::MULTI ? 1 : 0);
-      $apiRequest = dsSystem::fill_text($requestTarget[0 + $iRouteStep]);
-      $apiRequest = $apiRequest == STRING_EMPTY ? $first_load : $apiRequest;
+      $apiRequest = $requestTarget[0 + $iRouteStep];
+      $apiRequest = string_empty($apiRequest) ? $first_load : $apiRequest;
       $filename   = Indexes::$DIR_API.ucfirst($apiRequest).'.php';
       $apiTarget  = count($requestTarget) > 1 + $iRouteStep ? $requestTarget[1 + $iRouteStep] : Key::CHAR_SLASH;
       

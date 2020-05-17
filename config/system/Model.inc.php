@@ -12,8 +12,9 @@ class dsModel extends BackEnd
     }
     public function get_all($target = NULL)
     {
+        debug($this->Query);
         if (!string_empty_or_null($this->Query)) {
-            $this->sql['query'] = $this->queryClear();
+            $this->sql['query'] = $this->get_query();
             $this->sql['values'] = [];
             $res = $this->fetch_all($target);
             return $res;
@@ -46,7 +47,7 @@ class dsModel extends BackEnd
     public function get_row($target = NULL)
     {
         if (!string_empty_or_null($this->Query)) {
-            $this->sql['query'] = $this->queryClear();
+            $this->sql['query'] = $this->get_query();
             $this->sql['values'] = [];
             $res = $this->fetch_row($target);
             return $res;
@@ -58,10 +59,9 @@ class dsModel extends BackEnd
     public function get_exist()
     {
         $data = $this->get_row();
-        die();
-        return count($data) > 0;
+        return is_array($data) && count($data) > 0;
     }
-    private function queryClear()
+    public function get_query()
     {
         // Merge to complete
         $queries = $this->Query;
@@ -72,9 +72,14 @@ class dsModel extends BackEnd
     // select($table : String)
     // or
     // select($selectColumn : String, $tableName)
-    public function select($arg1, $arg2 = STRING_EMPTY)
+    public function select($columns, $from = STRING_EMPTY)
     {
-        $this->Query = QueryBuilder::select($arg1, $arg2);
+        $this->Query = QueryBuilder::select($columns, $from);
+        return $this;
+    }
+    public function distinct($columns, $from = STRING_EMPTY)
+    {
+        $this->Query = QueryBuilder::select($columns, $from, TRUE);
         return $this;
     }
     // String Columns = 'columnGroup1, columnGroup2'
@@ -89,42 +94,74 @@ class dsModel extends BackEnd
         $this->Query .= QueryBuilder::order_by($column_name, 'ASC');
         return $this;
     }
+    public function limit($start = 0, $to = 100)
+    {
+        $this->Query .= QueryBuilder::limit($start, $to);
+        return $this;
+    }
     public function desc($column_name){
         $this->Query .= QueryBuilder::order_by($column_name, 'DESC');
         return $this;
     }
     public function join($_table, $onCondition)
     {
-        $join = QueryBuilder::join($_table, $onCondition);
-        $this->Query .= $join;
+        return $this->join_root($_table, $onCondition);
+    }
+    private function join_root(&$_table, &$onCondition, $type = STRING_EMPTY)
+    {
+        $this->Query .= $type.QueryBuilder::join($_table, $onCondition);
         return $this;
+    }
+    public function left_join($_table, $onCondition)
+    {
+        return $this->join_root($_table, $onCondition, ' LEFT');
+    }
+    public function right_join($_table, $onCondition)
+    {
+        return $this->join_root($_table, $onCondition, ' RIGHT');
+    }
+    public function inner_join($_table, $onCondition)
+    {
+        return $this->join_root($_table, $onCondition, ' INNER');
+    }
+    public function outer_join($_table, $onCondition)
+    {
+        return $this->join_root($_table, $onCondition, ' OUTER');
+    }
+    public function full_join($_table, $onCondition)
+    {
+        return $this->join_root($_table, $onCondition, ' FULL');
     }
     private function where_root($arg1, $arg2 = STRING_EMPTY, $operand=STRING_EMPTY, $operator = 'AND'){
         $operand = string_empty($operand) ? '=' : $operand;
         if(is_array($arg1)){
-            $this->Query .= !$this->isWhereDefine ? ' WHERE ' : ' '.$arg2.' ' ;
-            $i = 1;
+            if (string_empty($arg2))
+                $arg2 = $operator;
             foreach ($arg1 as $col => $value) {
-                if($i > 1 )
-                    $this->Query .= ' '.$arg2.' ';
-                $this->Query .= $col.QueryBuilder::like_separator($arg2, $operand).'\''.$value.'\'';
-                $i++;
+                $this->Query .= !$this->isWhereDefine ? ' WHERE' : ' '.$arg2 ;
+                $this->Query .= ' '.$col.QueryBuilder::like_separator($arg2, $operand).'\''.$value.'\'';
+                $this->setWhereClause();
             }
         }
         if(is_string($arg1)){
             // Check where is empty or not then add AND or WHERE clause
-            $this->Query .= !$this->isWhereDefine ? ' WHERE ' : ' '.$operator.' ' ;
+            $this->Query .= !$this->isWhereDefine ? ' WHERE' : ' '.$operator ;
+            $this->setWhereClause();
             if(string_empty($arg2)){
-                $this->Query .= $arg1;
+                $this->Query .= ' '.$arg1;
             }else{
-                $this->Query .= $arg1.QueryBuilder::like_separator($arg2, $operand).'\''.$arg2.'\'';
+                $this->Query .= ' '.$arg1.QueryBuilder::like_separator($arg2, $operand).'\''.$arg2.'\'';
             }
         }
-        // Set WhereDefine Condition TRUE,
-        // that mean WHERE clause have been initialize before
-        $this->isWhereDefine = TRUE;
         // Return Object For Next Query
         return $this;
+    }
+    private function setWhereClause($boolean = TRUE)
+    {
+        // Set WhereDefine Condition TRUE,
+        // that mean WHERE clause have been initialize before
+        if($this->isWhereDefine !== $boolean)
+            $this->isWhereDefine = $boolean;
     }
     // function where ($arg1: Array[], $arg2: String)
     public function where($arg1, $arg2 = STRING_EMPTY, $operand='=', $arg3 = 'AND')
@@ -132,7 +169,7 @@ class dsModel extends BackEnd
         return $this->where_root($arg1, $arg2, $operand, $arg3);
     }
     // where x like y
-    public function like($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
+    public function like($arg1, $arg2 = STRING_EMPTY, $arg3 = 'OR')
     {
         return $this->where_root($arg1, $arg2, ' like ', $arg3);
     }
@@ -154,7 +191,7 @@ class dsModel extends BackEnd
     // where x >= y
     public function greater_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
     {
-        return $this->where_root($arg1, $arg2, ' > ', $arg3);
+        return $this->where_root($arg1, $arg2, ' >= ', $arg3);
     }
     // where x < y
     public function lower($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')

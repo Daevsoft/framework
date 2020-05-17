@@ -18,7 +18,7 @@ if (! function_exists('config')) {
 //  cache directory time
 $GLOBALS['dir_temporary_record_time'] = require_once(Indexes::$DIR_CACHE_TIME);
 if (! function_exists('cache_record')) {
-	function cache_record($_record_index)
+	function cache_record(&$_record_index)
 	{
 		$dir_temporary_record_time = $GLOBALS['dir_temporary_record_time'];
 		// Get Cache Index
@@ -79,11 +79,10 @@ switch ($config['status']) {
 	default:break;
 }
 // Load Controller class
-spl_autoload_register(function ($classname)
+spl_autoload_register(function($classname)
 {
-	$filename = STRING_EMPTY;
 	// generate physical directory file name
-	$filename = Indexes::$DIR_ROOT.config('controller_path').Key::CHAR_SLASH.$classname.'.php';
+	$filename = Indexes::$DIR_ROOT.config('controller_path').Key::CHAR_SLASH.ucfirst($classname).'.php';
 	if(file_exists($filename)){
 		require_once $filename;
 	}else {
@@ -131,28 +130,28 @@ if (! function_exists('get_view')) {
 	}
 }
 if (! function_exists('string_empty')) {
-	function string_empty($_string)
+	function string_empty(&$_string)
 	{
 		// Get boolean
-		return ($_string === STRING_EMPTY);
+		return ($_string == STRING_EMPTY);
 	}
 }
 if (! function_exists('string_empty_or_null')) {
-	function string_empty_or_null($_string)
+	function string_empty_or_null(&$_string)
 	{
 		// Get result condition
 		return (is_null($_string) || string_empty($_string));
 	}
 }
 if (! function_exists('string_condition')) {
-	function string_condition($_string1, $_string2)
+	function string_condition(&$_string1, $_string2 = STRING_EMPTY)
 	{
 		// Get boolean
 		return string_empty_or_null($_string1) ? $_string2 : $_string1;
 	}
 }
 if (! function_exists('string_quote_query')) {
-	function string_quote_query($_value){
+	function string_quote_query(&$_value){
 		switch(config('driver')){
 			// Mysql Provider SQL Query Support
 			case 'mysql':return '`'.$_value.'`';break;
@@ -161,9 +160,11 @@ if (! function_exists('string_quote_query')) {
 		}
 	}
 }
-if (! function_exists('empty_or_value')) {
-	function empty_or_value($_value_1, $_value_2){
-		return string_empty_or_null($_value_1) ? $_value_2 : $_value_1;
+if (! function_exists('arr_value')) {
+	function arr_value($arr, $key, $other = STRING_EMPTY)
+	{
+		if(isset($arr) && isset($arr[$key])) return $arr[$key];
+		else return $other;
 	}
 }
 if (! function_exists('set_lang')) {
@@ -181,9 +182,9 @@ if (! function_exists('lang')) {
 	function lang($_msg, $_type = STRING_EMPTY, $_seed = STRING_EMPTY){
 		if(!string_empty(config('language'))){
 			// Json Or Php
-			$_type = empty_or_value($_type, config('language_type'));
+			$_type = string_condition($_type, config('language_type'));
 			// ind, en, other
-			$_seed = empty_or_value($_seed, get_lang());
+			$_seed = string_condition($_seed, get_lang());
 			$_countable = $text = STRING_EMPTY;
 			if(string_contains(':', $_msg)){
 				$arrMessage = explode(':',$_msg);
@@ -208,7 +209,7 @@ if (! function_exists('lang')) {
 								}else{
 									$arrRange = explode('-',$key);
 									if($_countable >= $arrRange[0])
-										if(count($arrRange) > 1)
+										if(isset($arrRange[1]))
 											if($_countable <= $arrRange[1])
 												return $msg;
 								}
@@ -294,7 +295,7 @@ if (! function_exists('_request')) {
 	function _request($__nm)
 	{
 		$__nm = $_REQUEST[$__nm] or die("Request <b>$__nm</b> not found !");
-		$__nm = dsSystem::fill_text($__nm);
+		dsSystem::fill_text($__nm);
 		return $__nm;
 	}
 }

@@ -14,7 +14,7 @@ class Executor extends Ds
             $_ArgValue = $this->GetArgValue($_command);
         switch ($_command) {
             case $this->IsContain($_command,'run'):
-            Server::Run($_ArgValue, $_args);
+                Server::Run($_ArgValue, $_args);
                 break;
             case $this->IsContain($_command,COMMAND_ADD):
                 Manager::Structure(COMMAND_ADD,$_ArgValue);
@@ -160,7 +160,7 @@ class '.$_filenames.' extends dsController
         view(\''.$file.'.pie\',$data);
     }
 }';
-$_filenames = ucfirst($_filenames);
+            $_filenames = ucfirst($_filenames);
             self::CreateFile($_filenames, CONTROLLERS, CONTROLLER, $source);
         }
     }
@@ -177,15 +177,11 @@ class '.$_filenames.' extends dsModel
     public function __construct()
     {
     }
-    
-    public function index()
-    {
-    }
 
     // Demo function
     public function getData()
     {
-        return $this->select(\''.$file.'\')->data_all();
+        return $this->select(\''.$file.'\')->get_all();
     }
 }';
 $_filenames = ucfirst($_filenames);
@@ -226,7 +222,7 @@ $_filenames = ucfirst($_filenames);
         $directory = MAIN_DIR.'/app'.$folder.'/'.$filename. '.php';
         if (file_exists($directory)) {
             msg('File ' . $filename . ' was exist.');
-            $read = read('Replace it (y/n) ?');
+            $read = readline('Replace it (y/n) ?');
             if($read == 'y'){
                 echo $filename;
                 self::DeleteFile($filename, $folder, STRING_EMPTY, FALSE);
@@ -235,7 +231,6 @@ $_filenames = ucfirst($_filenames);
                 return;
             }
         }
-        echo $directory;
         // Generate file decission
         $file = fopen($directory, 'w');
         fwrite($file, $source);

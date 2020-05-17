@@ -30,14 +30,14 @@ class dsSystem
 		}
 	}
 	// Filtering text input form
-	public static function fill_text($__tx)
+	public static function fill_text(&$__tx)
 	{
-		$__tx = trim($__tx);
-		$__tx = htmlspecialchars($__tx);
-		$__tx = strip_tags($__tx);
-		$__tx = stripslashes($__tx);
-		$__tx = filter_var($__tx, FILTER_SANITIZE_STRING);
-		return $__tx;
+		$__tx = filter_var(
+			stripslashes(
+				strip_tags(
+					htmlspecialchars(
+						trim($__tx))))
+			, FILTER_SANITIZE_STRING);
 	}
 	// Check token in session has Valid
 	public static function secure()

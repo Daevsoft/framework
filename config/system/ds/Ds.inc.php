@@ -16,26 +16,28 @@ define('CONTROLLER','Controller');
 define('MODEL','Model');
 define('VIEW','view');
 define('API','Api');
-
+// first
 define('COMMAND_ADD','add');
 define('COMMAND_DEL','delete');
 define('COMMAND_RESTORE','restore');
+// second
 define('COMMAND_API','api');
 define('COMMAND_VIEW','view');
 define('COMMAND_CONTROLLER','controller');
 define('COMMAND_MODEL','model');
+
 define('RESPONSE','DsResponse: ');
 
-define('MAIN_DIR', dirname(dirname(dirname(__DIR__))));
+define('MAIN_DIR',dirname(dirname(dirname(__DIR__))));
 define('CONFIG_DIR',MAIN_DIR.'/config');
 define('SYSTEM_DIR',CONFIG_DIR.'/system');
 define('STORAGE_DIR',MAIN_DIR.'/storage');
 define('TRASH_DIR',STORAGE_DIR.'/trash');
+define('CACHE_DIR',STORAGE_DIR.'/cache');
 
 function msg($_msg){
   echo RESPONSE.$_msg."\n";
 }
-
 function get_command($_pos = '')
 {
   if($_pos == STRING_EMPTY)
@@ -43,10 +45,9 @@ function get_command($_pos = '')
   else
     return $GLOBALS['argv'][$_pos];
 }
-function read($_msg){
-  $r = readline($_msg);
-  return $r;
-}
+// require cache for managing when first running
+require_once 'helper/Cache.inc.php';
+
 // When want to added overwrite function for all object class
 class Ds
 {
