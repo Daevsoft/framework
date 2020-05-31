@@ -60,7 +60,9 @@ class Indexes{
 
     public static function init(){
         self::$DIR_ROOT = __DIR__. Key::CHAR_SLASH;
-        self::$SERVER_PROTOCOL = strtolower(explode(Key::CHAR_SLASH,$_SERVER['SERVER_PROTOCOL'])[0]);
+        self::$SERVER_PROTOCOL = strtolower(explode(Key::CHAR_SLASH,
+            isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : $_SERVER['SERVER_PROTOCOL']
+        )[0]);
         // App Directory
         self::$DIR_APP = self::$DIR_ROOT. Key::D_APP;
         // Configuration Directory
