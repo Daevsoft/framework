@@ -38,27 +38,29 @@ class Key{
     public const D_STORAGE_FILES = 'files/';
 }
 class Indexes{
-    public static $DIR_ROOT = STRING_EMPTY;
-    public static $SERVER_PROTOCOL = STRING_EMPTY;
-    public static $DIR_APP = STRING_EMPTY;
-    public static $DIR_CONFIG = STRING_EMPTY;
-    public static $DIR_SYSTEM = STRING_EMPTY;
-    public static $DIR_MODULES = STRING_EMPTY;
-    public static $DIR_CACHE = STRING_EMPTY;
-    public static $DIR_API = STRING_EMPTY;
-    public static $DIR_STORAGE = STRING_EMPTY;
-    public static $DIR_CACHE_TIME = STRING_EMPTY;
-    public static $DIR_CACHE_VIEW = STRING_EMPTY;
-    public static $DIR_CACHE_OBJECT = STRING_EMPTY;
-    public static $DIR_VIEWS = STRING_EMPTY;
-    public static $HTTP_HOST = STRING_EMPTY;
-    public static $BASE_URL = STRING_EMPTY;
-    public static $BASE_ASSETS = STRING_EMPTY;
-    public static $LINK_FILES = STRING_EMPTY;
+    public static $DIR_ROOT;
+    public static $SERVER_PROTOCOL;
+    public static $DIR_APP;
+    public static $DIR_CONFIG;
+    public static $DIR_SYSTEM;
+    public static $DIR_MODULES;
+    public static $DIR_CACHE;
+    public static $DIR_API;
+    public static $DIR_STORAGE;
+    public static $DIR_CACHE_TIME;
+    public static $DIR_CACHE_VIEW;
+    public static $DIR_CACHE_OBJECT;
+    public static $DIR_VIEWS;
+    public static $HTTP_HOST;
+    public static $BASE_URL;
+    public static $BASE_ASSETS;
+    public static $LINK_FILES;
 
     public static function init(){
         self::$DIR_ROOT = dirname(__DIR__). Key::CHAR_SLASH;
-        self::$SERVER_PROTOCOL = strtolower(explode(Key::CHAR_SLASH,$_SERVER['SERVER_PROTOCOL'])[0]);
+        self::$SERVER_PROTOCOL = strtolower(explode(Key::CHAR_SLASH,
+            isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : $_SERVER['SERVER_PROTOCOL']
+        )[0]);
         // App Directory
         self::$DIR_APP = self::$DIR_ROOT. Key::D_APP;
         // Configuration Directory
@@ -94,16 +96,13 @@ class Indexes{
 Indexes::init();
 
 // Get global variable
-require_once Indexes::$DIR_APP.'constants/define' . Key::EXT_PHP;
+require Indexes::$DIR_APP.'constants/define' . Key::EXT_PHP;
 // Start the session
 session_start();
 
 // Include All required files for Core.php
-require_once '../config/system/autoload'. Key::EXT_PHP;
+require '../config/system/autoload'. Key::EXT_PHP;
 _autoload2f40af1f10ad60c89a4b333ee7943d49::getLoader();
-
-// Set Core as Null Value
-$core = NULL;
 // Get Byte of Core Object from cache
 $core_cache = file_get_contents(Indexes::$DIR_CACHE_OBJECT);
 // Unserialize Core object from cache
