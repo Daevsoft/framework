@@ -1,6 +1,6 @@
 <?php
 require_once Indexes::$DIR_ROOT. Key::D_CONFIG. 'config.inc.php';
-return array(
+return [
     'Main.inc.php',
     'Core.inc.php',
     'Exception.inc.php',
@@ -18,4 +18,4 @@ return array(
     'Model.inc.php',
     'Cache.inc.php',
     'DatabaseScheme.inc.php'
-);
+];

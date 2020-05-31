@@ -12,7 +12,6 @@ class dsModel extends BackEnd
     }
     public function get_all($target = NULL)
     {
-        debug($this->Query);
         if (!string_empty_or_null($this->Query)) {
             $this->sql['query'] = $this->get_query();
             $this->sql['values'] = [];
@@ -219,7 +218,6 @@ class dsModel extends BackEnd
     private function state_clear()
     {
         $this->sql = ['query' => STRING_EMPTY, 'values' => STRING_EMPTY];
-        $this->Query = 
         $this->Query = STRING_EMPTY;
         $this->isWhereDefine = FALSE;
     }

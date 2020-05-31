@@ -90,7 +90,7 @@ class QueryBuilder
     }
     public static function like_separator($val, $operand = '=')
     {
-        return (strstr($val,'%') != STRING_EMPTY) ? ' LIKE ' : ' '.$operand.' ';
+        return string_contains('%', $val) ? ' LIKE ' : ' '.$operand.' ';
     }
     public static function order_by($column, $type){
         $col = NULL;
@@ -143,7 +143,7 @@ class QueryBuilder
         $_params = [];
         $bIsBatchInsert = FALSE;
         foreach ($_dt_arr as $item) {
-            $bIsBatchInsert = (is_array($item));
+            $bIsBatchInsert = is_array($item);
             break;
         }
         $_params = $bIsBatchInsert ? $_dt_arr : [$_dt_arr];
@@ -163,12 +163,13 @@ class QueryBuilder
             $_seeds .= '(';
             $j = 0;
             foreach ($param as $key => $value) {
-                if($i == 0)
-                    $_q .= string_quote_query($key).str_allow($last_param != $value ,',');
                 $_values[] = $value;
                 $_seeds .= str_allow($j > 0 , ',').' ?';
 
                 $j++;
+                
+                if($i == 0)
+                    $_q .= string_quote_query($key).str_allow($j < $len_param ,',');
             }
             $_seeds .= ')';
             if($i == 0)

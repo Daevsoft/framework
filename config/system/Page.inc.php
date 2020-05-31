@@ -151,10 +151,14 @@ class Page
                 '/\@(elseif)\((.*)[^\n]/i',
                 // @loop and @condition
                 '/\@(foreach|for|if|elseif|while)\((.*)[^\n]/i',
+                // @isset
+                '/\@(isset)\((.*)[^\n]/i',
+                // @isnull
+                '/\@(isnull)\((.*)[^\n]/i',
                 // Else
                 '/\@(else)/i',
                 // @end loop and condition, break, endswitch
-                '/\@(endforeach|endfor|endif|endswitch|endwhile)/s',
+                '/\@(endforeach|endfor|endif|endswitch|endwhile|endisset|endisnull)/s',
                 // Switch
                 '/\@(switch)(.*)[^\n](\n)/i',
                 // Case
@@ -178,6 +182,10 @@ class Page
                 '<?php }\1(\2{ ?>',
                 // @loop and @condition
                 '<?php \1(\2{ ?>',
+                // @isset
+                '<?php if(\1(\2{ ?>',
+                // @isset
+                '<?php if(NULL !== \2{ ?>',
                 // Else
                 '<?php }\1{ ?>',
                 // @end of loop and condition, break, endswitch
