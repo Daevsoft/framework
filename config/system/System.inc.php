@@ -24,7 +24,7 @@ class dsSystem
 		if ($status == 'debugging') {
 			echo $msg;
 		}else if ($status == Key::DEVELOPMENT) {
-			die($msg);
+			echo($msg);
 		}else{
 			die('Sorry Nothing to do Here');
 		}

@@ -10,6 +10,19 @@ class dsModel extends BackEnd
     
     public function __construct() {
     }
+    public function getPattern($table)
+    {
+        $pattern = [];
+        $this->Query = QueryBuilder::descTable($table);
+        
+        $data = $this->get_array();
+        $len = count($data);
+        
+        for ($i=0; $i < $len; $i++) { 
+            $pattern[$data[$i][0]] = STRING_EMPTY;
+        }
+        return $pattern;
+    }
     public function get_all($target = NULL)
     {
         if (!string_empty_or_null($this->Query)) {
@@ -131,20 +144,36 @@ class dsModel extends BackEnd
     {
         return $this->join_root($_table, $onCondition, ' FULL');
     }
-    private function where_root($arg1, $arg2 = STRING_EMPTY, $operand=STRING_EMPTY, $operator = 'AND'){
+    private function where_root($arg1, $arg2 = STRING_EMPTY, $operand=STRING_EMPTY, $operator = 'AND', $mergeOpt = 'AND', $isSeparate){
         $operand = string_empty($operand) ? '=' : $operand;
+        
+        if(!$this->isWhereDefine){
+            $this->Query .= ' WHERE';
+        }else{
+            $this->Query .= ' '.$mergeOpt;
+        }
+
+        if($isSeparate)
+            $this->Query .= ' (';
+
         if(is_array($arg1)){
             if (string_empty($arg2))
                 $arg2 = $operator;
+
+            $opt = true;
             foreach ($arg1 as $col => $value) {
-                $this->Query .= !$this->isWhereDefine ? ' WHERE' : ' '.$arg2 ;
-                $this->Query .= ' '.$col.QueryBuilder::like_separator($arg2, $operand).'\''.$value.'\'';
-                $this->setWhereClause();
+                $this->Query .= ($opt) ? '' : ' '.$arg2;
+                if(is_string($col))
+                    $this->Query .= ' '.$col.QueryBuilder::like_separator($value, $operand).'\''.$value.'\'';
+                else
+                    $this->Query .= ' '.$value;
+                $opt = false;
             }
+            $this->setWhereClause();
         }
         if(is_string($arg1)){
             // Check where is empty or not then add AND or WHERE clause
-            $this->Query .= !$this->isWhereDefine ? ' WHERE' : ' '.$operator ;
+            $this->Query .= (!$this->isWhereDefine) ? '' : ' '.$operator;
             $this->setWhereClause();
             if(string_empty($arg2)){
                 $this->Query .= ' '.$arg1;
@@ -152,6 +181,9 @@ class dsModel extends BackEnd
                 $this->Query .= ' '.$arg1.QueryBuilder::like_separator($arg2, $operand).'\''.$arg2.'\'';
             }
         }
+        
+        if($isSeparate)
+            $this->Query .= ') ';
         // Return Object For Next Query
         return $this;
     }
@@ -163,44 +195,53 @@ class dsModel extends BackEnd
             $this->isWhereDefine = $boolean;
     }
     // function where ($arg1: Array[], $arg2: String)
-    public function where($arg1, $arg2 = STRING_EMPTY, $operand='=', $arg3 = 'AND')
+    public function and($arg1, $arg2 = STRING_EMPTY, $operand='=', $arg3 = 'AND', $isSeparate = false)
     {
-        return $this->where_root($arg1, $arg2, $operand, $arg3);
+        return $this->where_root($arg1, $arg2, $operand, $arg3, 'AND', $isSeparate);
+    }
+    public function or($arg1, $arg2 = STRING_EMPTY, $operand='=', $arg3 = 'AND', $isSeparate = false)
+    {
+        return $this->where_root($arg1, $arg2, $operand, $arg3, 'OR', $isSeparate);
+    }
+    // function where ($arg1: Array[], $arg2: String)
+    public function where($arg1, $arg2 = STRING_EMPTY, $operand='=', $arg3 = 'AND', $isSeparate = false)
+    {
+        return $this->where_root($arg1, $arg2, $operand, $arg3, 'AND', $isSeparate);
     }
     // where x like y
-    public function like($arg1, $arg2 = STRING_EMPTY, $arg3 = 'OR')
+    public function like($arg1, $arg2 = STRING_EMPTY, $arg3 = 'OR', $isSeparate = false)
     {
-        return $this->where_root($arg1, $arg2, ' like ', $arg3);
+        return $this->where_root($arg1, $arg2, ' like ', $arg3, 'AND', $isSeparate);
     }
     // where x = y
-    public function equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
+    public function equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND', $isSeparate = false)
     {
-        return $this->where_root($arg1, $arg2, ' = ', $arg3);
+        return $this->where_root($arg1, $arg2, ' = ', $arg3, 'AND', $isSeparate);
     }
     // where x != y
-    public function not_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
+    public function not_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND', $isSeparate = false)
     {
-        return $this->where_root($arg1, $arg2, ' != ', $arg3);
+        return $this->where_root($arg1, $arg2, ' != ', $arg3, 'AND', $isSeparate);
     }
     // where x > y
-    public function greater($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
+    public function greater($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND', $isSeparate = false)
     {
-        return $this->where_root($arg1, $arg2, ' > ', $arg3);
+        return $this->where_root($arg1, $arg2, ' > ', $arg3, 'AND', $isSeparate);
     }
     // where x >= y
-    public function greater_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
+    public function greater_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND', $isSeparate = false)
     {
-        return $this->where_root($arg1, $arg2, ' >= ', $arg3);
+        return $this->where_root($arg1, $arg2, ' >= ', $arg3, 'AND', $isSeparate);
     }
     // where x < y
-    public function lower($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
+    public function lower($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND', $isSeparate = false)
     {
-        return $this->where_root($arg1, $arg2, ' < ', $arg3);
+        return $this->where_root($arg1, $arg2, ' < ', $arg3, 'AND', $isSeparate);
     }
     // where x <= y
-    public function lower_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND')
+    public function lower_equal($arg1, $arg2 = STRING_EMPTY, $arg3 = 'AND', $isSeparate = false)
     {
-        return $this->where_root($arg1, $arg2, ' <= ', $arg3);
+        return $this->where_root($arg1, $arg2, ' <= ', $arg3, 'AND', $isSeparate);
     }
     public function delete($tableName, $__wh = NULL, $__bool = 'AND')
     {

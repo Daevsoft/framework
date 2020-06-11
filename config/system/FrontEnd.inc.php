@@ -115,10 +115,16 @@ class FrontEnd extends dsCore
               $obj->$_function_name($__params);
             }
           }else{
+            // Show 404 Not found when App Status is Publish
+            Page::not_found(config('status') == Key::PUBLISHED, function($args){
+              // run something when page not found
+              return;
+            }, $_function_name);
+            // throw exception when development
             throw new dsException(new Exception(
-              'unexpected function name <i>\''.
-              $_function_name.'\'</i> in object <i>\''.
-              $object_name.'\'</i>. Function not exist!'), $object_name.'.php', false);
+              'unexpected function name <b><i>\''.
+              $_function_name.'\'</i></b> in object <b><i>\''.
+              $object_name.'\'</i></b>. Function not exist!'), $object_name.'.php', false);
           }
         }else {
           call_user_func_array(

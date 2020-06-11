@@ -10,6 +10,7 @@ class _autoload2f40af1f10ad60c89a4b333ee7943d49
 			if (file_exists($file_dir)) {
 				require $file_dir;
 			}else{
+				echo 'Expected : '.$file_dir.'<br />';
 				die("Error : Some files not found.");
 			}
 			$i++;

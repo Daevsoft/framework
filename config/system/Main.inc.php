@@ -89,7 +89,6 @@ spl_autoload_register(function($classname)
 		// page not found function has 3 argument 
 		// (condition, alternate_function, argument1, argument2, ...)
 		Page::not_found(config('status') == Key::PUBLISHED, function($args){
-			// If File Controller not exist !
 			dsSystem::MessageError(__FILE__,'Error '.$args[0].' Not Found');
 		}, $classname);
 	}

@@ -16,6 +16,5 @@ return [
     'Api.inc.php',
     'BackEnd.inc.php',
     'Model.inc.php',
-    'Cache.inc.php',
-    'DatabaseScheme.inc.php'
+    'Cache.inc.php'
 ];

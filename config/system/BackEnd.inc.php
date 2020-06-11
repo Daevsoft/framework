@@ -109,7 +109,7 @@ class BackEnd extends dsCore
         $this->sql['values'] = [];
         return $this->fetch_all(PDO::FETCH_NAMED);
     }
-    protected function insert($__table, $__dt)
+    public function insert($__table, $__dt)
     {
         $this->sql = QueryBuilder::prepare_insert($__table,$__dt);
         // insert
@@ -120,7 +120,7 @@ class BackEnd extends dsCore
             return FALSE;
         }
     }
-    protected function insert_get($__table, $__dt) // Insert and get all values
+    public function insert_get($__table, $__dt) // Insert and get all values
     {
         $this->insert($__table, $__dt);
         return $this->row($__table, $__dt);
@@ -132,7 +132,7 @@ class BackEnd extends dsCore
         $escape = $escape_string($_value);
         return $escape;
     }
-    protected function update($__table, $__dt, $__wh)
+    public function update($__table, $__dt, $__wh)
     {
         $this->sql = QueryBuilder::update($__table, $__dt, $__wh);
         $this->execute();
@@ -149,6 +149,7 @@ class BackEnd extends dsCore
             $pdo = $this->get_connection();
             // Set prepare query
             $data = $pdo->prepare($this->sql['query']);
+            // if(count($this->sql['values']))
             // Set values for prepared query
             $data->execute($this->sql['values']);
             // Set pdo_result as PDO Object result
@@ -160,7 +161,7 @@ class BackEnd extends dsCore
             dsSystem::MessageError($ex->getMessage());
         }
     }
-    protected function delete($__table, $__wh = NULL, $__bool = 'AND')
+    public function delete($__table, $__wh = NULL, $__bool = 'AND')
     {
         $this->sql = QueryBuilder::delete($__table, $__wh, $__bool);
         $this->execute();

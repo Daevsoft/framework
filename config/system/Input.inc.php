@@ -35,7 +35,7 @@ class Input extends dsSystem
     }
     public static function request($inputName, $validation = NULL)
     {
-        $inputValue = $_POST[$inputName];
+        $inputValue = $_REQUEST[$inputName];
         parent::fill_text($inputValue);
         if (!is_null($validation))
             self::checkValidation($inputValue, $inputName, $validation);
@@ -112,5 +112,15 @@ class Input extends dsSystem
         $inputName = $header[$inputName];
         parent::fill_text($inputName);
         return $inputName;
+    }
+    public static function getArray()
+    {
+        $data = [];
+        if (isset($_REQUEST)) {
+            foreach ($_REQUEST as $key => $v) {
+                $data[$key] = Input::request($key);
+            }
+        }
+        return $data;
     }
 }

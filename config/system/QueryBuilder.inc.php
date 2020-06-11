@@ -246,4 +246,8 @@ class QueryBuilder
         $__q['values'] = $_values;
         return $__q;
     }
+    public static function descTable($table)
+    {
+        return 'DESC '.$table;
+    }
 }
