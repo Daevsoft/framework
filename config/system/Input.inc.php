@@ -11,19 +11,14 @@ class Input extends dsSystem
     {
         
     }
-    private static function warn($inputName)
+    public static function post($inputName, $errWarning = true)
     {
-        parent::MessageError(uri(0).Key::CHAR_SLASH.uri(1),'Input Name : '. $inputName .' not found!');
-        die();
-    }
-    public static function post($inputName, $_warn = true)
-    {
-        // Check is Input Key able
-        if($_warn)
-            if(!array_key_exists($inputName,$_POST))
-                self::warn($inputName);
          // Get value from post value form method
-        $inputName = $_POST[$inputName];
+        if($errWarning)
+            $inputName = $_POST[$inputName];
+        else
+            $inputName = isset($_POST[$inputName]) ? $_POST[$inputName] : STRING_EMPTY;
+
         parent::fill_text($inputName);
     	return $inputName;
     }
@@ -33,10 +28,14 @@ class Input extends dsSystem
         $datetime = date($format, strtotime($inputData));
         return $datetime;
     }
-    public static function request($inputName, $validation = NULL)
+    public static function request($inputName, $errWarning = TRUE, $validation = NULL)
     {
-        $inputValue = $_REQUEST[$inputName];
-        parent::fill_text($inputValue);
+        $inputValue = STRING_EMPTY;
+        if($errWarning)
+            $inputValue = $_POST[$inputName];
+        else
+            $inputValue = isset($_REQUEST[$inputName]) ? $_REQUEST[$inputName] : STRING_EMPTY;
+
         if (!is_null($validation))
             self::checkValidation($inputValue, $inputName, $validation);
     	return $inputValue;
@@ -93,21 +92,18 @@ class Input extends dsSystem
     }
     public static function get($inputName, $errWarning = true)
     {
-        // Check is Input Key able
-        if($errWarning)
-            if(!array_key_exists($inputName,$_GET))
-                self::warn($inputName);
         // Get value from get value form method
-    	$inputName = $_GET[$inputName];
+        if($errWarning)
+            $inputName = $_GET[$inputName];
+        else
+            $inputName = isset($_GET[$inputName]) ? $_GET[$inputName] : STRING_EMPTY;
+
         parent::fill_text($inputName);
         return $inputName;
     }
     public static function header($inputName, $errWarning = true)
     {
         $header = getallheaders();
-        if($errWarning)
-            if(!array_key_exists($inputName,$header))
-                self::warn($inputName);
         // Get value from get value form method
         $inputName = $header[$inputName];
         parent::fill_text($inputName);

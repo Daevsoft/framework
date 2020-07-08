@@ -288,7 +288,6 @@ if (! function_exists('redirect')) {
 		header('Location:'.Indexes::$BASE_URL.Key::CHAR_SLASH.$target);
 	}
 }
-
 // Input Request will get global variable from _post and _get both.
 if (! function_exists('_request')) {
 	function _request($__nm)
@@ -318,33 +317,33 @@ if (! function_exists('secure_page')) {
 if (! function_exists('css_source')) {
 	function css_source($_fileName)
 	{
-		echo '<link rel=\'stylesheet\' href=\''.Indexes::$BASE_ASSETS.('css'.Key::CHAR_SLASH.$_fileName).'.css\'>';
+		echo '<link rel=\'stylesheet\' href=\'/assets/'.('css'.Key::CHAR_SLASH.$_fileName).'.css\'>';
 	}
 }
 if (! function_exists('css_url')) {
 	function css_url($_fileName)
 	{
-		echo '<link rel=\'stylesheet\' href=\''.$_fileName.'.css\'>';
+		return '<link rel=\'stylesheet\' type=\'text/css\' href=\'/assets/css/'.$_fileName.'.css\'>';
 	}
 }
 
 if (! function_exists('js_source')) {
 	function js_source($_fileName)
 	{
-		echo '<script type=\'text/javascript\' src=\''. Indexes::$BASE_ASSETS.('js'.Key::CHAR_SLASH.$_fileName).'.js\'></script>';
+		echo '<script type=\'text/javascript\' src=\'/assets/'.('js'.Key::CHAR_SLASH.$_fileName).'.js\'></script>';
 	}
 }
 
 if (! function_exists('js_url')) {
 	function js_url($_fileName)
 	{
-		echo '<script type=\'text/javascript\' src=\''.$_fileName.'.js\'></script>';
+		return '<script type=\'text/javascript\' src=\'/assets/js/'.$_fileName.'.js\'></script>';
 	}
 }
 
 if (! function_exists('assets_source')) {
 	function assets_source($_fileName)
 	{
-		echo Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets'.Key::CHAR_SLASH.$_fileName);
+		return Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets'.Key::CHAR_SLASH.$_fileName);
 	}
 }

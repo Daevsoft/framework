@@ -58,7 +58,6 @@ class BackEnd extends dsCore
 	protected function query($sql)
     {
         $this->sql = ['query' => $sql, 'values' => []];
-        $this->execute();
         return $this;
     }
     protected function fetch_row($pdo_fetch_type = NULL)
@@ -149,7 +148,6 @@ class BackEnd extends dsCore
             $pdo = $this->get_connection();
             // Set prepare query
             $data = $pdo->prepare($this->sql['query']);
-            // if(count($this->sql['values']))
             // Set values for prepared query
             $data->execute($this->sql['values']);
             // Set pdo_result as PDO Object result

@@ -138,7 +138,6 @@ class Page
     }
 
     private static function php_initialize($_sources){
-        
             // Definition Index Regex
             $regex_pattern = array(
                 // _(( Text ))
@@ -147,18 +146,28 @@ class Page
                 '/\(\!\s(.*)\s\!\)/iXsuUm',
                 // << Syntax >>
                 '/\<\<\s(.*)\s\>\>/iXsuUm',
+                // @css
+                '/\@(css)\(\'(.*)\'\)[^\n]/i',
+                // @js
+                '/\@(js)\(\'(.*)\'\)[^\n]/i',
                 // @elseif
                 '/\@(elseif)\((.*)[^\n]/i',
                 // @loop and @condition
                 '/\@(foreach|for|if|elseif|while)\((.*)[^\n]/i',
                 // @isset
                 '/\@(isset)\((.*)[^\n]/i',
+                // @!isset
+                '/\@(!isset)\((.*)[^\n]/i',
+                // @isempty
+                '/\@(isempty)\((.*)\)[^\n]/i',
+                // @!isempty
+                '/\@(!isempty)\((.*)\)[^\n]/i',
                 // @isnull
                 '/\@(isnull)\((.*)[^\n]/i',
                 // Else
                 '/\@(else)/i',
                 // @end loop and condition, break, endswitch
-                '/\@(endforeach|endfor|endif|endswitch|endwhile|endisset|endisnull)/s',
+                '/\@(endforeach|endfor|endif|endswitch|endwhile|endisset|endisnull|endisempty)/s',
                 // Switch
                 '/\@(switch)(.*)[^\n](\n)/i',
                 // Case
@@ -178,14 +187,24 @@ class Page
                 '<?php echo(htmlspecialchars("\1")); ?>',
                 // << Syntax >>
                 '<?php \1 ?>',
+                // @css
+                css_url('\2'),
+                // @js
+                js_url('\2'),
                 // @elseif
                 '<?php }\1(\2{ ?>',
                 // @loop and @condition
                 '<?php \1(\2{ ?>',
                 // @isset
-                '<?php if(\1(\2{ ?>',
-                // @isset
-                '<?php if(NULL !== \2{ ?>',
+                '<?php if(\1(\2){ ?>',
+                // @!isset
+                '<?php if(\1(\2){ ?>',
+                // @isempty
+                '<?php if(STRING_EMPTY === \2){ ?>',
+                // @!isempty
+                '<?php if(STRING_EMPTY !== \2){ ?>',
+                // @isnull
+                '<?php if(NULL !== \2){ ?>',
                 // Else
                 '<?php }\1{ ?>',
                 // @end of loop and condition, break, endswitch

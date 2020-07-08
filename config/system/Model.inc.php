@@ -6,7 +6,9 @@
 class dsModel extends BackEnd
 {
     private $Query;
+    private $Values;
     private $isWhereDefine = FALSE;
+    private $isHavingDefine = FALSE;
     
     public function __construct() {
     }
@@ -26,8 +28,7 @@ class dsModel extends BackEnd
     public function get_all($target = NULL)
     {
         if (!string_empty_or_null($this->Query)) {
-            $this->sql['query'] = $this->get_query();
-            $this->sql['values'] = [];
+            $this->sql = $this->get_sql();
             $res = $this->fetch_all($target);
             return $res;
         }else{
@@ -56,11 +57,31 @@ class dsModel extends BackEnd
     public function get_named(){
         return $this->get_all(PDO::FETCH_NAMED);
     }
+    public function get_row_array(){
+        return $this->get_row(PDO::FETCH_NUM);
+    }
+    public function get_row_object(){
+        return $this->get_row(PDO::FETCH_OBJ);
+    }
+    public function get_row_assoc(){
+        return $this->get_row(PDO::FETCH_ASSOC);
+    }
+    public function get_row_bound(){
+        return $this->get_row(PDO::FETCH_BOUND);
+    }
+    public function get_row_into(){
+        return $this->get_row(PDO::FETCH_INTO);
+    }
+    public function get_row_lazy(){
+        return $this->get_row(PDO::FETCH_LAZY);
+    }
+    public function get_row_named(){
+        return $this->get_row(PDO::FETCH_NAMED);
+    }
     public function get_row($target = NULL)
     {
         if (!string_empty_or_null($this->Query)) {
-            $this->sql['query'] = $this->get_query();
-            $this->sql['values'] = [];
+            $this->sql = $this->get_sql();
             $res = $this->fetch_row($target);
             return $res;
         }else{
@@ -73,13 +94,21 @@ class dsModel extends BackEnd
         $data = $this->get_row();
         return is_array($data) && count($data) > 0;
     }
-    public function get_query()
+    public function get_query(){
+        return $this->Query;
+    }
+    private function get_sql()
     {
         // Merge to complete
         $queries = $this->Query;
+        // Merge to complete
+        $value = $this->Values;
         // Clear temporary query base
         $this->state_clear();
-        return $queries;
+        return [
+            'query' => $queries, 
+            'values' => $value
+        ];
     }
     // select($table : String)
     // or
@@ -150,7 +179,8 @@ class dsModel extends BackEnd
         if(!$this->isWhereDefine){
             $this->Query .= ' WHERE';
         }else{
-            $this->Query .= ' '.$mergeOpt;
+            // if(is_array($arg1) && count($arg1) > 1)
+                $this->Query .= ' '.$mergeOpt;
         }
 
         if($isSeparate)
@@ -163,10 +193,13 @@ class dsModel extends BackEnd
             $opt = true;
             foreach ($arg1 as $col => $value) {
                 $this->Query .= ($opt) ? '' : ' '.$arg2;
-                if(is_string($col))
-                    $this->Query .= ' '.$col.QueryBuilder::like_separator($value, $operand).'\''.$value.'\'';
-                else
-                    $this->Query .= ' '.$value;
+                if(is_string($col)){
+                    $this->Query .= ' '.$col.QueryBuilder::like_separator('?', $operand).'?';
+                    $this->Values[] = $value;
+                }else{
+                    $this->Query .= ' ?';//.$value;
+                    $this->Values[] = $value;
+                }
                 $opt = false;
             }
             $this->setWhereClause();
@@ -176,9 +209,11 @@ class dsModel extends BackEnd
             $this->Query .= (!$this->isWhereDefine) ? '' : ' '.$operator;
             $this->setWhereClause();
             if(string_empty($arg2)){
-                $this->Query .= ' '.$arg1;
+                $this->Query .= ' ?';
+                $this->Values[] = $arg1;
             }else{
-                $this->Query .= ' '.$arg1.QueryBuilder::like_separator($arg2, $operand).'\''.$arg2.'\'';
+                $this->Query .=  ' '.$arg1.QueryBuilder::like_separator('?', $operand).'?';
+                $this->Values[] = $arg2;
             }
         }
         
@@ -194,6 +229,30 @@ class dsModel extends BackEnd
         if($this->isWhereDefine !== $boolean)
             $this->isWhereDefine = $boolean;
     }
+    private function setHavingClause($boolean = TRUE){
+        if($this->isHavingDefine !== $boolean)
+            $this->isHavingDefine = $boolean;
+    }
+    /*
+    $operator {>, <, =, <=, >=}
+    */
+    // public function having($condition, $operator = STRING_EMPTY, $valueOperatorOrAnd = STRING_EMPTY, $AndOr = 'AND')
+    // {
+    //     $operator = string_empty($operator) ? 'AND' : $operator;
+    //     $this->Query .= !$this->isHavingDefine ? ' HAVING ' : $operator;
+        
+    //     if(is_array($condition)){
+    //         foreach ($condition as $value) {
+    //             $this->Query .=  ? $valueOperatorOrAnd : ' HAVING ';
+    //             $this->Query .= $value;
+    //             $this->setHavingClause();
+    //         }
+    //     }
+    //     if(is_string($condition)){
+    //         $this->Query .= ;
+    //     }
+    //     $this->setHavingClause();
+    // }
     // function where ($arg1: Array[], $arg2: String)
     public function and($arg1, $arg2 = STRING_EMPTY, $operand='=', $arg3 = 'AND', $isSeparate = false)
     {
@@ -260,6 +319,8 @@ class dsModel extends BackEnd
     {
         $this->sql = ['query' => STRING_EMPTY, 'values' => STRING_EMPTY];
         $this->Query = STRING_EMPTY;
-        $this->isWhereDefine = FALSE;
+        $this->Values = [];
+        $this->isWhereDefine = 
+        $this->isHavingDefine = FALSE;
     }
 }

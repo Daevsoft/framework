@@ -68,7 +68,9 @@ class QueryBuilder
                 if($index > 1){
                     $on .= ' AND ';
                 }
-                $on .= $key.'='.$value;
+                if(!is_numeric($key))
+                    $on .= $key.'=';
+                $on .= $value;
                 $index++;
             }
         }else if (is_string($onCondition)) {
