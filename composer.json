@@ -22,7 +22,8 @@
         "dsphp"
     ],
     "require": {
-        "php": "^7.2.0"
+        "php": "^7.2.0",
+        "daevsoft/dsframework":"dev-master@dev"
     },
     "minimum-stability": "stable",
     "prefer-stable": true
