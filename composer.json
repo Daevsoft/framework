@@ -12,8 +12,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/Daevsoft/ds/issues",
-        "source": "https://github.com/Daevsoft/ds"
+        "issues": "https://github.com/Daevsoft/dsframework/issues",
+        "source": "https://github.com/Daevsoft/dsframework"
     },
     "keywords": [
         "framework",
@@ -22,8 +22,8 @@
         "dsphp"
     ],
     "require": {
-        "php": "^7.1.1"
+        "php": "^7.2.0"
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
