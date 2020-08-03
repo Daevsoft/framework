@@ -26,14 +26,9 @@ class Page
             extract($__dt);
             require_once(self::$_filenames);
         }else {
-            self::render_template($__dt);
+            self::render_template_alternate();
         }
     }
-    private static function render_template()
-    {
-        self::render_template_alternate();
-    }
-
     private static function render_template_alternate()
     {
         // initial cache file directory
@@ -47,7 +42,7 @@ class Page
             // record into temp file
             $cache->record_file();
             // render cache into new file generate
-            self::render_page($dir_cache, self::$collection_temp);
+            self::render_page($dir_cache);
         }
         $GLOBALS['FILENAMES'] = $dir_cache;
         $GLOBALS['FILENAMES_REAL'] = self::$_filenames;

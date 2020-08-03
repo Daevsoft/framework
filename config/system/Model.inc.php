@@ -95,7 +95,12 @@ class dsModel extends BackEnd
         return is_array($data) && count($data) > 0;
     }
     public function get_query(){
-        return $this->Query;
+        $query = $this->Query;
+
+        $this->isWhereDefine = 
+        $this->isHavingDefine = FALSE;
+        
+        return $query;
     }
     private function get_sql()
     {
@@ -197,8 +202,8 @@ class dsModel extends BackEnd
                     $this->Query .= ' '.$col.QueryBuilder::like_separator('?', $operand).'?';
                     $this->Values[] = $value;
                 }else{
-                    $this->Query .= ' ?';//.$value;
-                    $this->Values[] = $value;
+                    $this->Query .= ' '.$value;
+                    // $this->Values[] = $value;
                 }
                 $opt = false;
             }
@@ -206,11 +211,11 @@ class dsModel extends BackEnd
         }
         if(is_string($arg1)){
             // Check where is empty or not then add AND or WHERE clause
-            $this->Query .= (!$this->isWhereDefine) ? '' : ' '.$operator;
+            // $this->Query .= (!$this->isWhereDefine) ? '' : ' '.$operator;
             $this->setWhereClause();
             if(string_empty($arg2)){
-                $this->Query .= ' ?';
-                $this->Values[] = $arg1;
+                $this->Query .= ' '.$arg1;
+                // $this->Values[] = $arg1;
             }else{
                 $this->Query .=  ' '.$arg1.QueryBuilder::like_separator('?', $operand).'?';
                 $this->Values[] = $arg2;

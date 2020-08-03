@@ -11,6 +11,58 @@ class Input extends dsSystem
     {
         
     }
+    public static function file($name)
+    {
+        $data = $_FILES[$name];
+        $data['name'] = 'F'.date('dmyhis').$data['name'];
+        $data['ext'] = strtolower(pathinfo($data['name'], PATHINFO_EXTENSION));
+        return $data;
+    }
+    public static function upload($inputFile, $format = [], $target_dir = 'main/assets/img/', $replace_dir = false, $maxSize = 2000000)
+    {
+        $target_file = (!$replace_dir ? Indexes::$DIR_ROOT : '').$target_dir.basename($inputFile['name']);
+        // test($target_file);
+        $uploadOK = true;
+        $msg = STRING_EMPTY;
+        // Check if file already exists
+        // if (file_exists($target_file)) {
+        //     echo "Sorry, file already exists.";
+        //     $uploadOK = false;
+        // }
+        
+        // Check file size
+        if ($inputFile["size"] > $maxSize) {
+            $msg .= "Sorry, your file is too large.<br>";
+            $uploadOK = false;
+        }
+        
+        // Allow certain file formats
+        if (count($format) > 0){
+            $find = in_array($inputFile['ext'], $format);
+            if(!$find) {
+                $msg .= "Sorry, only ";
+                foreach ($format as $type) {
+                    $msg .= $type.' ';
+                }
+                $msg .= " files are allowed.<br>";
+                $uploadOK = false;
+            }
+        }
+        
+        
+        // Check if $uploadOk is set to 0 by an error
+        if (!$uploadOK) {
+            set_error($msg."Sorry, your file was not uploaded.");
+            return $uploadOK;
+        // if everything is ok, try to upload file
+        } else {
+            if (move_uploaded_file($inputFile["tmp_name"], $target_file)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
     public static function post($inputName, $errWarning = true)
     {
          // Get value from post value form method
@@ -112,8 +164,9 @@ class Input extends dsSystem
     public static function getArray()
     {
         $data = [];
-        if (isset($_REQUEST)) {
-            foreach ($_REQUEST as $key => $v) {
+        $input = isset($_POST) ? $_POST : $_GET;
+        if (isset($_POST) || isset($_GET)) {
+            foreach ($input as $key => $v) {
                 $data[$key] = Input::request($key);
             }
         }

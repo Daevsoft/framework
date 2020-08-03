@@ -154,7 +154,8 @@ class QueryBuilder
         for ($i = 0; $i < $len_params; $i++) {
             $param = $_params[$i]; // DataInsert[i]
             $len_param = count($param);
-            $last_param = $param[array_key_last($param)];
+            // end($param);
+            // $last_param = $param[key($param)];
             // loop for child
             
             if($i >= 1 && $i < $len_params)
