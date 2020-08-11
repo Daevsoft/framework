@@ -18,9 +18,9 @@ class Input extends dsSystem
         $data['ext'] = strtolower(pathinfo($data['name'], PATHINFO_EXTENSION));
         return $data;
     }
-    public static function upload($inputFile, $format = [], $target_dir = 'main/assets/img/', $replace_dir = false, $maxSize = 2000000)
+    public static function upload($inputFile, $format = [], $target_dir = 'main/assets/img/', $from_root = false, $maxSize = 2000000)
     {
-        $target_file = (!$replace_dir ? Indexes::$DIR_ROOT : '').$target_dir.basename($inputFile['name']);
+        $target_file = (!$from_root ? Indexes::$DIR_ROOT : '').$target_dir.basename($inputFile['name']);
         // test($target_file);
         $uploadOK = true;
         $msg = STRING_EMPTY;

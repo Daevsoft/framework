@@ -16,7 +16,7 @@ class Api extends dsSystem
     }
     public static function init($_initCallback, $_failureCallback = NULL){
         self::setSql();
-        $run = $_initCallback($_REQUEST, self::$sql);
+        $run = $_initCallback(Input::getArray(), self::$sql);
         if(is_bool($run))
             if(!$run)
                 if($_failureCallback != NULL){
@@ -34,15 +34,20 @@ class Api extends dsSystem
             if(self::$requestMtd == $_reqSeed){
                 $response = $_funcResponse($_data, API::$sql);
                 $request_not_found = false;
-                if(is_array($response))
+                if(is_array($response)){
+                    header('Content-Type: application/json');
                     echo json_encode($response);
-                else
-                    if(!is_null($response))
-                        echo json_encode([$response]);
+                }else
+                    if(!is_null($response)){
+                        header('Content-Type: application/json');
+                        echo $response;
+                    }
                 die();
             }
         }else if($request_not_found){
-            parent::MessageError('Api <b>'.self::$requestLink.'</b> not found !');
+            header('Content-Type: application/json');
+            echo json_encode(['response' => 'Api '.self::$requestLink.' not found !']);
+            die();
         }
     }
     public static function post($_reqSeed, $_funcResponse)

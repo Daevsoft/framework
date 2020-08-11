@@ -17,22 +17,30 @@ class dsSystem
 	public static function MessageError()
 	{
 		$status = config('status');
+		
 		$ArgLen = func_num_args();
 		$msg = $ArgLen == 2 ? func_get_arg(1) : func_get_arg(0);
-		$_file_name = $ArgLen  == 2 ? '<br>(file:'.func_get_arg(0).')' : STRING_EMPTY;
-		echo $_file_name.'<br>(#'.$status.') : ';
-		if ($status == 'debugging') {
-			echo $msg;
-		}else if ($status == Key::DEVELOPMENT) {
-			echo($msg);
+
+		if (uri(0) !== 'api') {
+			$_file_name = $ArgLen  == 2 ? '<br>(file:'.func_get_arg(0).')' : STRING_EMPTY;
+			echo $_file_name.'<br>(#'.$status.') : ';
+			if ($status == 'debugging') {
+				echo $msg;
+			}else if ($status == Key::DEVELOPMENT) {
+				echo($msg);
+			}else{
+				die('Sorry Nothing to do Here');
+			}
 		}else{
-			die('Sorry Nothing to do Here');
+			header('Content-Type: application/json');
+			echo json_encode(['error' => $msg]);
+			die();
 		}
 	}
 	// Filtering text input form
 	public static function fill_text(&$__tx)
 	{
-		$__tx = filter_var(
+		return filter_var(
 			stripslashes(
 				strip_tags(
 					htmlspecialchars(
