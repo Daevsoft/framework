@@ -1,14 +1,14 @@
 # Ds Framework PHP
-Php framework with MVC structure & <i>pie</i> template for views.
-This framework required php version 7.3 or higher.
+dsFramwork is framework written in php syntax.
+This framework required php version 7.2 or higher.
 
 ## Getting Started
 ### Terminal Command
 Run it with command terminal in <code>'/dscommunity'</code> folder <br />
-for shared server from your local ip write command
+for share local server with ip, write this command below
 <code>php ds run</code><br />
 or with your ip for open site <code>php ds run:yourip</code>
-example for run it on localhost <code>php ds run:localhost</code><br />
+example to run on your localhost <code>php ds run:localhost</code><br />
 terminal will be shown message : <br />
 ```
 X:\xxx\dscommunity> php ds run
@@ -16,7 +16,7 @@ Ds server started : localhost:8000
 Ctrl+C to exit the server.
 ```
 ### Running Page
-Open browser and write url when Ds server running <br />
+Open browser and write url when server running <br />
 Ex : <code>http://localhost:8000</code>
 
 ## Setup
@@ -34,23 +34,23 @@ it's in <code>/dscommunity/config/config.inc.php</code> file
 ## Controller
 ### Generate Controller File
 Create controller file with command <code>php ds add:controller controllername</code> <br />
-and controller file will generate automatically created in <code>'/app/controllers/controllernameController.php'</code> folder.<br />
+and controller file will generated automatically created in <code>'/app/controllers/controllernameController.php'</code> folder.<br />
 
 ### Generate Controllers
-To generate many controllers just adding controller name separate by comma.<br />
+To generate bulk controllers just adding controller name separate by comma.<br />
 Examples : <code>php ds add:controller Name1,Name2,Name3,....</code><br />
 and response message will be shown :
 ```
 X:\xxx\dscommunity> php ds add:controller Flight1,Plane2,Office3
-DsResponse : Flight1Controller has been successfully created!
-DsResponse : Plane2Controller has been successfully created!
-DsResponse : Office3Controller has been successfully created!
+DsResponse : Name1Controller has been successfully created!
+DsResponse : Name2Controller has been successfully created!
+DsResponse : Name3Controller has been successfully created!
 ```
 
 ### Remove Controller File
-To remove controller file just write command with <code>php ds delete:controller controllername</code> <br />
-or to remove many controller with <code>php ds delete:controller controllername1,controllername2,controllername3,....</code><br />
-and controller file will be deleted automatically. <br />
+To remove controller file just write this command <code>php ds delete:controller controllername</code> <br />
+or to bulk remove controller with <code>php ds delete:controller controllername1,controllername2,controllername3,....</code><br />
+and all of that controllers file will be delete automatically. <br />
 
 ### Restore Controller File
 Restore controller file when file was deleted just write command <code>php ds restore:controller controllername</code> <br />
