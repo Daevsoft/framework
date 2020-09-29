@@ -21,15 +21,10 @@ class Input extends dsSystem
     public static function upload($inputFile, $format = [], $target_dir = 'main/assets/img/', $from_root = false, $maxSize = 2000000)
     {
         $target_file = (!$from_root ? Indexes::$DIR_ROOT : '').$target_dir.basename($inputFile['name']);
-        // test($target_file);
+        
         $uploadOK = true;
         $msg = STRING_EMPTY;
-        // Check if file already exists
-        // if (file_exists($target_file)) {
-        //     echo "Sorry, file already exists.";
-        //     $uploadOK = false;
-        // }
-        
+
         // Check file size
         if ($inputFile["size"] > $maxSize) {
             $msg .= "Sorry, your file is too large.<br>";

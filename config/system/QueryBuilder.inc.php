@@ -134,12 +134,12 @@ class QueryBuilder
             'values' => $__values
         );
     }
-    public static function prepare_insert($tableName,$_dt_arr)
+    public static function prepare_insert($tableName,$_dt_arr, &$ignore_duplicates)
     {
         $_keys = STRING_EMPTY;
         $_values = [];
         $_seeds = STRING_EMPTY;
-        $_q = 'insert into '.string_quote_query($tableName);
+        $_q = 'insert '.($ignore_duplicates ? 'IGNORE' : '').' into '.string_quote_query($tableName);
         $i = 0;
         // parameter
         $_params = [];

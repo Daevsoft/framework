@@ -95,7 +95,7 @@ class dsModel extends BackEnd
         return is_array($data) && count($data) > 0;
     }
     public function get_query(){
-        $query = $this->Query;
+        $query = '('.$this->Query .')';
 
         $this->isWhereDefine = 
         $this->isHavingDefine = FALSE;

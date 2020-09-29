@@ -62,12 +62,13 @@ class FrontEnd extends dsCore
     
     $path_route_check = array_search($check_path_exist_renamed, $routeList);
     $path_fix = ($path_route_check) ? $path_route_check : $path;
-    if($path_route_check && string_contains(Key::CHAR_SLASH,$path)){
-      $path_fix .= string_crop($path, strpos($path, Key::CHAR_SLASH));
-    }
-    if($path_fix){
+    
+    if($path_route_check && string_contains(Key::CHAR_SLASH,$path))
+      $path_fix .= string_crop($path, strpos($path, Key::CHAR_SLASH));    
+    
+    if($path_fix) 
       $path = $path_fix;
-    }
+    
     $path = !string_contains(Key::CHAR_SLASH,$path) ? $path.Key::CHAR_SLASH.Key::INDEX : $path;
     $requestTarget = explode(Key::CHAR_SLASH,$path);
     return $requestTarget;

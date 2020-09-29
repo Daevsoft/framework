@@ -108,9 +108,9 @@ class BackEnd extends dsCore
         $this->sql['values'] = [];
         return $this->fetch_all(PDO::FETCH_NAMED);
     }
-    public function insert($__table, $__dt)
+    public function insert($__table, $__dt, $ignore_duplicates = false)
     {
-        $this->sql = QueryBuilder::prepare_insert($__table,$__dt);
+        $this->sql = QueryBuilder::prepare_insert($__table,$__dt, $ignore_duplicates);
         // insert
         $this->execute();
         if ($this->pdo_result) {
