@@ -1,5 +1,4 @@
 <?php
-secure_page();
 class FrontEnd extends dsCore
 {
   /**
