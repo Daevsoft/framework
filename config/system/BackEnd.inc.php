@@ -10,6 +10,7 @@ class BackEnd extends dsCore
 {
     protected $pdo_result = NULL;
     protected $sql;
+    protected $is_execute = false;
     // call model object
 	function call($_model_v){
 		return $GLOBALS['__models'][$_model_v];
@@ -23,7 +24,7 @@ class BackEnd extends dsCore
     }
     
 
-    public static function set_cookie($__nm, $__value)
+    public static function setCookie($__nm, $__value)
     { // Set cookie for expired
         global $config;
         dsSystem::fill_text($__nm);
@@ -36,7 +37,7 @@ class BackEnd extends dsCore
         dsSystem::fill_text($__nm);
         return $_COOKIE[md5($__nm)];
     }
-    protected function row($__q_or_t, $__wh = "", $__bool = "AND") // can be input by query or table, with WHERE condition
+    protected function row($__q_or_t, $__wh, $__bool = "AND") // can be input by query or table, with WHERE condition
     {
         // get connection to mysql
         $this->sql = QueryBuilder::query($__q_or_t, $__wh, $__bool);
@@ -82,7 +83,7 @@ class BackEnd extends dsCore
         else
             return $this->pdo_result->fetch($pdo_fetch_type);
     }
-    protected function top_all(Int $startRow, Int $limit = 100)
+    protected function topAll(Int $startRow, Int $limit = 100)
     {
         $this->sql['query'] .= QueryBuilder::limit($startRow, $limit);
         $result_data = [];
@@ -97,13 +98,13 @@ class BackEnd extends dsCore
         // Execute Query
         return $result_data;
     }
-    protected function top_row(Int $startRow , Int $limit = 100)
+    protected function topRow(Int $startRow , Int $limit = 100)
     {
         $this->sql['query'] .= QueryBuilder::limit($startRow, $limit);
         // Execute Query
         return $this->fetch_row();
     }
-    protected function get_column($__tablename){
+    protected function getColumn($__tablename){
         $this->sql['query'] = 'DESC '.string_quote_query($__tablename);
         $this->sql['values'] = [];
         return $this->fetch_all(PDO::FETCH_NAMED);
@@ -113,7 +114,7 @@ class BackEnd extends dsCore
         $this->sql = QueryBuilder::prepare_insert($__table,$__dt, $ignore_duplicates);
         // insert
         $this->execute();
-        if ($this->pdo_result) {
+        if ($this->is_execute) {
             return TRUE;
         }else{
             return FALSE;
@@ -135,7 +136,7 @@ class BackEnd extends dsCore
     {
         $this->sql = QueryBuilder::update($__table, $__dt, $__wh);
         $this->execute();
-        if ($this->pdo_result) {
+        if ($this->is_execute) {
             return TRUE;
         }else{
             return FALSE;
@@ -149,7 +150,7 @@ class BackEnd extends dsCore
             // Set prepare query
             $data = $pdo->prepare($this->sql['query']);
             // Set values for prepared query
-            $data->execute($this->sql['values']);
+            $this->is_execute = $data->execute($this->sql['values']);
             // Set pdo_result as PDO Object result
             $this->pdo_result = $data;
             // set null sql properties
@@ -163,7 +164,7 @@ class BackEnd extends dsCore
     {
         $this->sql = QueryBuilder::delete($__table, $__wh, $__bool);
         $this->execute();
-        if ($this->pdo_result) {
+        if ($this->is_execute) {
             return TRUE;
         }else{
             return FALSE;

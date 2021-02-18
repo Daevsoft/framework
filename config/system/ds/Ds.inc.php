@@ -17,9 +17,11 @@ define('MODEL','Model');
 define('VIEW','view');
 define('API','Api');
 // first
+define('COMMAND_RUN','run');
 define('COMMAND_ADD','add');
 define('COMMAND_DEL','delete');
 define('COMMAND_RESTORE','restore');
+define('COMMAND_TEST','test');
 // second
 define('COMMAND_API','api');
 define('COMMAND_VIEW','view');

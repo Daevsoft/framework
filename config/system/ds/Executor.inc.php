@@ -13,7 +13,7 @@ class Executor extends Ds
         if($this->IsContain($_command,':'))
             $_ArgValue = $this->GetArgValue($_command);
         switch ($_command) {
-            case $this->IsContain($_command,'run'):
+            case $this->IsContain($_command,COMMAND_RUN):
                 Server::Run($_ArgValue, $_args);
                 break;
             case $this->IsContain($_command,COMMAND_ADD):
@@ -24,6 +24,9 @@ class Executor extends Ds
                 break;
             case $this->IsContain($_command,COMMAND_RESTORE):
                 Manager::Structure(COMMAND_RESTORE,$_ArgValue);
+                break;
+            case $this->IsContain($_command,COMMAND_TEST):
+                Manager::Structure(COMMAND_TEST,$_ArgValue);
                 break;
             default:
                 msg($_command.' is not command !');
@@ -102,6 +105,9 @@ class Executor extends Ds
                 self::DeleteFile($files, MODELS, MODEL, TRUE);
                 break;
         }
+    }
+    public static function Test($_command){
+        echo $_command;
     }
     public static function CreateView($_files)
     {

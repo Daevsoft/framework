@@ -7,14 +7,15 @@ return [
     'System.inc.php',
     'IpValidator.inc.php',
     'Route.inc.php',
-    'Load.inc.php',
     'Page.inc.php',
-    'Controller.inc.php',
-    'FrontEnd.inc.php',
     'QueryBuilder.inc.php',
     'Input.inc.php',
     'Api.inc.php',
     'BackEnd.inc.php',
+    'DsModel.inc.php',
     'Model.inc.php',
-    'Cache.inc.php'
+    'Cache.inc.php',
+    'Load.inc.php',
+    'Controller.inc.php',
+    'FrontEnd.inc.php'
 ];

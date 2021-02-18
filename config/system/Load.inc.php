@@ -13,7 +13,7 @@ if (isset($autoload[Key::MODELS])) {
 	Load::load_libraries_and_modules($autoload[Key::MODELS],Key::MODELS);
 }
 // end object load
-function _get($_object_name)
+function _get($_object_name) 
 {
     $_instance_init = Load::object($_object_name) or printf("<h3>Object <i>$_object_name</i> not registered !</h3>");
 	return $_instance_init;
@@ -44,7 +44,7 @@ class Load extends dsCore
 					self::set_instance_active($__target, $__alias, $__dir, $_params = []);
 				}
 			}else{
-				dsSystem::MessageError($__target,'Cannot load object <b><i>'.$__target.'</i></b> from <b>'.ucfirst($__dir).'</b>, cause <i>'.$__target . '</i> not found!');
+				dsSystem::MessageError($__target,'Cannot load object <b><i>'.$__target.'</i></b> from <b>'.ucfirst($__dir).'</b>, cause <i>'.$__target . '</i> not found!<br><small>'.$_target_location_dirname.'</small><hr/>');
 			}
 	}
 	private static function set_instance_active($__target, $__alias = NULL, $__dir, $_params = []){
@@ -74,11 +74,13 @@ class Load extends dsCore
 				if(is_bool($_libName))
 					self::load_dir($key, NULL , $target, $_libName);
 				if(is_string($_libName)){
-					if ($target == Key::LIBRARIES) {
-						self::library($_libName, (is_numeric($key) ? $_libName : $key ));
-					}else{
-						self::module($_libName, (is_numeric($key) ? $_libName : $key ));
+					switch($target) {
+						case Key::LIBRARIES: self::library($_libName, (is_numeric($key) ? $_libName : $key ));break;
+						case Key::MODULES: self::module($_libName, (is_numeric($key) ? $_libName : $key ));break;
+						case Key::MODELS: self::model($_libName, (is_numeric($key) ? $_libName : $key ));break;
 					}
+				}if (is_numeric($key)) {
+					
 				}
 			}
     }
@@ -89,6 +91,10 @@ class Load extends dsCore
 	public static function inc_libraries($libraries_target)
 	{
 		self::load_target($libraries_target, Key::LIBRARIES);
+	}
+	public static function inc_model($model_target)
+	{
+		self::load_target($model_target, Key::MODELS);
 	}
 	public static function load_target($target, $folderName){
 		if(is_array($target)){
@@ -116,7 +122,7 @@ class Load extends dsCore
 	public static function model($mod_target, $alias = STRING_EMPTY, $_params = [])
 	{
 		$mod_target = ucfirst($mod_target);
-		self::load_dir($mod_target.Key::MODEL, $alias, Key::MODELS, true, $_params);
+		self::load_dir($mod_target, $alias, Key::MODELS, true, $_params);
 	}
 	static function object($alias_name) // get object with alias key
 	{

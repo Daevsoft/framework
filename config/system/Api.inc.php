@@ -22,9 +22,8 @@ class Api extends dsSystem
                 if($_failureCallback != NULL){
                     $_failureCallback();
                     die();
-                }else{
+                }else
                     die('Access is denied!');
-                }
     }
     private static function apiRequestReceiver($_reqSeed, $_funcResponse, $_data)
     {
@@ -65,6 +64,10 @@ class Api extends dsSystem
     public static function header($_reqSeed, $_funcResponse)
     {
         self::apiRequestReceiver($_reqSeed, $_funcResponse, headers_list());
+    }
+    public static function json($_reqSeed, $_funcResponse)
+    {
+        self::apiRequestReceiver($_reqSeed, $_funcResponse, raw_json());
     }
     public static function register($_reqApi)
     {

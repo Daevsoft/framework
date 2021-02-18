@@ -86,11 +86,12 @@ spl_autoload_register(function($classname)
 	if(file_exists($filename)){
 		require_once $filename;
 	}else {
+		// echo '-'.$classname.'-<br>';
 		// page not found function has 3 argument 
 		// (condition, alternate_function, argument1, argument2, ...)
-		Page::not_found(config('status') == Key::PUBLISHED, function($args){
-			dsSystem::MessageError(__FILE__,'Error '.$args[0].' Not Found');
-		}, $classname);
+		// Page::not_found(config('status') == Key::PUBLISHED, function($args){
+			// dsSystem::MessageError(__FILE__,'Error '.$args[0].' Not Found');
+		// }, $classname);
 	}
 });
 

@@ -1,4 +1,5 @@
 <?php
+secure_page();
 class FrontEnd extends dsCore
 {
   /**
@@ -6,6 +7,7 @@ class FrontEnd extends dsCore
   */
   private static $_lang_php;
   private static $_lang_json;
+  private $_controller_result;
 
   public function __construct()
   { }
@@ -110,9 +112,9 @@ class FrontEnd extends dsCore
           // Check the function existing
           if(method_exists($obj, $_function_name)){
             if ($__params == array()) { // Is Array 0 index or not
-              $obj->$_function_name(); // Execute Function in Controller
+              $this->_controller_result = $obj->$_function_name(); // Execute Function in Controller
             }else{
-              $obj->$_function_name($__params);
+              $this->_controller_result = $obj->$_function_name($__params);
             }
           }else{
             // Show 404 Not found when App Status is Publish
@@ -127,16 +129,25 @@ class FrontEnd extends dsCore
               $object_name.'\'</i></b>. Function not exist!'), $object_name.'.php', false);
           }
         }else {
-          call_user_func_array(
+          $this->_controller_result = call_user_func_array(
             [$obj, $controller[1]], // Controller class & method name
             array_slice($controller, 2) // parameter value
           );
         }
+        $this->response();
       }else{
         die('dsController not extended in this Controller or contructor not called.');
       }
     }else{
       $this->on_attach_api($requestTarget, $structure_app, $first_load, $path);
+    }
+  }
+  private function response()
+  {
+    if($this->_controller_result != null){
+      header('Content-Type: application/json');
+      if(is_array($this->_controller_result)) echo json_encode($this->_controller_result);
+      else echo json_encode([$this->_controller_result]);
     }
   }
   private function on_attach_api($requestTarget, $structure_app, $first_load, $path)
