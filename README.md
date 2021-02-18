@@ -2,7 +2,7 @@
 dsframework is framework written in php syntax.
 This framework required php version 7.2 or higher.
 
-# React for Full-stack Developer
+## React for Full-stack Developer
 dsFramework now on coming with react js just type on your terminal <code>X:\xxx\yourproject> npm install</code> and voila! Your react and sass library was ready.<br>
 Your react file on the public folder. Happy coding!
 
