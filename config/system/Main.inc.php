@@ -2,7 +2,7 @@
 $GLOBALS = array(
 	'renameController' => $renameController,
 	'routeList' => $routeList,
-	'server' => $config,
+	'server' => array_merge($config, ['broadcast' => $broadcasts]),
 	'__models' => [] // For models objects
 );
 
@@ -79,20 +79,21 @@ switch ($config['status']) {
 	default:break;
 }
 // Load Controller class
-spl_autoload_register(function($classname)
-{
-	// generate physical directory file name
-	$filename = Indexes::$DIR_ROOT.config('controller_path').Key::CHAR_SLASH.ucfirst($classname).'.php';
-	if(file_exists($filename)){
-		require_once $filename;
-	}else {
-		// page not found function has 3 argument 
-		// (condition, alternate_function, argument1, argument2, ...)
-		Page::not_found(config('status') == Key::PUBLISHED, function($args){
-			dsSystem::MessageError(__FILE__,'Error '.$args[0].' Not Found');
-		}, $classname);
-	}
-});
+// spl_autoload_register(function($classname)
+// {
+// 	// generate physical directory file name
+// 	$filename = Indexes::$DIR_ROOT.config('controller_path').Key::CHAR_SLASH.ucfirst($classname).'.php';
+// 	if(file_exists($filename)){
+// 		require_once $filename;
+// 	}else {
+// 		// page not found function has 3 argument 
+// 		// (condition, alternate_function, argument1, argument2, ...)
+// 		// Page::not_found(config('status') == Key::PUBLISHED, function($args){
+// 			throw new Exception('Error '.$filename.' Not Found'); 
+// 			// dsSystem::MessageError(__FILE__,'Error '.$filename.' Not Found');
+// 		// }, $classname);
+// 	}
+// });
 
 // Autoload Composer
 $composer_path = dirname(dirname(__DIR__)).Key::CHAR_SLASH.config('composer_path').'/autoload.php';

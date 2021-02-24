@@ -1,4 +1,5 @@
 <?php
+secure_page();
 class FrontEnd extends dsCore
 {
   /**
@@ -100,6 +101,8 @@ class FrontEnd extends dsCore
       $controller[0] .= Key::CONTROLLER;
       // get object name
       $object_name = $controller[0];
+      
+    	$this->inc_controller($object_name);;
       // end rename controller
       $obj = new $object_name(); // Create object controller for check parentController has been extended
       
@@ -158,6 +161,9 @@ class FrontEnd extends dsCore
         $ex = new Exception($filename.' file is not found or not registered!');
         $ex = new dsException($ex,'URI Address -> '. $path,FALSE);
       }
+  }
+  protected function inc_controller($object_name){
+    require_once Indexes::$DIR_ROOT.config('controller_path').Key::CHAR_SLASH.ucfirst($object_name).'.php';
   }
   public static function route($_routeTarget, $_routeName)
   {

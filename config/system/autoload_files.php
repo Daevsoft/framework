@@ -1,10 +1,11 @@
 <?php
 require_once Indexes::$DIR_ROOT. Key::D_CONFIG. 'config.inc.php';
 return [
-    'Main.inc.php',
-    'Core.inc.php',
     'Exception.inc.php',
+    'Main.inc.php',
     'System.inc.php',
+    'Core.inc.php',
+    'Broadcast.inc.php',
     'IpValidator.inc.php',
     'Route.inc.php',
     'Load.inc.php',
@@ -15,6 +16,7 @@ return [
     'Input.inc.php',
     'Api.inc.php',
     'BackEnd.inc.php',
+    'DsModel.inc.php',
     'Model.inc.php',
     'Cache.inc.php'
 ];

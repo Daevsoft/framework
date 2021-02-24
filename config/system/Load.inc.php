@@ -12,8 +12,11 @@ if (isset($autoload[Key::MODULES])) {
 if (isset($autoload[Key::MODELS])) {
 	Load::load_libraries_and_modules($autoload[Key::MODELS],Key::MODELS);
 }
+if (isset($autoload[Key::EVENTS])) {
+	Load::load_libraries_and_modules($autoload[Key::EVENTS],Key::EVENTS);
+}
 // end object load
-function _get($_object_name)
+function _get($_object_name) 
 {
     $_instance_init = Load::object($_object_name) or printf("<h3>Object <i>$_object_name</i> not registered !</h3>");
 	return $_instance_init;
@@ -33,7 +36,7 @@ class Load extends dsCore
 		{
 			self::$_ms = is_null(self::$_ms) ? array() : self::$_ms;
 		}
-    private static function load_dir($__target, $__alias, $__dir, $InstanceClass = true, $_params = [])
+    private static function load_dir($__target, $__alias, $__dir, $InstanceClass = false, $_params = [])
     {
 			self::check_ms();
 			$_target_location_dirname = Indexes::$DIR_ROOT.Key::D_APP. $__dir. Key::CHAR_SLASH. $__target.'.php';
@@ -74,14 +77,18 @@ class Load extends dsCore
 				if(is_bool($_libName))
 					self::load_dir($key, NULL , $target, $_libName);
 				if(is_string($_libName)){
-					if ($target == Key::LIBRARIES) {
-						self::library($_libName, (is_numeric($key) ? $_libName : $key ));
-					}else{
-						self::module($_libName, (is_numeric($key) ? $_libName : $key ));
+					switch ($target) {
+						case Key::LIBRARIES: self::library($_libName, (is_numeric($key) ? $_libName : $key ));break;
+						case Key::EVENTS: (is_numeric($key) ? self::inc_event($_libName) : self::event($_libName, $key));break;
+						case Key::MODULE: (is_numeric($key) ? self::inc_module($_libName) : self::module($_libName, $key));break;
 					}
 				}
 			}
     }
+	public static function inc_event($event_target)
+	{
+		self::load_dir($event_target, STRING_EMPTY, Key::EVENTS, false);
+	}
 	public static function inc_module($module_target)
 	{
 		self::load_dir($module_target, STRING_EMPTY, Key::MODULES, false);
@@ -89,6 +96,10 @@ class Load extends dsCore
 	public static function inc_libraries($libraries_target)
 	{
 		self::load_target($libraries_target, Key::LIBRARIES);
+	}
+	public static function inc_model($model_target)
+	{
+		self::load_target($model_target, Key::MODELS);
 	}
 	public static function load_target($target, $folderName){
 		if(is_array($target)){
@@ -98,6 +109,11 @@ class Load extends dsCore
 		}else if (is_string($target)) {
 			self::load_dir($target, STRING_EMPTY, $folderName, false);
 		}
+	}
+    public static function event($event_target , $alias = STRING_EMPTY, $_params = [])
+	{
+		$event_target = ucfirst($event_target);
+		self::load_dir($event_target, $alias, Key::EVENTS, false, $_params);
 	}
     public static function module($module_target , $alias = STRING_EMPTY, $_params = [])
 	{
