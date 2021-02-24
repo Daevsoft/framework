@@ -12,6 +12,7 @@ class Key{
     public const MODULE = 'Module';
     public const MODULES = 'modules';
     public const LIBRARY = 'Library';
+    public const EVENTS = 'events';
     public const LIBRARIES = 'libraries';
     public const CONTROLLER = 'Controller';
     public const CONTROLLERS = 'controllers';
