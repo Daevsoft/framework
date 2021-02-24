@@ -23,7 +23,8 @@
     ],
     "require": {
         "php": "^7.2.0",
-        "daevsoft/dsframework":"dev-master@dev"
+        "daevsoft/dsframework":"dev-master@dev",
+        "pusher/pusher-php-server": "~5"
     },
     "minimum-stability": "stable",
     "prefer-stable": true
