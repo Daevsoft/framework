@@ -155,15 +155,14 @@ $config = [
 $autoload = [
 	Key::LIBRARIES	=> [],
 	Key::MODULES	=> [],
-	Key::MODELS		=> []
+	Key::MODELS	=> [],
+	Key::EVENTS	=> ['Message']
 ];
-
 // Rename Controller
 // used when you want to replace/manipulate your Controller Name
 // write like this 'YourController' => 'replaceName'
 // For example : 'MyController' => 'admin'
 $renameController = [
-	'Archer' => 'arc'
 ];
 
 // RouteList
@@ -182,4 +181,34 @@ $ipAddress = [
 	// Example : '192.168.137.1, 192.168.137.2, ...'
 	// For all ip use 'any'
 	'ip_list' 	 => 'any'
+];
+
+$broadcasts = [
+    'connections' => [
+		'driver' => 'pusher',
+
+        'main' => [
+            'auth_key' => 'your-auth-key',
+            'secret'   => 'your-secret',
+            'app_id'   => 'your-app-id',
+            'options'  => [
+				'cluster' => 'ap1',
+				'encrypted' => true,
+				'useTLS' => true
+            ],
+            'host'     => null,
+            'port'     => null,
+            'timeout'  => null,
+        ],
+
+        'alternative' => [
+            'auth_key' => 'your-auth-key',
+            'secret'   => 'your-secret',
+            'app_id'   => 'your-app-id',
+            'options'  => [],
+            'host'     => null,
+            'port'     => null,
+            'timeout'  => null,
+        ],
+    ]
 ];
