@@ -1,5 +1,6 @@
 <?php
 require_once Indexes::$DIR_ROOT. Key::D_CONFIG. 'config.inc.php';
+require_once Indexes::$DIR_ROOT. Key::D_CONFIG. 'broadcast.inc.php';
 return [
     'Exception.inc.php',
     'Main.inc.php',

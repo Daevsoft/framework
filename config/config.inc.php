@@ -135,17 +135,14 @@ $config = [
 	+--------------------------------------------
 	|	['LibrariesName1','LibrariesName1']
 	+--------------------------------------------
-
 	or with alias like :
 	+--------------------------------------------
 	|	'aliasName' => 'LibrariesName'
 	+--------------------------------------------
-
 	and to call object instance in anywhere use :
 	+--------------------------------------------
 	|	_get('aliasName')
 	+--------------------------------------------
-
 	or just import only :
 	+--------------------------------------------
 	|	'fileName' => false
@@ -181,34 +178,4 @@ $ipAddress = [
 	// Example : '192.168.137.1, 192.168.137.2, ...'
 	// For all ip use 'any'
 	'ip_list' 	 => 'any'
-];
-
-$broadcasts = [
-    'connections' => [
-		'driver' => 'pusher',
-
-        'main' => [
-            'auth_key' => 'your-auth-key',
-            'secret'   => 'your-secret',
-            'app_id'   => 'your-app-id',
-            'options'  => [
-				'cluster' => 'ap1',
-				'encrypted' => true,
-				'useTLS' => true
-            ],
-            'host'     => null,
-            'port'     => null,
-            'timeout'  => null,
-        ],
-
-        'alternative' => [
-            'auth_key' => 'your-auth-key',
-            'secret'   => 'your-secret',
-            'app_id'   => 'your-app-id',
-            'options'  => [],
-            'host'     => null,
-            'port'     => null,
-            'timeout'  => null,
-        ],
-    ]
 ];
