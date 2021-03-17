@@ -2,7 +2,7 @@
 $GLOBALS = array(
 	'renameController' => $renameController,
 	'routeList' => $routeList,
-	'server' => array_merge($config, ['broadcast' => $broadcasts]),
+	'server' => array_merge($config, ['broadcast' => $broadcast_config]),
 	'__models' => [] // For models objects
 );
 
