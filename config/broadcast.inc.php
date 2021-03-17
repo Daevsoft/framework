@@ -1,5 +1,5 @@
 <?php
-return [
+$broadcast_config = [
     'connections' => [
 		'driver' => 'pusher',
 
