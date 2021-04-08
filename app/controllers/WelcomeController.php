@@ -13,7 +13,7 @@ class WelcomeController extends dsController
     {
         $data = array(
             'title'       => 'DS Framework',
-            'welcomeText' => 'Let\'s make a better world!',
+            'welcomeText' => 'Let\'s build an awesome app!',
             'buttonText'  => 'Get Started'
         );
         view("welcome.pie", $data);
