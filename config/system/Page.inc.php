@@ -17,9 +17,25 @@ class Page
     {
         self::$collection_temp = $__dt;
         self::$_filenames = dirname(dirname(__DIR__)).Key::CHAR_SLASH.config('view_path').Key::CHAR_SLASH.$__fl.'.php';
+        $_filename_pie = dirname(dirname(__DIR__)).Key::CHAR_SLASH.config('view_path').Key::CHAR_SLASH.$__fl.'.pie'.'.php';
+        $file_exist = true;
+        
         if (!file_exists(self::$_filenames)) {
-            dsSystem::MessageError('File view <b>' . $__fl . '</b> not found!');
-        };
+            $file_exist = false;
+        }
+        if(!$file_exist) {
+            if (!file_exists($_filename_pie)) {
+                $file_exist = false;
+            }else {
+                $__fl = $_filename_pie;
+                self::$_filenames = $__fl;
+                $file_exist = true;
+            }
+        }
+        if(!$file_exist){
+            dsSystem::MessageError('File view <b>' . self::$_filenames . '</b> not found!');
+            return;
+        }
         // Check is Using template or not
         if(!string_contains('.pie', $__fl)){
             // Extract All Variable
@@ -98,7 +114,7 @@ class Page
             self::$pie_source[
                 $pie_import_precompile_temp[2][$i]
                 ] = file_get_contents(Indexes::$DIR_VIEWS.
-                $pie_import_precompile_temp[1][$i].Key::EXT_pie);
+                $pie_import_precompile_temp[1][$i].Key::EXT_PIE);
             // remove @import from view
             $render_temp = str_replace($pie_import_precompile_temp[0][$i],STRING_EMPTY, $render_temp);
         }

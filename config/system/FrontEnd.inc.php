@@ -102,7 +102,7 @@ class FrontEnd extends dsCore
       // get object name
       $object_name = $controller[0];
       
-    	$this->inc_controller($object_name);;
+    	$this->inc_controller($object_name);
       // end rename controller
       $obj = new $object_name(); // Create object controller for check parentController has been extended
       
@@ -113,9 +113,9 @@ class FrontEnd extends dsCore
           // Check the function existing
           if(method_exists($obj, $_function_name)){
             if ($__params == array()) { // Is Array 0 index or not
-              $obj->$_function_name(); // Execute Function in Controller
+              $return_value = $obj->$_function_name(); // Execute Function in Controller
             }else{
-              $obj->$_function_name($__params);
+              $return_value = $obj->$_function_name($__params);
             }
           }else{
             // Show 404 Not found when App Status is Publish
@@ -130,16 +130,27 @@ class FrontEnd extends dsCore
               $object_name.'\'</i></b>. Function not exist!'), $object_name.'.php', false);
           }
         }else {
-          call_user_func_array(
+          $return_value = call_user_func_array(
             [$obj, $controller[1]], // Controller class & method name
             array_slice($controller, 2) // parameter value
           );
         }
+        $this->response($return_value);
       }else{
         die('dsController not extended in this Controller or contructor not called.');
       }
     }else{
       $this->on_attach_api($requestTarget, $structure_app, $first_load, $path);
+    }
+  }
+  private function response($value){
+    if (!is_null($value)) {
+      header('Content-Type: application/json');
+      if (is_array($value)) {
+        echo json_encode($value);
+      } else {
+        echo json_encode([$value]);
+      }
     }
   }
   private function on_attach_api($requestTarget, $structure_app, $first_load, $path)

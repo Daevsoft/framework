@@ -10,7 +10,7 @@ $config = [
 	/* APP NAME
 	|	Your web name 
 	*/
-	'app_name'				=> 'My Web',
+	'app_name'				=> 'Web App',
 	
 	/* SERVER HOST
 	|	Your database server host
@@ -74,7 +74,7 @@ $config = [
 	|	 - mvc
 	|	 - both
 	*/
-	'structure_app'			=> 'both',
+	'structure_app'			=> 'mvc',
 
 	/* MODEL PATH
 	|	You can move your folder any where you want
@@ -94,7 +94,7 @@ $config = [
 	|	use ControllerName when 'structure_app' is 'mvc' or 'both'
 	|	sample for 'controllers/MainController.php' is 'main'
 	*/
-	'first_load'			=> 'Welcome',
+	'first_load'			=> 'welcome', 
 
 	/* 404 Page Not Found
 	|	If address url not found the system will open file view in the views/404/index.php.
@@ -135,14 +135,17 @@ $config = [
 	+--------------------------------------------
 	|	['LibrariesName1','LibrariesName1']
 	+--------------------------------------------
+
 	or with alias like :
 	+--------------------------------------------
 	|	'aliasName' => 'LibrariesName'
 	+--------------------------------------------
+
 	and to call object instance in anywhere use :
 	+--------------------------------------------
 	|	_get('aliasName')
 	+--------------------------------------------
+
 	or just import only :
 	+--------------------------------------------
 	|	'fileName' => false
@@ -150,11 +153,13 @@ $config = [
 	false : is mean that not to create instance automatically
 */
 $autoload = [
-	Key::LIBRARIES	=> [],
+	Key::LIBRARIES	=> [
+		'Session' => false
+	],
 	Key::MODULES	=> [],
-	Key::MODELS	=> [],
-	Key::EVENTS	=> ['Message']
+	Key::MODELS		=> []
 ];
+
 // Rename Controller
 // used when you want to replace/manipulate your Controller Name
 // write like this 'YourController' => 'replaceName'

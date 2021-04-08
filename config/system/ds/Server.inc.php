@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__.'/libs/File/File.php';
+
 class Server extends Ds
 {
     public function __construct() {
@@ -11,7 +13,16 @@ class Server extends Ds
         $cache->clearReferences();
 
         // get directory target, if it's root=main/
-        $dir = $_args[SECOND_ARG];
+        $dir = $_args[SECOND_ARG] ?? STRING_EMPTY;
+        // $params = '';
+        // foreach ($_args as $arg)
+        //     if (strstr('-',$arg) != STRING_EMPTY)
+        //         $params .= '|'.$arg.'|';
+        // if (strstr('|-c|', $params)) {
+        //     // clear cache file object
+        //     $obj_file = new File('../');
+        // }
+        
         $_host = $_host == '' ? 'localhost' : $_host ;
         // is command is run
         // get a new port for web server

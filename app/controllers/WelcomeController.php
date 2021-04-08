@@ -16,6 +16,6 @@ class WelcomeController extends dsController
             'welcomeText' => 'Let\'s build an awesome app!',
             'buttonText'  => 'Get Started'
         );
-        view("welcome.pie", $data);
+        view("welcome", $data);
     }
 }

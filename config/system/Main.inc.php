@@ -2,7 +2,7 @@
 $GLOBALS = array(
 	'renameController' => $renameController,
 	'routeList' => $routeList,
-	'server' => array_merge($config, ['broadcast' => $broadcast_config]),
+	'server' => array_merge($config, ['broadcast' => $broadcasts]),
 	'__models' => [] // For models objects
 );
 
@@ -338,12 +338,12 @@ if (! function_exists('js_source')) {
 if (! function_exists('js_url')) {
 	function js_url($_fileName)
 	{
-		return '<script type=\'text/javascript\' src=\'/assets/js/'.$_fileName.'.js\'></script>';
+		return '/assets/js/'.$_fileName.'.js';
 	}
 }
 
-if (! function_exists('assets_source')) {
-	function assets_source($_fileName)
+if (! function_exists('asset')) {
+	function asset($_fileName)
 	{
 		return Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets'.Key::CHAR_SLASH.$_fileName);
 	}

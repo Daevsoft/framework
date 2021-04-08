@@ -27,6 +27,11 @@ class dsException extends Exception
         $arrTrace = $this->exception->getTrace();
         // Put Style Exception
         echo '<style>
+        *{
+            font-family: roboto,arial,sans-serif;
+            line-height:1.5;
+            font-size:14px;
+        }
         .BoxDsException__{
             border-radius:4px;
             box-shadow:1px 1px 5px black;
@@ -61,13 +66,16 @@ class dsException extends Exception
             color: black;
         }
         .boxErrorTree{
-            border:0.5px solid black;
+            box-shadow:0 2px 5px grey;
             padding:5px; 
             margin-top: 5px;
+            transition:200ms ease-in-out;
+            border-radius: 4px;
+            padding:10px;
+            margin:10px;
         }
         .boxErrorTree:hover{
-            background-color:midnightblue;
-            color:white;
+            background-color:whitesmoke;
         }
         .orange{
             color:orange;

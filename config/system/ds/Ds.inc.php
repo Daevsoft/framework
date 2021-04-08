@@ -28,6 +28,8 @@ define('COMMAND_VIEW','view');
 define('COMMAND_CONTROLLER','controller');
 define('COMMAND_MODEL','model');
 
+define('PARAM_CLEAN', '-c'); // clean cache
+
 define('RESPONSE','DsResponse: ');
 
 define('MAIN_DIR',dirname(dirname(dirname(__DIR__))));
@@ -59,7 +61,7 @@ class Ds
   {
     $_autoload = require __DIR__.'/Autoload.inc.php';
     foreach ($_autoload as $file) {
-      // Load all command executor
+      // Load all command executor;
       require $file.'.inc.php';
     }
     $this->init();
@@ -69,6 +71,7 @@ class Ds
     // Create Executor
     $executor = new Executor();
     $executor->Commands(get_command());
+
   }
   public function GetArgValue($_Arg)
   {

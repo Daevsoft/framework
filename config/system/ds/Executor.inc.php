@@ -5,7 +5,7 @@ class Executor extends Ds
     }
     public function Commands($_args)
     {
-        // Get Command params
+        // Get Command params/
         $_command = $_args[FIRST_ARG];
         $_ArgValue = '';
         // Get parameter choose command
