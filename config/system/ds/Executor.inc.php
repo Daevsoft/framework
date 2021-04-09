@@ -154,20 +154,21 @@ Api::'.$mtd.'(\'/\', function($_req, $sql){
     }
     public static function CreateEvent($_files)
     {
-        foreach ($_files as $_filenames) {
+        foreach ($_files as $_file) {
+            $snake_filename = to_snake($_file);
             $source = '<?php
-class '.$_filenames.' extends Event
+class '.$_file.' extends Event
 {
-    protected $alias_name = \''.to_snake($_filenames).'\';
+    protected $alias_name = \''.$snake_filename.'\';
     public function __construct() {
     }
-    public function do()
+    protected function do()
     {
         // DO THE EVENT
     }
 }';
-            $_filenames = ucfirst($_filenames);
-            self::CreateFile($_filenames, APIS, API, $source);
+            $_filenames = ucfirst($_file);
+            self::CreateFile($_file, EVENTS, EVENT, $source);
         }
     }
     public static function CreateController($_files)

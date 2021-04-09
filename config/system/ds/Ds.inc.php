@@ -51,6 +51,10 @@ function get_command($_pos = '')
   else
     return $GLOBALS['argv'][$_pos];
 }
+function to_snake($str)
+{
+    return strtolower(preg_replace('/([A-Z])(.*)([A-Z])/','\1\2_\3', $str));
+}
 // require cache for managing when first running
 require_once 'helper/Cache.inc.php';
 
