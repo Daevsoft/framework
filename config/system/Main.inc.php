@@ -348,3 +348,9 @@ if (! function_exists('asset')) {
 		return Indexes::$BASE_URL.(Key::CHAR_SLASH.'assets'.Key::CHAR_SLASH.$_fileName);
 	}
 }
+if (! function_exists('to_snake')) {
+	function to_snake($str)
+    {
+        return strtolower(preg_replace('/([A-Z])(.*)([A-Z])/','\1\2_\3', $str));
+    }
+}

@@ -18,6 +18,9 @@ class Manager extends Ds
             case COMMAND_API:
                 Executor::Api($_command);
             break;
+            case COMMAND_EVENT:
+                Executor::Event($_command);
+            break;
             case COMMAND_TEST:
                 Executor::Test($_command);
             break;

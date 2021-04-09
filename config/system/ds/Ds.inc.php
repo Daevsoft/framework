@@ -9,6 +9,7 @@ define('FIFTH_ARG',5);
 
 define(STRING_EMPTY, '');
 define('CONTROLLERS','/controllers');
+define('EVENTS','/events');
 define('MODELS','/models');
 define('VIEWS','/views');
 define('APIS','/api');
@@ -25,6 +26,7 @@ define('COMMAND_TEST','test');
 // second
 define('COMMAND_API','api');
 define('COMMAND_VIEW','view');
+define('COMMAND_EVENT','event');
 define('COMMAND_CONTROLLER','controller');
 define('COMMAND_MODEL','model');
 

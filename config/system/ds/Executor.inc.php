@@ -33,7 +33,6 @@ class Executor extends Ds
             break;
         }
     }
-
     public static function View($_command)
     {
         // Filename
@@ -64,6 +63,24 @@ class Executor extends Ds
                 break;
             case COMMAND_RESTORE:
                 self::DeleteFile($files, APIS, STRING_EMPTY, TRUE);            
+                break;
+        }
+    }
+    public static function Event($_command)
+    {
+        // Filename
+        $filenames = get_command(SECOND_ARG);
+        $files = explode(',',$filenames);
+
+        switch ($_command) {
+            case COMMAND_ADD:
+                self::CreateEvent($files);
+                break;
+            case COMMAND_DEL:
+                self::DeleteFile($files, EVENTS, STRING_EMPTY, FALSE);        
+                break;
+            case COMMAND_RESTORE:
+                self::DeleteFile($files, EVENTS, STRING_EMPTY, TRUE);            
                 break;
         }
     }
@@ -126,12 +143,30 @@ class Executor extends Ds
         foreach ($_files as $file) {
             $_filenames  = $file;
             $source = '<?php 
-Api::register(\''.$file.'\'); 
+Api::register(\''.$file.'\');
 
 Api::'.$mtd.'(\'/\', function($_req, $sql){
     return [\'response\' => \'Created\'];
 });';
-$_filenames = ucfirst($_filenames);
+            $_filenames = ucfirst($_filenames);
+            self::CreateFile($_filenames, APIS, API, $source);
+        }
+    }
+    public static function CreateEvent($_files)
+    {
+        foreach ($_files as $_filenames) {
+            $source = '<?php
+class '.$_filenames.' extends Event
+{
+    protected $alias_name = \''.to_snake($_filenames).'\';
+    public function __construct() {
+    }
+    public function do()
+    {
+        // DO THE EVENT
+    }
+}';
+            $_filenames = ucfirst($_filenames);
             self::CreateFile($_filenames, APIS, API, $source);
         }
     }
