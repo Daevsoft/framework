@@ -159,7 +159,7 @@ Api::'.$mtd.'(\'/\', function($_req, $sql){
             $source = '<?php
 class '.$_file.' extends Event
 {
-    protected $alias_name = \''.$snake_filename.'\';
+    protected $name = \''.$snake_filename.'\';
     public function __construct() {
     }
     protected function do()

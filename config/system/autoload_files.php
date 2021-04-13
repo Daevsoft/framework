@@ -9,6 +9,7 @@ return [
     'Broadcast.inc.php',
     'IpValidator.inc.php',
     'Route.inc.php',
+    'Event.inc.php',
     'Page.inc.php',
     'Controller.inc.php',
     'FrontEnd.inc.php',
@@ -19,5 +20,5 @@ return [
     'DsModel.inc.php',
     'Model.inc.php',
     'Load.inc.php',
-    'Cache.inc.php'
+    'Cache.inc.php',
 ];
