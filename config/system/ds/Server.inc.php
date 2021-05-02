@@ -26,11 +26,12 @@ class Server extends Ds
         $_host = $_host == '' ? 'localhost' : $_host ;
         // is command is run
         // get a new port for web server
-        $root = strstr('root', $dir) == STRING_EMPTY ?
+        $root = ($dir == STRING_EMPTY || strstr('root', $dir) == STRING_EMPTY) ?
                 '-t main/' : STRING_EMPTY; 
         $port = 8000;
+        $err = '';
         // check active port
-        while(fsockopen($_host, $port) == TRUE){ $port++; }
+        while(fsockopen($_host, $port, $err) == TRUE){ $port++; }
         if (trim($_host) != STRING_EMPTY) {
             $_serverRun = $_host.':'.$port;
             msg('Ds server started on http://'. $_serverRun.

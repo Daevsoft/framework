@@ -162,7 +162,7 @@ class '.$_file.' extends Event
     protected $name = \''.$snake_filename.'\';
     public function __construct() {
     }
-    protected function do()
+    public function do()
     {
         // DO THE EVENT
     }
@@ -244,7 +244,7 @@ $_filenames = ucfirst($_filenames);
     }
     public static function RemoveFileTemporary($_filenames, $_target_directory, $_restore)
     {
-        $filenames = Key::CHAR_SLASH.$_filenames;
+        $filenames = '/'.$_filenames;
         $new_directory = TRASH_DIR.$_target_directory.$filenames;
         $directory = MAIN_DIR.'/app'.$_target_directory.$filenames;
         if(!$_restore){

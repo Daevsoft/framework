@@ -94,15 +94,15 @@ class dsException extends Exception
         .'</pre>') : '<br />Error : ')
         .$this->exception->getMessage();
         echo '</div></div>';
-if(config('status') != 'pub')
-		foreach ($arrTrace as $trace) {
-			echo '<div class="boxErrorTree">';
-			foreach ($trace as $traceKey => $traceValue) {
-                $errorDesc = is_array($traceValue) ? print_r($traceValue) : $traceValue;
-				echo '<b class="orange">'.ucfirst($traceKey).'</b> : '.$errorDesc.'<br />';
-			}
-			echo '</div>';
-        }
+        if(config('status') != 'pub')
+            foreach ($arrTrace as $trace) {
+                echo '<div class="boxErrorTree">';
+                foreach ($trace as $traceKey => $traceValue) {
+                    $errorDesc = is_array($traceValue) ? print_r($traceValue) : $traceValue;
+                    echo '<b class="orange">'.ucfirst($traceKey).'</b> : '.$errorDesc.'<br />';
+                }
+                echo '</div>';
+            }
         die();
     }
     public function display_line_error($_arrFile, $_line)

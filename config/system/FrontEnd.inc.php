@@ -98,6 +98,7 @@ class FrontEnd extends dsCore
       $controller[0] = $route_found ? 
       // Rename controller is able ?
       $route_found : $controller[0];
+      
       $controller[0] .= Key::CONTROLLER;
       // get object name
       $object_name = $controller[0];

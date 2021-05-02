@@ -7,7 +7,7 @@ define('THIRD_ARG',3);
 define('FOURTH_ARG',4);
 define('FIFTH_ARG',5);
 
-define(STRING_EMPTY, '');
+define('STRING_EMPTY', '');
 define('CONTROLLERS','/controllers');
 define('EVENTS','/events');
 define('MODELS','/models');
@@ -16,6 +16,7 @@ define('APIS','/api');
 define('CONTROLLER','Controller');
 define('MODEL','Model');
 define('VIEW','view');
+define('EVENT','event');
 define('API','Api');
 // first
 define('COMMAND_RUN','run');

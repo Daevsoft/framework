@@ -40,7 +40,8 @@ class Page
         if(!string_contains('.pie', $__fl)){
             // Extract All Variable
             extract($__dt);
-            require_once(self::$_filenames);
+            require(self::$_filenames);
+            
         }else {
             self::render_template_alternate();
         }
@@ -48,13 +49,15 @@ class Page
     private static function render_template_alternate()
     {
         // initial cache file directory
-        $file_gen_enc = sha1(self::$_filenames);
+        $file_gen_enc = sha1(self::$_filenames).Key::EXT_PHP;
         $dir_cache = Indexes::$DIR_CACHE_VIEW.$file_gen_enc;
-        $cache = new dsCache($file_gen_enc);
+        $cache = new dsCache($dir_cache);
 
         // Checking cache time
-        if(!file_exists($file_gen_enc) || ($cache->is_modified() || config('status') == Key::DEVELOPMENT) 
-        || self::$testing_cache){
+        if(!$cache->exists()
+        || ($cache->is_modified() 
+        // || config('status') == Key::DEVELOPMENT
+        ) || self::$testing_cache){
             // record into temp file
             $cache->record_file();
             // render cache into new file generate
@@ -64,7 +67,7 @@ class Page
         $GLOBALS['FILENAMES_REAL'] = self::$_filenames;
         // Extract All Variable
         extract(self::$collection_temp);
-        require_once $dir_cache;
+        require($dir_cache);
     }
     private static function render_page(&$dir_cache)
     {
@@ -76,34 +79,36 @@ class Page
         fclose($php_cache);
     }
 
-    private static function pie_join($render_temp)
+    private static function pie_join($render_temp, $pie_join_precompile_temp = null)
     {
+        $pie_filter_pattern = '/\@join\((.*)\)/iXsuUm';
         // get all string with @join
-        $pie_join_precompile_temp = [];
-        $pie_filter_pattern = '/\@join\s(.*)\;/iXsuUm';
-        // get all join text
-        preg_match_all($pie_filter_pattern, $render_temp, $pie_join_precompile_temp);
-
+        if($pie_join_precompile_temp == null){
+            // get all join text
+            preg_match_all($pie_filter_pattern, $render_temp, $pie_join_precompile_temp);
+        }
         // count join text
         $tab_next_pie = count($pie_join_precompile_temp[0]);
         // replace content one by one
-        for ($i=0; $i < $tab_next_pie; $i++) { 
-            // put pie content into index 1
-            $pie_join_precompile_temp[1][$i]
-                = file_get_contents(Indexes::$DIR_VIEWS.
-            $pie_join_precompile_temp[1][$i].Key::EXT_PHP);
-            // replace @join with view content
-            $render_temp = str_replace($pie_join_precompile_temp[0][$i],
-            $pie_join_precompile_temp[1][$i], $render_temp);
+        for ($i=0; $i < $tab_next_pie; $i++) {
+            $_params_precompile = $pie_join_precompile_temp[1][$i];
+            // remove end quote if exist
+            $last_char = strlen($_params_precompile) - 1;
+            if($_params_precompile[$last_char] == '\'')
+                substr($_params_precompile, 0, $last_char);
+            $render_temp = str_replace($pie_join_precompile_temp[0][$i],'<< view('.$pie_join_precompile_temp[1][$i].'); >>', $render_temp);
         }
-
-        return $render_temp;
+        $pie_join_precompile_temp_next = [];
+        preg_match_all($pie_filter_pattern, $render_temp, $pie_join_precompile_temp_next);
+        
+        return (count($pie_join_precompile_temp_next[0]) == 0) ? 
+                $render_temp : Page::pie_join($render_temp, $pie_join_precompile_temp_next);
     }
     private static function pie_import($render_temp)
     {
         // get all string with @import
         $pie_import_precompile_temp = [];
-        $pie_filter_pattern = '/\@import\s(.*)\s(.*)\;/iXsuUm';
+        $pie_filter_pattern = '/\@import\(\'(.*)\'\s?,\s?\'(.*)\'\)/iXsuUm';
         // get all import text
         preg_match_all($pie_filter_pattern, $render_temp, $pie_import_precompile_temp);
         // count string has pie
@@ -120,7 +125,7 @@ class Page
         }
         for ($i=0; $i < $tab_next_pie; $i++) { 
             // fill pie part by regex ex:@comp('message')
-            $rgx_pie = '/\@'.$pie_import_precompile_temp[2][$i].'\(\'(.*)\'\)/i';
+            $rgx_pie = '/\@'.$pie_import_precompile_temp[2][$i].'\(\'(.*)\'\)/iXsuUm';
             $rgx_pie_match = [];
             preg_match_all($rgx_pie, $render_temp, $rgx_pie_match);
             $rgx_pie_count = count($rgx_pie_match[0]);
@@ -133,9 +138,9 @@ class Page
                         $pie_import_precompile_temp[2][$i]
                     ];
                     $rgx_source_compiled = [];
-                    preg_match('/(?s)(?<=\@pie\s'.$rgx_pie_match[1][$j].'\:)(.*?)(?=\@endpie)/i',
+                    preg_match_all('/(?s)(?<=\@pie\(\''.$rgx_pie_match[1][$j].'\'\))(.*?)(?=\@endpie)/i',
                     $rgx_pie_source, $rgx_source_compiled);
-                    $render_temp = preg_replace($rgx_pie_compile, $rgx_source_compiled[0], $render_temp);
+                    $render_temp = preg_replace($rgx_pie_compile, $rgx_source_compiled[0][0], $render_temp);
                 }
             }
         }
@@ -144,8 +149,52 @@ class Page
     private static function pie_initialize($render_temp)
     {
         $render_temp = self::pie_import($render_temp);
+        // $render_temp = self::pie_use($render_temp);
         $render_temp = self::pie_join($render_temp);
         return $render_temp;
+    }
+    private static function pie_use($render_temp, $pie_use_precompile_temp = null){
+        $pie_filter_pattern = '/\@use\(\'(.*)\'\)/iXsuUm';
+        // get all string with @use
+        if($pie_use_precompile_temp == null){
+            // get all use text
+            preg_match_all($pie_filter_pattern, $render_temp, $pie_use_precompile_temp);
+        }
+        // get views for contents
+
+        // count use text
+        $tab_next_pie = count($pie_use_precompile_temp[0]);
+        if($tab_next_pie > 0){
+            $file_name = Indexes::$DIR_VIEWS.$pie_use_precompile_temp[1][0];
+            $file_use_path_php = $file_name.Key::EXT_PHP;
+            // if view not exist use pie extension
+            if(!file_exists($file_use_path_php)) $file_use_path_php = $file_name.Key::EXT_PIE;
+            // put pie content into index 1
+            $use_content = file_get_contents($file_use_path_php);
+            // test($pie_use_precompile_temp);
+            // test($file_use_path_php);
+            // replace @use with view content
+            // $render_temp = str_replace($pie_use_precompile_temp[0][0], $use_content, $render_temp);
+            $view_part = self::pie_view($render_temp);
+            // test($render_temp);
+        }
+
+        // $pie_use_precompile_temp_next = [];
+        // preg_match_all($pie_filter_pattern, $render_temp, $pie_use_precompile_temp_next);
+        
+        // return (count($pie_use_precompile_temp_next[0]) == 0) ? 
+        //         $render_temp : Page::pie_use($render_temp, $pie_use_precompile_temp_next);
+    }
+    public static function pie_view($render_temp)
+    {
+        $rgx_pie_compile = '/\@content\(\'(.*)\'\)/iXsuUm';
+        // pie source for slicing
+        $rgx_pie_source = $render_temp;
+        $rgx_source_compiled = [];
+        $r = '/(?s)(?<=\@view\(\'(.*)\'\)\n(.*?)(?=\@endview)/i';
+        preg_match($r, $rgx_pie_source, $rgx_source_compiled);
+        test($rgx_source_compiled);
+        // $render_temp = preg_replace($rgx_pie_compile, $rgx_source_compiled[0], $render_temp);
     }
 
     private static function php_initialize($_sources){
@@ -162,35 +211,38 @@ class Page
                 // @js
                 '/\@(js)\(\'(.*)\'\)[^\n]/i',
                 // @elseif
-                '/\@(elseif)\((.*)[^\n]/i',
+                '/\@(elseif)\((.*)\)\:/iXsuUm',
                 // @loop and @condition
-                '/\@(foreach|for|if|elseif|while)\((.*)[^\n]/i',
+                '/\@(foreach|for|if|elseif|while)\((.*)\)\:/iXsuUm',
                 // @isset
-                '/\@(isset)\((.*)[^\n]/i',
+                '/\@(isset)\((.*)\)\:/iXsuUm',
                 // @!isset
-                '/\@(!isset)\((.*)[^\n]/i',
+                '/\@(!isset)\((.*)\)\:/iXsuUm',
                 // @isempty
-                '/\@(isempty)\((.*)\)[^\n]/i',
+                '/\@(isempty)\((.*)\)\:/iXsuUm',
                 // @!isempty
-                '/\@(!isempty)\((.*)\)[^\n]/i',
+                '/\@(!isempty)\((.*)\)\:/iXsuUm',
                 // @isnull
-                '/\@(isnull)\((.*)[^\n]/i',
+                '/\@(isnull)\((.*)\)\:/iXsuUm',
+                // @!isnull
+                '/\@(!isnull)\((.*)\)\:/iXsuUm',
                 // Else
                 '/\@(else)/i',
                 // @end loop and condition, break, endswitch
-                '/\@(endforeach|endfor|endif|endswitch|endwhile|endisset|endisnull|endisempty)/s',
+                '/\@(endforeach|endfor|endif|endwhile|endisset|!endisset|endisnull|!endisnull|!endisempty|endisempty)/iXsuUm',
                 // Switch
-                '/\@(switch)(.*)[^\n](\n)/i',
+                '/\@(switch)\((.*)\)\:/iXsuUm',
                 // Case
-                '/\@(case)(.*)[^\n](\n)/i',
+                '/\@(case)(.*)\:/iXsuUm',
                 // Default
-                '/\@(default)/i',
+                '/\@(default)\:/i',
                 // Break Case
-                '/\@(break)/s'
+                '/\@(break)/s',
+                '/\@(endswitch)/s'
             );
             // Replacing Index Regex
             $regex_replace = array(
-                // (( Text ))
+                // _(( Text ))
                 '<?php echo(\1); ?>',
                 // @(( Text ))
                 // '((\1))',
@@ -203,30 +255,34 @@ class Page
                 // @js
                 js_url('\2'),
                 // @elseif
-                '<?php }\1(\2{ ?>',
+                '<?php }\1(\2){ ?>',
                 // @loop and @condition
-                '<?php \1(\2{ ?>',
+                '<?php \1(\2){ ?>',
                 // @isset
-                '<?php if(\1(\2){ ?>',
+                '<?php if(\1(\2)){ ?>',
                 // @!isset
-                '<?php if(\1(\2){ ?>',
+                '<?php if(\1(\2)){ ?>',
                 // @isempty
                 '<?php if(STRING_EMPTY === \2){ ?>',
                 // @!isempty
                 '<?php if(STRING_EMPTY !== \2){ ?>',
                 // @isnull
+                '<?php if(NULL === \2){ ?>',
+                // @!isnull
                 '<?php if(NULL !== \2){ ?>',
                 // Else
                 '<?php }\1{ ?>',
                 // @end of loop and condition, break, endswitch
                 '<?php } ?>',
                 // Switch
-                '<?php \1\2{\3 ',
+                '<?php \1(\2) : case null:; ?>\3',
                 // Case
-                ' \1\2 ?>\3',
+                '<?php break;\1\2 : ?> \3 ',
                 // Default
-                '<?php \1: ?>',
+                '<?php break;\1: ?>',
                 // Break Case
+                '<? \1; ?>',
+                // Endswitch Case
                 '<?php \1; ?>'
             );
         // Replacing with regex

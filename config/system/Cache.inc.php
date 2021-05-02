@@ -16,6 +16,10 @@ class dsCache
     {
         return $this->result_last_time != $this->modified_time;
     }
+    public function exists()
+    {
+        return file_exists($this->dir_enc_cache);
+    }
     public function record_file()
     {
         $temp_list_item = "\t'".$this->dir_enc_cache.'\'=>\''.$this->modified_time."',";

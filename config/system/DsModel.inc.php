@@ -39,6 +39,14 @@ class dsModel extends BackEnd
     public function count_rows(){
         return count($this->get_all(PDO::FETCH_ASSOC));
     }
+    public function get()
+    {
+        return $this->get_object();
+    }
+    public function first()
+    {
+        return $this->get_row_object();
+    }
     public function get_array(){
         return $this->get_all(PDO::FETCH_NUM);
     }

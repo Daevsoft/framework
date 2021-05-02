@@ -6,11 +6,10 @@ class Broadcast
     private $config;
     private $pusher;
     protected $channel;
-    protected $message;
     // public function message($message);
-    public function send($event)
+    public function send($event, $message)
     {
-        $data['message'] = $this->message;
+        $data['data'] = $message;
         if($this->channel != null)
             return $this->pusher->trigger($this->channel, $event, $data);
     }

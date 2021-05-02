@@ -18,8 +18,9 @@ class Key{
     public const MULTI = 'both';
 
     // State Working
-    public const DEVELOPMENT = 'dev';
-    public const PUBLISHED = 'pub';
+    public const DEVELOPMENT = 'development';
+    public const PRODUCTION = 'production';
+    public const PUBLISHED = 'published';
     
     // Ext Php pie
     public const EXT_PIE = '.pie.php';

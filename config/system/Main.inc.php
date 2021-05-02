@@ -30,7 +30,7 @@ if (! function_exists('cache_record')) {
 }
 
 // Seed language for changes from session
-$_SESSION['ds_language']['language_seed'] = config('language');
+// $_SESSION['ds_language']['language_seed'] = config('language');
 
 // Set Exception handler
 if (! function_exists('dsException')) {
@@ -74,7 +74,7 @@ switch ($config['status']) {
 		set_notice_handler();
 		set_exception_handler('dsException');
 	break;
-	case Key::PUBLISHED:
+	case Key::PRODUCTION:
 		error_reporting(0);break;
 	default:break;
 }

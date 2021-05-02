@@ -127,12 +127,12 @@ class Load extends dsCore
 	public static function controller($con_target, $alias = STRING_EMPTY, $_params = [])
 	{
 		$con_target = ucfirst($con_target);
-		self::load_dir($con_target.Key::CONTROLLER, $alias, Key::CONTROLLERS, true, $_params);
+		self::load_dir($con_target, $alias, Key::CONTROLLERS, true, $_params);
 	}
 	public static function model($mod_target, $alias = STRING_EMPTY, $_params = [])
 	{
 		$mod_target = ucfirst($mod_target);
-		self::load_dir($mod_target.Key::MODEL, $alias, Key::MODELS, true, $_params);
+		self::load_dir($mod_target, $alias, Key::MODELS, true, $_params);
 	}
 	static function object($alias_name) // get object with alias key
 	{

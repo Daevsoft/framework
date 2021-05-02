@@ -3,7 +3,7 @@ class Manager extends Ds
 {
     public function __construct() {
     }
-    public function Structure($_command,$_ArgValue)
+    public static function Structure($_command,$_ArgValue)
     {
         switch ($_ArgValue) {
             case COMMAND_CONTROLLER:

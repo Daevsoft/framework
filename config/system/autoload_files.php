@@ -4,6 +4,7 @@ require_once Indexes::$DIR_ROOT. Key::D_CONFIG. 'broadcast.inc.php';
 return [
     'Exception.inc.php',
     'Main.inc.php',
+    'Session.inc.php',
     'System.inc.php',
     'Core.inc.php',
     'Broadcast.inc.php',
@@ -11,6 +12,7 @@ return [
     'Route.inc.php',
     'Event.inc.php',
     'Page.inc.php',
+    'Auth.inc.php',
     'Controller.inc.php',
     'FrontEnd.inc.php',
     'QueryBuilder.inc.php',
