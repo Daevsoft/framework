@@ -1,6 +1,6 @@
 # DsFramework PHP
 dsframework is framework written in php syntax.
-This framework required php version 7.2 or higher.
+This framework required php version 7.3 or higher.
 
 ## Getting Started
 ### Terminal Command
@@ -107,6 +107,130 @@ or if you want to implement pie template in 'welcome.pie' you can replace ```php
   </body>
 </html>
 ```
+
+#### Cheat sheet pie template
+|syntax|compiled|end|
+|---|---|---|
+|\_(( value ))|`<?php echo value ?>`||
+|\_(! value !)|`<?php echo htmlspecialchars("value") ?>`||
+|<< php_syntax >>|`<?php php_syntax ?>`||
+|@if(condition):|`<?php if(condition){ ?>`|@endif|
+|@else|`<?php }else{ ?>`||
+|@elseif(condition):|`<?php }elseif(condition){?>`|@endif|
+|@isempty(value):|`<?php if(value === ''){ ?>`|@endisempty|
+|@!isempty(value):|`<?php if(value !== ''){ ?>`|@!endisempty|
+|@isnull(value):|`<?php if(value === NULL){ ?>`|@endisnull|
+|@!isnull(value):|`<?php if(value !== NULL){ ?>`|@!endisnull|
+|@switch(value)|`<?php switch(value){ ?>`|@endswitch|
+|@case value:|`<?php case value: ?>`|<i>autoclose</i>|
+|@default:|`<?php default: ?>`|<i>autoclose</i>|
+|@for(expression)|`<?php for(expression){ ?>`|@endfor|
+|@foreach(expression)|`<?php foreach(expression){ ?>`|@endforeach|
+|@break|`<?php break; ?>`||
+
+### Pie special cheat sheets
+#### @join 
+Sample :<br>
+file : `views/layout.pie.php`
+```html
+<html>
+  <head>
+    <title>_(( app_name() ))</title>
+  </head>
+  <body>
+    @join('components/menu', ['menu_list' => ['Home','Messages','Notifications']])
+    ....
+  </body>
+</html>
+```
+file : `views/components/menu.pie.php`
+```html
+<ul class="menu">
+  @foreach($menu_list as $menu):
+    <li class="menu-item">_(( $menu ))</li>
+  @endforeach
+</ul>
+```
+##### Output will be generated
+```html
+<html>
+  <head>
+    <title>My Web</title>
+  </head>
+  <body>
+    <ul class="menu">
+        <li class="menu-item">Home</li>
+        <li class="menu-item">Messages</li>
+        <li class="menu-item">Notifications</li>
+    </ul>
+    ....
+  </body>
+</html>
+```
+
+#### @pie
+Sample :<br>
+file : `views/parts/bootstrap.pie.php`
+```html
+@pie('email')
+  <div class="form-group">
+    <label for="exampleInputEmail1">Email address</label>
+    <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+    <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+  </div>
+@endpie
+
+@pie('password')
+  <div class="form-group">
+    <label for="exampleInputPassword1">Password</label>
+    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+  </div>
+@endpie
+
+@pie('submit')
+  <button type="submit" class="btn btn-primary">Submit</button>
+@endpie
+```
+file : `views/layout.pie.php`
+```html
+@import('parts/bootstrap', 'bs4')
+<html>
+  <head>
+    <title>My Web</title>
+  </head>
+  <body>
+    ....
+    <form action="login" method="POST">
+      @bs4('email')
+      @bs4('password')
+      @bs4('submit')
+    </form>
+  </body>
+</html>
+```
+##### Output will be generated
+```html
+<html>
+  <head>
+    <title>My Web</title>
+  </head>
+  <body>
+    ....
+    <form action="login" method="POST">
+      <div class="form-group">
+        <label for="exampleInputEmail1">Email address</label>
+        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+      </div>
+      <div class="form-group">
+        <label for="exampleInputPassword1">Password</label>
+        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </body>
+</html>
+```
 (note: more guide about pie template will comming soon)
 then, create controller file with name <code>'welcome'</code> for example <code>'app/controllers/WelcomeController.php'</code> file, then see it:
 
@@ -128,14 +252,6 @@ class WelcomeController extends dsController
             'WelcomeVariable' 		=> "this is sample text variable"
         );
         view('Welcome',$data);
-    }
-
-    public function WelcomeWithPie()
-    {
-        $data = array(
-            'WelcomeVariable'       => "Welcome Variable"
-        );
-        view('Welcome.pie',$data);
     }
 }
 ```
