@@ -9,8 +9,6 @@ Indexes::init();
 
 // Get global variable
 require Indexes::$DIR_APP.'constants/define' . Key::EXT_PHP;
-// Start the session
-session_start();
 
 // Include All required files for Core.php
 require '../config/system/autoload'. Key::EXT_PHP;
@@ -25,5 +23,17 @@ if(!is_object($core) && config('status') == Key::DEVELOPMENT){
    $ref = serialize($core);
    file_put_contents(Indexes::$DIR_CACHE_OBJECT, $ref);
 }
+
+
+ini_set('session.save_handler', 'files');
+$key = 'secret_string';
+$handler = new DsSessionHandler(dirname(__DIR__).'/storage/session/', $key);  
+session_set_save_handler($handler, true);
+DsSessionHandler::$handler = $handler;
+// Start the session
+session_start();
+unset($handler);
+unset($_SESSION);
+
 // Connect Web from Core Object to running All Process
 $core->connect();
