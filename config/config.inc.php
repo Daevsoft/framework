@@ -58,10 +58,10 @@ $config = [
 	|	Status is Web Status. It will impact to any crash or error reporting
 	|	if published any crash/error reporting will be hidden.
 	|	option : 
-	|	- dev (development)
-	|	- pub (published)
+	|	- development
+	|	- production
 	*/
-	'status'				=> 'dev',
+	'status'				=> 'development',
 
 	/* -----------------------------------------------------\
 	|			Structure and Folder Configuration
