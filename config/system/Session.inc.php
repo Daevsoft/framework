@@ -90,7 +90,7 @@ class DsSessionHandler extends SessionHandler
         $data = parent::read($id);
 
         if (!$data) {
-            return null;
+            return STRING_EMPTY;
         } else {
             return decrypt($data, $this->key);
         }
@@ -109,7 +109,8 @@ function session(...$params)
 	if (isset($params[1])) {
 		DsSessionHandler::$handler->write($params[0], $params[1]);
 	}else{
-		return DsSessionHandler::$handler->read($params[0]);
+		$value = DsSessionHandler::$handler->read($params[0]);
+		return $value == STRING_EMPTY ? NULL : $value;
 	}
 }
 function session_remove($__key)
