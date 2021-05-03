@@ -81,7 +81,7 @@ class Page
 
     private static function pie_join($render_temp, $pie_join_precompile_temp = null)
     {
-        $pie_filter_pattern = '/\@join\((.*)\)/iXsuUm';
+        $pie_filter_pattern = '/\@join\((.*)\)\;/iXsuUm';
         // get all string with @join
         if($pie_join_precompile_temp == null){
             // get all join text
