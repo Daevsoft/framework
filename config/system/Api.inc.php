@@ -67,7 +67,7 @@ class Api extends dsSystem
     }
     public static function json($_reqSeed, $_funcResponse)
     {
-        self::apiRequestReceiver($_reqSeed, $_funcResponse, raw_json());
+        self::apiRequestReceiver($_reqSeed, $_funcResponse, json_decode(file_get_contents('php://input')));
     }
     public static function register($_reqApi)
     {
