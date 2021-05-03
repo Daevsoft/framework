@@ -138,7 +138,7 @@ file : `views/layout.pie.php`
     <title>_(( app_name() ))</title>
   </head>
   <body>
-    @join('components/menu', ['menu_list' => ['Home','Messages','Notifications']])
+    @join('components/menu', ['menu_list' => ['Home','Messages','Notifications']]);
     ....
   </body>
 </html>
