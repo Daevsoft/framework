@@ -315,30 +315,30 @@ if (! function_exists('secure_page')) {
 	}
 }
 
-if (! function_exists('css_source')) {
-	function css_source($_fileName)
+if (! function_exists('js_url')) {
+	function js_url($_fileName)
 	{
-		echo '<link rel=\'stylesheet\' href=\'/assets/'.('css'.Key::CHAR_SLASH.$_fileName).'.css\'>';
+		return '/assets/js/'.$_fileName.'.js';
 	}
 }
 if (! function_exists('css_url')) {
 	function css_url($_fileName)
 	{
-		return '<link rel=\'stylesheet\' type=\'text/css\' href=\'/assets/css/'.$_fileName.'.css\'>';
+		return '/assets/css/'.$_fileName.'.css';
+	}
+}
+
+if (! function_exists('css_source')) {
+	function css_source($_fileName)
+	{
+		echo '<link rel=\'stylesheet\' href=\''.css_url($_fileName).'\'>';
 	}
 }
 
 if (! function_exists('js_source')) {
 	function js_source($_fileName)
 	{
-		echo '<script type=\'text/javascript\' src=\'/assets/'.('js'.Key::CHAR_SLASH.$_fileName).'.js\'></script>';
-	}
-}
-
-if (! function_exists('js_url')) {
-	function js_url($_fileName)
-	{
-		return '/assets/js/'.$_fileName.'.js';
+		echo '<script type=\'text/javascript\' src=\''.js_url($_fileName).'\'></script>';
 	}
 }
 

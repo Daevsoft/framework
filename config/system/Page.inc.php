@@ -251,9 +251,9 @@ class Page
                 // << Syntax >>
                 '<?php \1 ?>',
                 // @css
-                css_url('\2'),
+                '<?php css_source(\'\2\') ?>',
                 // @js
-                js_url('\2'),
+                '<?php js_source(\'\2\') ?>',
                 // @elseif
                 '<?php }\1(\2){ ?>',
                 // @loop and @condition
