@@ -124,8 +124,8 @@ or if you want to implement pie template in 'welcome.pie' you can replace ```php
 |@switch(value)|`<?php switch(value){ ?>`|@endswitch|
 |@case value:|`<?php case value: ?>`|<i>autoclose</i>|
 |@default:|`<?php default: ?>`|<i>autoclose</i>|
-|@for(expression)|`<?php for(expression){ ?>`|@endfor|
-|@foreach(expression)|`<?php foreach(expression){ ?>`|@endforeach|
+|@for(expression):|`<?php for(expression){ ?>`|@endfor|
+|@foreach(expression):|`<?php foreach(expression){ ?>`|@endforeach|
 |@break|`<?php break; ?>`||
 
 ### Pie special cheat sheets
