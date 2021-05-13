@@ -16,7 +16,7 @@ class Api extends dsSystem
     }
     public static function init($_initCallback, $_failureCallback = NULL){
         self::setSql();
-        $run = $_initCallback(Input::getArray(), self::$sql);
+        $run = $_initCallback(Input::all(), self::$sql);
         if(is_bool($run))
             if(!$run)
                 if($_failureCallback != NULL){
@@ -45,7 +45,7 @@ class Api extends dsSystem
             }
         }else if($request_not_found){
             header('Content-Type: application/json');
-            echo json_encode(['response' => 'Api '.self::$requestLink.' not found !']);
+            echo json_encode(['response' => 'Api '.self::$requestLink.Key::CHAR_SLASH.self::$requestMtd.' not found !']);
             die();
         }
     }
@@ -71,9 +71,9 @@ class Api extends dsSystem
     }
     public static function register($_reqApi)
     {
-        self::$requestLink = $_reqApi;
+        self::$requestLink = strtolower($_reqApi);
         if(!isset(self::$tempRecordApi[$_reqApi])){
-            self::$tempRecordApi[$_reqApi] = NULL;
+            self::$tempRecordApi[$_reqApi] = [];
         }
     }
     public static function route($_reqApiClass, $_reqMtd)
@@ -82,7 +82,7 @@ class Api extends dsSystem
             $_reqMtd = Key::CHAR_SLASH;
         parent::fill_text($_reqMtd);
         parent::fill_text($_reqApiClass);
-        self::$requestLink = $_reqApiClass;
+        self::$requestLink = strtolower($_reqApiClass);
         self::$requestMtd = $_reqMtd;
         self::$tempRecordApi[self::$requestLink][$_reqMtd] = TRUE;
     }

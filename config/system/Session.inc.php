@@ -109,15 +109,21 @@ function session(...$params)
 	if (isset($params[1])) {
 		DsSessionHandler::$handler->write($params[0], $params[1]);
 	}else{
-		$value = DsSessionHandler::$handler->read($params[0]);
-		return $value == STRING_EMPTY ? NULL : $value;
+        $data = DsSessionHandler::$handler->read($params[0]);
+		return $data === '' ? NULL : $data;
 	}
 }
-function session_remove($__key)
+function unsession($__key)
 {
 	DsSessionHandler::$handler->destroy($__key);
 }
-
-// we'll intercept the native 'files' handler, but will equally work
-// with other internal native handlers like 'sqlite', 'memcache' or 'memcached'
-// which are provided by PHP extensions.
+function set_flash($key, $value)
+{
+    session($key, $value);
+}
+function flash($key)
+{
+    $value = session($key);
+    unsession($key);
+    return $value;
+}

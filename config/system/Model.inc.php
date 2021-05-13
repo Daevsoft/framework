@@ -2,7 +2,7 @@
 interface BaseModel
 {
     function __construct();
-    function save();
+    // function save();
 }
 
 class Model extends dsModel implements BaseModel
@@ -50,15 +50,15 @@ class Model extends dsModel implements BaseModel
         $this->obj_class->belong($aa);
         // desc($parent);
     }
-    public function save()
-    {
-        $result = [];
-        // $aa = get_called_class();
-        $class_vars = (get_class_vars(get_class($this->obj_class)));
-        $result = get_object_vars($this->obj_class);
-        $result = $this->array_diff($result, $class_vars);
-        desc($result);
-    }
+    // public function save()
+    // {
+    //     $result = [];
+    //     // $aa = get_called_class();
+    //     $class_vars = (get_class_vars(get_class($this->obj_class)));
+    //     $result = get_object_vars($this->obj_class);
+    //     $result = $this->array_diff($result, $class_vars);
+    //     desc($result);
+    // }
     public function array_diff($arr1, $arr2)
     {
         $arr1_len = count($arr1);

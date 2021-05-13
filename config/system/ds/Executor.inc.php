@@ -193,6 +193,14 @@ class '.$_filenames.' extends dsController
         );
         view(\''.$file.'\',$data);
     }
+
+    public function demopie()
+    {
+        $data = array(
+            \'demoVariable\'       => "Demo Variable"
+        );
+        view(\''.$file.'.pie\',$data);
+    }
 }';
             $_filenames = ucfirst($_filenames);
             self::CreateFile($_filenames, CONTROLLERS, CONTROLLER, $source);

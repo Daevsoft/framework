@@ -75,6 +75,12 @@ class FrontEnd extends dsCore
   }
   public function view(Array $routeList,Array $renameController, $path)
   {
+    $indexLen = 9; // strlen('index.php')
+    if($path != STRING_EMPTY){
+      if(strtolower(substr($path, 0, $indexLen)) == 'index.php'){
+        $path = substr($path, $indexLen + 1);
+      }
+    }
     $requestTarget = $this->get_path_validate($path, $routeList);
     // Get structure app
     $structure_app = config('structure_app');

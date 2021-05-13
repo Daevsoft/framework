@@ -134,11 +134,12 @@ class QueryBuilder
             'values' => $__values
         );
     }
-    public static function prepare_insert($tableName,$_dt_arr, &$ignore_duplicates)
+    public static function prepare_insert($tableName,$_dt_arr, &$ignore_duplicates, $existUpdate = false)
     {
         $_keys = STRING_EMPTY;
         $_values = [];
         $_seeds = STRING_EMPTY;
+        $_on_duplicate = ' ON DUPLICATE KEY UPDATE ';
         $_q = 'insert '.($ignore_duplicates ? 'IGNORE' : '').' into '.string_quote_query($tableName);
         $i = 0;
         // parameter
@@ -152,11 +153,8 @@ class QueryBuilder
         // count params insert data
         $len_params = count($_params);
         for ($i = 0; $i < $len_params; $i++) {
-            $param = $_params[$i]; // DataInsert[i]
+            $param = $_params[$i];
             $len_param = count($param);
-            // end($param);
-            // $last_param = $param[key($param)];
-            // loop for child
             
             if($i >= 1 && $i < $len_params)
                 $_seeds .= ',';
@@ -167,18 +165,23 @@ class QueryBuilder
             $j = 0;
             foreach ($param as $key => $value) {
                 $_values[] = $value;
-                $_seeds .= str_allow($j > 0 , ',').' ?';
+                $_seeds .= str_allow($j > 0 , ',').'?';
 
                 $j++;
                 
-                if($i == 0)
-                    $_q .= string_quote_query($key).str_allow($j < $len_param ,',');
+                if($i == 0){
+                    $key_quote = string_quote_query($key);
+                    $_q .= $key_quote.str_allow($j < $len_param ,',');
+                    $_keys .= $key_quote.'=VALUES('.$key_quote.')'.str_allow($j < $len_param ,',');
+                }
             }
             $_seeds .= ')';
             if($i == 0)
                 $_q .= ')'. str_allow($i < $len_param && $i > 1 , ',');
         }
         $_q .= 'values'.$_seeds;
+        if($existUpdate)
+            $_q .= $_on_duplicate.$_keys;
         return ['query' => $_q, 'values' => $_values];
     }
     public static function get_key_values($__dt_arr)

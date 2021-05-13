@@ -40,12 +40,13 @@ class dsSystem
 	// Filtering text input form
 	public static function fill_text(&$__tx)
 	{
-		return filter_var(
-			stripslashes(
-				strip_tags(
-					htmlspecialchars(
-						trim($__tx))))
-			, FILTER_SANITIZE_STRING);
+		if (is_string($__tx))
+			return filter_var(
+				stripslashes(
+					strip_tags(
+						htmlspecialchars(
+							trim($__tx))))
+				, FILTER_SANITIZE_STRING);
 	}
 	// Check token in session has Valid
 	public static function secure()

@@ -5,12 +5,16 @@
 */
 class dsModel extends BackEnd
 {
+    protected $table = NULL;
     private $Query;
     private $Values;
     private $isWhereDefine = FALSE;
     private $isHavingDefine = FALSE;
     
     public function __construct() {
+        if ($this->table == NULL) {
+            $this->table = str_replace(Key::MODEL, '', get_called_class());
+        }
     }
     public function getPattern($table)
     {
@@ -155,6 +159,12 @@ class dsModel extends BackEnd
     {
         $this->Query .= QueryBuilder::limit($start, $to);
         return $this;
+    }
+    public function last($by = 'id'){
+        if($this->table == NULL && $this->Query != NULL)
+            return $this->desc($by)->limit(0, 1)->first();
+        else
+            return $this->select('*', $this->table)->desc($by)->limit(0, 1)->first();
     }
     public function desc($column_name){
         $this->Query .= QueryBuilder::order_by($column_name, 'DESC');
@@ -320,6 +330,10 @@ class dsModel extends BackEnd
     }
     public function delete($tableName, $__wh = NULL, $__bool = 'AND')
     {
+        if ($this->table != NULL) {
+            $__wh = ['id' => $tableName];
+            $tableName = $this->table;
+        }
         $result = false;
         if(!string_empty_or_null($__wh))
             $result = parent::delete($tableName, $__wh);
@@ -338,5 +352,38 @@ class dsModel extends BackEnd
         $this->Values = [];
         $this->isWhereDefine = 
         $this->isHavingDefine = FALSE;
+    }
+    
+    // Demo ORM Functions
+    public function all()
+    {
+        if ($this->table != NULL) {
+            return $this->select($this->table)->get();
+        }else{
+            if($this->Query != NULL)
+               return $this->get();
+            else
+                throw new DsException(new Exception('Query error : \''.$this->Query.'\''));
+        }
+    }
+    public function find($id)
+    {
+        if ($this->table != NULL) {
+            return $this->select($this->table)->where('id', $id)->first();
+        }else{
+            throw new DsException('Query was wrong : \''.$this->Query.'\'');
+        }
+    }
+    public function save($data, $skipDuplicates = false)
+    {
+        return $this->insert_or_update($this->table, $data, $skipDuplicates);
+    }
+    public function count()
+    {
+        if ($this->table != NULL) {
+            return $this->select('count(id) as counter',$this->table)->first()->counter;
+        }else{
+            throw new DsException('Query was wrong : \''.$this->Query.'\'');
+        }
     }
 }

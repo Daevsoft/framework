@@ -6,13 +6,14 @@ class Auth
 {
     public static function init($user, $fail_target = 'login')
     {
-        session('user-auth', json_encode($user));
+        $user = (object)$user;
+        session('user-auth', serialize($user));
         session('auth-fail-redirect', $fail_target);
     }
     public static function validation()
     {
         if(session('user-auth') == null){
-            Auth::fail();
+            Auth::redirect();
         }
     }
     public static function is_logged()
@@ -21,18 +22,17 @@ class Auth
             redirect();
         }
     }
-    public function user()
+    public static function user()
     {
-        return session('user-auth');
+        return unserialize(session('user-auth'));
     }
     public static function logout()
     {
-        session_remove('user-auth');
-        // test(session('auth-fail-redirect'));
+        unsession('user-auth');
+        Auth::redirect();
     }
-    public static function fail()
+    public static function redirect()
     {
-        test(session('auth-fail-redirect'));
-        redirect(session('auth-fail-redirect'));
+        redirect(session('auth-fail-redirect') ?? 'login');
     }
 }

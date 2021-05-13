@@ -47,7 +47,7 @@ class Input extends dsSystem
         
         // Check if $uploadOk is set to 0 by an error
         if (!$uploadOK) {
-            set_error($msg."Sorry, your file was not uploaded.");
+            throw new DsException($msg."Sorry, your file was not uploaded.");
             return $uploadOK;
         // if everything is ok, try to upload file
         } else {
@@ -58,15 +58,15 @@ class Input extends dsSystem
             }
         }
     }
-    public static function post($inputName, $errWarning = true)
+    public static function post($inputName, $defaultValue = NULL)
     {
          // Get value from post value form method
-        if($errWarning)
+        if(isset($_POST[$inputName])){
             $inputName = $_POST[$inputName];
-        else
-            $inputName = isset($_POST[$inputName]) ? $_POST[$inputName] : STRING_EMPTY;
+            parent::fill_text($inputName);
+        }else
+            $inputName = $defaultValue;
 
-        parent::fill_text($inputName);
     	return $inputName;
     }
     public static function date($inputName, $format = 'Y-m-d', $_warn = true)
@@ -119,7 +119,6 @@ class Input extends dsSystem
     }
     private static function checkValidation(&$inputValue, $inputName, $options)
     {
-        
         $arrOption = (is_array($options)) ? $options : explode('|', $options);
         $passed = true;
         foreach ($arrOption as $option) {
@@ -137,15 +136,14 @@ class Input extends dsSystem
                 }
         }
     }
-    public static function get($inputName, $errWarning = true)
+    public static function get($inputName, $defaultValue = NULL)
     {
-        // Get value from get value form method
-        if($errWarning)
+        if(isset($_GET[$inputName])){
             $inputName = $_GET[$inputName];
-        else
-            $inputName = isset($_GET[$inputName]) ? $_GET[$inputName] : STRING_EMPTY;
-
-        parent::fill_text($inputName);
+            parent::fill_text($inputName);
+        }else{
+            $inputName = $defaultValue;
+        }
         return $inputName;
     }
     public static function header($inputName, $errWarning = true)
@@ -156,7 +154,7 @@ class Input extends dsSystem
         parent::fill_text($inputName);
         return $inputName;
     }
-    public static function getArray()
+    public static function all()
     {
         $data = [];
         $input = isset($_POST) ? $_POST : $_GET;

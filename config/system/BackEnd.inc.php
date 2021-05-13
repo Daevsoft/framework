@@ -120,6 +120,17 @@ class BackEnd extends dsCore
             return FALSE;
         }
     }
+    public function insert_or_update($__table, $__dt, $ignore_duplicates = false)
+    {
+        $this->sql = QueryBuilder::prepare_insert($__table,$__dt, $ignore_duplicates, true);
+        // insert
+        $this->execute();
+        if ($this->is_execute) {
+            return TRUE;
+        }else{
+            return FALSE;
+        }
+    }
     public function insert_get($__table, $__dt) // Insert and get all values
     {
         $this->insert($__table, $__dt);
