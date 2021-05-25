@@ -32,6 +32,29 @@ session_set_save_handler($handler, true);
 DsSessionHandler::$handler = $handler;
 // Start the session
 session_start();
+
+// discover session by cookie
+echo session_id();
+if (isset($_COOKIE[session_name()]) && ($_COOKIE[session_name()] == session_id())) {
+    echo 'tru';
+   // validate session contents
+   if (session('STUFF-SECRET') != true){
+       // destroy session and regenerate id
+    //    session_start();
+       session_regenerate_id(true); // skip this if you generate your own
+       session('STUFF-SECRET', true);
+   }
+}else{
+    unset($_COOKIE[session_name()]);
+    session_destroy();
+    session_start();
+    session_regenerate_id(true); // skip this if you generate your own
+    setcookie(session_name(), session_id());
+    session('STUFF-SECRET', true);
+}
+// populate new session
+// you can use session_id($your_id) here
+// session_start();
 unset($handler);
 unset($_SESSION);
 
