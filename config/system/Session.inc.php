@@ -87,6 +87,7 @@ class DsSessionHandler extends SessionHandler
 
     public function read($id)
     {
+        $id .= session_id();
         $data = parent::read($id);
 
         if (!$data) {
@@ -98,9 +99,16 @@ class DsSessionHandler extends SessionHandler
 
     public function write($id, $data)
     {
+        $id .= session_id();
         $data = encrypt($data, $this->key);
 
         return parent::write($id, $data);
+    }
+
+    public function destroy($id)
+    {
+        $id .= session_id();
+        return parent::destroy($id);
     }
 }
 
