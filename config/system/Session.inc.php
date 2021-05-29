@@ -55,6 +55,22 @@ function encrypt($data, $password) {
     $encrypted_data = openssl_encrypt($data, 'AES-256-CBC', $key, true, $iv);
     return base64_encode($salt . $encrypted_data);
 }
+class SessionRaw{
+    public function data($key, $value = NULL)
+    {
+        if($value != NULL){
+            $this->{$key} = $value;
+        }else{
+            return isset($this->{$key}) ? $this->{$key} : NULL;
+        }
+    }
+    public function destroy($key)
+    {
+        if (isset($this->{$key}))
+            unset($this->{$key});
+        return TRUE;
+    }
+}
 class DsSessionHandler extends SessionHandler
 {
 	public static $handler = null;
@@ -85,10 +101,22 @@ class DsSessionHandler extends SessionHandler
         ini_set('session.save_handler', 'files');
     }
 
+    private function getSession()
+    {
+        $sessionRaw = parent::read(session_id());
+        if($sessionRaw == ''){
+            $sessionObject = new SessionRaw();
+        }else{
+            $sessionObject = unserialize($sessionRaw);
+        }
+        return $sessionObject;
+    }
+
     public function read($id)
     {
-        $id .= session_id();
-        $data = parent::read($id);
+        $sessionObject = $this->getSession();
+        
+        $data = $sessionObject->data($id);
 
         if (!$data) {
             return STRING_EMPTY;
@@ -99,16 +127,21 @@ class DsSessionHandler extends SessionHandler
 
     public function write($id, $data)
     {
-        $id .= session_id();
+        $sessionObject = $this->getSession();
         $data = encrypt($data, $this->key);
 
-        return parent::write($id, $data);
+        $sessionObject->data($id, $data);
+
+        parent::write(session_id(), serialize($sessionObject));
+        return true;
     }
 
     public function destroy($id)
     {
-        $id .= session_id();
-        return parent::destroy($id);
+        $sessionObject = $this->getSession();
+        $sessionObject->destroy($id);
+        parent::write(session_id(), serialize($sessionObject));
+        return true;
     }
 }
 
