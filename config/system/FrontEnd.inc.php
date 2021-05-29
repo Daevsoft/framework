@@ -154,9 +154,9 @@ class FrontEnd extends dsCore
     if (!is_null($value)) {
       header('Content-Type: application/json');
       if (is_array($value)) {
-        echo json_encode($value);
+        echo json_encode($value, JSON_PRETTY_PRINT);
       } else {
-        echo json_encode([$value]);
+        echo json_encode([$value], JSON_PRETTY_PRINT);
       }
     }
   }
