@@ -34,9 +34,7 @@ DsSessionHandler::$handler = $handler;
 session_start();
 
 // discover session by cookie
-echo session_id();
 if (isset($_COOKIE[session_name()]) && ($_COOKIE[session_name()] == session_id())) {
-    echo 'tru';
    // validate session contents
    if (session('STUFF-SECRET') != true){
        // destroy session and regenerate id
