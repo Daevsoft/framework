@@ -1,5 +1,5 @@
 # DsFramework PHP
-dsframework is framework written in php syntax.
+Ds (like "this") framework is framework written in php syntax.
 This framework required php version 7.3 or higher.
 
 ## Getting Started
