@@ -11,7 +11,7 @@ Indexes::init();
 require Indexes::$DIR_APP.'constants/define' . Key::EXT_PHP;
 
 // Include All required files for Core.php
-require '../config/system/autoload'. Key::EXT_PHP;
+require dirname(__DIR__).'/config/system/autoload'. Key::EXT_PHP;
 _autoload2f40af1f10ad60c89a4b333ee7943d49::getLoader();
 // Get Byte of Core Object from cache
 $core_cache = file_get_contents(Indexes::$DIR_CACHE_OBJECT);
