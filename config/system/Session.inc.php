@@ -56,18 +56,24 @@ function encrypt($data, $password) {
     return base64_encode($salt . $encrypted_data);
 }
 class SessionRaw{
+    private $data = [];
     public function data($key, $value = NULL)
     {
+        if(is_object($value) || is_array($value)) $value = serialize($value);
+        
         if($value != NULL){
-            $this->{$key} = $value;
+            $this->data[$key] = $value;
         }else{
-            return isset($this->{$key}) ? $this->{$key} : NULL;
+            return isset($this->data[$key]) ? (
+                    (is_object($this->data[$key]) || is_array($this->data[$key])) ? 
+                        unserialize($this->data[$key]) : $this->data[$key]
+                ) : NULL;
         }
     }
     public function destroy($key)
     {
-        if (isset($this->{$key}))
-            unset($this->{$key});
+        if (isset($this->data[$key]))
+            unset($this->data[$key]);
         return TRUE;
     }
 }
