@@ -18,9 +18,5 @@ class Cache{
     }
     public function clearReferences()
     {
-        $ref_dir = CACHE_DIR.'/object/ref';
-        $temp_ref = file_get_contents($ref_dir);
-        $temp_ref = '';
-        file_put_contents($ref_dir, $temp_ref);
     }
 }

@@ -197,8 +197,16 @@ class FrontEnd extends dsCore
   {
     Route::set_route(site($_routeTarget), $_routeName);
   }
-  static function page($__fl=STRING_EMPTY,$__dt = array())
+  private static $ds_counter = 1;
+  static function page($__fl=STRING_EMPTY,$__dt = array(), $with_ds = FALSE)
   {
+    // include value for ds js
+		if($with_ds){
+      if(count($__dt) > 0){
+  			echo '<meta name="ds-data-id-'.self::$ds_counter.'" id="ds:generate-value" data="'.base64_encode(json_encode($__dt)).'">';
+        self::$ds_counter++;
+      }
+		}
     // Create your security filter here
     Page::__page($__fl, $__dt); // Load file view
   }

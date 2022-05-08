@@ -193,8 +193,7 @@ class Page
         $rgx_source_compiled = [];
         $r = '/(?s)(?<=\@view\(\'(.*)\'\)\n(.*?)(?=\@endview)/i';
         preg_match($r, $rgx_pie_source, $rgx_source_compiled);
-        test($rgx_source_compiled);
-        // $render_temp = preg_replace($rgx_pie_compile, $rgx_source_compiled[0], $render_temp);
+        $render_temp = preg_replace($rgx_pie_compile, $rgx_source_compiled[0], $render_temp);
     }
 
     private static function php_initialize($_sources){
@@ -209,7 +208,7 @@ class Page
                 // @css
                 '/\@(css)\(\'(.*)\'\)[^\n]/i',
                 // @js
-                '/\@(js)\(\'(.*)\'\)[^\n]/i',
+                '/\@(js)\(\'(.*)\'(\,)?\s?((\'.*\')?|(\[.*\])?|(\".*\")?)?\)[^\n]/i',
                 // @elseif
                 '/\@(elseif)\((.*)\)\:/iXsuUm',
                 // @loop and @condition
@@ -253,7 +252,7 @@ class Page
                 // @css
                 '<?php css_source(\'\2\') ?>',
                 // @js
-                '<?php js_source(\'\2\') ?>',
+                '<?php js_source(\'\2\'\3\4\5) ?>',
                 // @elseif
                 '<?php }\1(\2){ ?>',
                 // @loop and @condition

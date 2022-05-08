@@ -113,9 +113,9 @@ if (! function_exists('uri')) {
 
 // get Uri Request
 if (! function_exists('view')) {
-	function view($view_target, $data = [])
+	function view($view_target, $data = [], $with_ds = FALSE)
 	{
-		FrontEnd::page($view_target, $data);
+		FrontEnd::page($view_target, $data, $with_ds);
 	}
 }
 // get Uri Request
@@ -286,6 +286,7 @@ if (! function_exists('force_download')) {
 if (! function_exists('redirect')) {
 	function redirect($target=STRING_EMPTY)
 	{
+		if($target[0] == '/') $target = substr($target, 1);
 		header('Location:'.Indexes::$BASE_URL.Key::CHAR_SLASH.$target);
 	}
 }
@@ -336,9 +337,16 @@ if (! function_exists('css_source')) {
 }
 
 if (! function_exists('js_source')) {
-	function js_source($_fileName)
+	function js_source($_fileName, $attrs = [])
 	{
-		echo '<script type=\'text/javascript\' src=\''.js_url($_fileName).'\'></script>';
+		$attr = STRING_EMPTY;
+		foreach ($attrs as $attr_name => $value) {
+			if(is_numeric($attr_name))
+				$attr .= ' '.$value;
+			else
+				$attr .= ' '.$attr_name.'="'.$value.'"';
+		}
+		echo '<script src="'.js_url($_fileName).'"'.$attr.'></script>';
 	}
 }
 

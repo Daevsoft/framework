@@ -39,6 +39,7 @@ define('MAIN_DIR',dirname(dirname(dirname(__DIR__))));
 define('CONFIG_DIR',MAIN_DIR.'/config');
 define('SYSTEM_DIR',CONFIG_DIR.'/system');
 define('STORAGE_DIR',MAIN_DIR.'/storage');
+define('SESSION_DIR',STORAGE_DIR.'/session');
 define('TRASH_DIR',STORAGE_DIR.'/trash');
 define('CACHE_DIR',STORAGE_DIR.'/cache');
 

@@ -15,5 +15,6 @@ class _autoload2f40af1f10ad60c89a4b333ee7943d49
 			}
 			$i++;
 		}
+		unset($source_files);
 	}
 }

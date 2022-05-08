@@ -199,14 +199,18 @@ class dsModel extends BackEnd
     {
         return $this->join_root($_table, $onCondition, ' FULL');
     }
-    private function where_root($arg1, $arg2 = STRING_EMPTY, $operand=STRING_EMPTY, $operator = 'AND', $mergeOpt = 'AND', $isSeparate){
+    private function where_root($arg1, $arg2 = STRING_EMPTY, $operand=STRING_EMPTY, $operator = 'AND', $mergeOpt = 'AND', $isSeparate = false){
         $operand = string_empty($operand) ? '=' : $operand;
         
+        if(string_empty_or_null($this->Query)){
+            $this->Query = $this->sql['query'];
+            $this->Values = array_merge($this->sql['values'] ?? [], $this->Values ?? []);
+        }
+
         if(!$this->isWhereDefine){
             $this->Query .= ' WHERE';
         }else{
-            // if(is_array($arg1) && count($arg1) > 1)
-                $this->Query .= ' '.$mergeOpt;
+            $this->Query .= ' '.$mergeOpt;
         }
 
         if($isSeparate)

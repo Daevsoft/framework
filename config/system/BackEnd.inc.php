@@ -37,7 +37,7 @@ class BackEnd extends dsCore
         dsSystem::fill_text($__nm);
         return $_COOKIE[md5($__nm)];
     }
-    protected function row($__q_or_t, $__wh, $__bool = "AND") // can be input by query or table, with WHERE condition
+    public function row($__q_or_t, $__wh, $__bool = "AND") // can be input by query or table, with WHERE condition
     {
         // get connection to mysql
         $this->sql = QueryBuilder::query($__q_or_t, $__wh, $__bool);
@@ -48,7 +48,7 @@ class BackEnd extends dsCore
     // can be input by query or table, with
     // WHERE condition and Boolean AND/OR.
     // the default is AND
-    protected function table($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND',  $__ord = "ASC")
+    public function table($__q_or_t, $__wh = STRING_EMPTY, $__bool = 'AND',  $__ord = "ASC")
     {
         $this->sql = QueryBuilder::query($__q_or_t, $__wh, $__bool);
         $this->sql['query'] .= ' ORDER BY 1 '.$__ord;
@@ -56,7 +56,7 @@ class BackEnd extends dsCore
         return $this;
     }
 
-	protected function query($sql)
+	public function query($sql)
     {
         $this->sql = ['query' => $sql, 'values' => []];
         return $this;
@@ -83,7 +83,7 @@ class BackEnd extends dsCore
         else
             return $this->pdo_result->fetch($pdo_fetch_type);
     }
-    protected function top_all(Int $startRow, Int $limit = 100)
+    public function top_all(Int $startRow, Int $limit = 100)
     {
         $this->sql['query'] .= QueryBuilder::limit($startRow, $limit);
         $result_data = [];
@@ -98,13 +98,13 @@ class BackEnd extends dsCore
         // Execute Query
         return $result_data;
     }
-    protected function top_row(Int $startRow , Int $limit = 100)
+    public function top_row(Int $startRow , Int $limit = 100)
     {
         $this->sql['query'] .= QueryBuilder::limit($startRow, $limit);
         // Execute Query
         return $this->fetch_row();
     }
-    protected function get_column($__tablename){
+    public function get_column($__tablename){
         $this->sql['query'] = 'DESC '.string_quote_query($__tablename);
         $this->sql['values'] = [];
         return $this->fetch_all(PDO::FETCH_NAMED);

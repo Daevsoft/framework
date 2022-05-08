@@ -1,6 +1,8 @@
 <?php
 class Api extends dsSystem
 {
+    public static $OPENED = false;
+
     public static $tempRecordApi;
     public static $requestLink;
     public static $requestMtd;
@@ -27,18 +29,19 @@ class Api extends dsSystem
     }
     private static function apiRequestReceiver($_reqSeed, $_funcResponse, $_data)
     {
+        Api::$OPENED = true;
+
         self::setSql();
         $request_not_found = true;
         if(isset(self::$tempRecordApi[self::$requestLink][self::$requestMtd])){
             if(self::$requestMtd == $_reqSeed){
                 $response = $_funcResponse($_data, API::$sql);
                 $request_not_found = false;
-                if(is_array($response)){
-                    header('Content-Type: application/json');
+                header('Content-Type: application/json');
+                if(is_array($response) || is_object($response)){
                     echo json_encode($response);
                 }else
                     if(!is_null($response)){
-                        header('Content-Type: application/json');
                         echo $response;
                     }
                 die();

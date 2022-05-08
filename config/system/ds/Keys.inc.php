@@ -32,6 +32,7 @@ class Key{
     public const D_APP = 'app/';
     public const D_CONFIG = 'config/';
     public const D_SYSTEM = 'system/';
+    public const D_SESSION = 'session/';
     public const D_STORAGE = 'storage/';
     public const D_STORAGE_FILES = 'files/';
 }

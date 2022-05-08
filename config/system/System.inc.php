@@ -1,6 +1,8 @@
 <?php 
 class dsSystem
 {
+	public static $apiCalled;
+
 	public static function Message($msg)
 	{
 		$status = config('status');

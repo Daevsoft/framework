@@ -79,9 +79,10 @@ class SessionRaw{
 }
 class DsSessionHandler extends SessionHandler
 {
+
 	public static $handler = null;
     private $key;
-	public function __construct($savePath = null, $key)
+	public function __construct($savePath = null, $key = null)
     {
         if (null === $savePath) {
             $savePath = ini_get('session.save_path');
@@ -120,6 +121,7 @@ class DsSessionHandler extends SessionHandler
 
     public function read($id)
     {
+        parent::read($id);
         $sessionObject = $this->getSession();
         
         $data = $sessionObject->data($id);
@@ -154,10 +156,10 @@ class DsSessionHandler extends SessionHandler
 function session(...$params)
 {
 	if (isset($params[1])) {
-		DsSessionHandler::$handler->write($params[0], $params[1]);
+		$_SESSION[$params[0]] = $params[1];
 	}else{
-        $data = DsSessionHandler::$handler->read($params[0]);
-		return $data === '' ? NULL : $data;
+        $data = $_SESSION[$params[0]] ?? '';
+		return $data ?? NULL;
 	}
 }
 function unsession($__key)

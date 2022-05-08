@@ -14,7 +14,7 @@ class dsController extends dsCore
 	public function property_modify_controller($_property, $_value = NULL){
 		$this->{$_property} = $_value;
 	}
-	private function add_object($_class, $_alias = NULL, $type)
+	private function add_object($_class, $_alias = NULL, $type = Key::MODULE)
 	{
 		if(is_null($_alias))
 			$_alias = $_class;

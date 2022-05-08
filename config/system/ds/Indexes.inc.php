@@ -11,6 +11,7 @@ class Indexes{
     public static $DIR_CACHE;
     public static $DIR_API;
     public static $DIR_STORAGE;
+    public static $DIR_SESSION;
     public static $DIR_CACHE_TIME;
     public static $DIR_CACHE_VIEW;
     public static $DIR_CACHE_OBJECT;
@@ -32,6 +33,8 @@ class Indexes{
         self::$DIR_CONFIG = self::$DIR_ROOT. Key::D_CONFIG;
         // Storage Directory for Cache location
         self::$DIR_STORAGE = self::$DIR_ROOT. Key::D_STORAGE;
+        // Storage Directory for Cache location
+        self::$DIR_SESSION = self::$DIR_ROOT. Key::D_STORAGE. Key::D_SESSION;
         // System Directory
         self::$DIR_SYSTEM = self::$DIR_CONFIG. Key::CHAR_SLASH. Key::D_SYSTEM;
         // Modules Directory

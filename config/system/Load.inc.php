@@ -38,19 +38,21 @@ class Load extends dsCore
 		}
     private static function load_dir($__target, $__alias, $__dir, $InstanceClass = false, $_params = [])
     {
-			self::check_ms();
-			$_target_location_dirname = Indexes::$DIR_ROOT.Key::D_APP. $__dir. Key::CHAR_SLASH. $__target.'.php';
-			if(file_exists($_target_location_dirname)){
-				// Include File model
+		self::check_ms();
+		$_target_location_dirname = Indexes::$DIR_ROOT.Key::D_APP. $__dir. Key::CHAR_SLASH. $__target.'.php';
+		if(file_exists($_target_location_dirname)){
+			// Include File model
+			if(!class_exists($__target)){
 				require_once $_target_location_dirname;
-				if(class_exists($__target) && $InstanceClass){
-					self::set_instance_active($__target, $__alias, $__dir, $_params = []);
-				}
-			}else{
-				dsSystem::MessageError($__target,'Cannot load object <b><i>'.$__target.'</i></b> from <b>'.ucfirst($__dir).'</b>, cause <i>'.$__target . '</i> not found!');
 			}
+			if($InstanceClass){
+				self::set_instance_active($__target, $__alias, $_params = []);
+			}
+		}else{
+			dsSystem::MessageError($__target,'Cannot load object <b><i>'.$__target.'</i></b> from <b>'.ucfirst($__dir).'</b>, cause <i>'.$__target . '</i> not found!');
+		}
 	}
-	private static function set_instance_active($__target, $__alias = NULL, $__dir, $_params = []){
+	private static function set_instance_active($__target, $__alias = NULL, $_params = []){
 		if ( is_array(self::$_ms)) {
 			// check is class need alias instance name
 			$__alias = string_empty_or_null($__alias) ? $__target : $__alias;
