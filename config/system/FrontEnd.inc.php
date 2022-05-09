@@ -171,9 +171,11 @@ class FrontEnd extends dsCore
       $indexOf    = strpos($apiTarget,'?');
       $apiRoute   = $indexOf < 0 ? substr($apiTarget, 0, $indexOf) : $apiTarget;
       // set attribute of api requirement
-      API::route($apiRequest, $apiRoute);
+      
       if(file_exists($filename)){
+        API::$requestMtd = $apiRoute;
         require_once $filename;
+        API::runApi($apiRoute);
       }
       else{
         $ex = new Exception($filename.' file is not found or not registered!');
@@ -182,9 +184,12 @@ class FrontEnd extends dsCore
   }
   protected function inc_controller($object_name){
     $path = Indexes::$DIR_ROOT.config('controller_path').Key::CHAR_SLASH.ucfirst($object_name).'.php';
-    if(file_exists($path) || config('status') == Key::DEVELOPMENT){
+    if(file_exists($path)){
       require_once $path;
     }else{
+      if(config('status') == Key::DEVELOPMENT){
+        throw new Exception("$path not found.");
+      }
       // Show 404 Not found when App Status is Publish
       Page::not_found(config('status') == Key::PRODUCTION, function($args){
         // run something when page not found
