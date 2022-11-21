@@ -153,10 +153,10 @@ $config = [
 	false : is mean that not to create instance automatically
 */
 $autoload = [
-	Key::LIBRARIES	=> [
+	Key::LIBRARIES	=> [],
+	Key::MODULES	=> [
 		'Session' => false
 	],
-	Key::MODULES	=> [],
 	Key::MODELS		=> []
 ];
 
