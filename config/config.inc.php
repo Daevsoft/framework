@@ -154,9 +154,7 @@ $config = [
 */
 $autoload = [
 	Key::LIBRARIES	=> [],
-	Key::MODULES	=> [
-		'Session' => false
-	],
+	Key::MODULES	=> [],
 	Key::MODELS		=> []
 ];
 
