@@ -8,4 +8,6 @@ Ds (Like 'this') framework V3 is dsframework major updates for dsframework. New 
   <li>and any others..</li>
 </ul>
 <br>
-Currently this version still on development, but if want to know how to using it, you can look at this example project [DsFramework PHP - Sample Project](https://github.com/devarofi/dsframework) 
+Currently this version still on development, but if want to know how to using it, you can look at this example project.
+
+[DsFramework PHP - Sample Project](https://github.com/devarofi/dsframework) 
