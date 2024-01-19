@@ -2,7 +2,7 @@
     "name": "daevsoft/framework",
     "description": "The Dsframework",
     "keywords": ["framework", "laravel"],
-    "type": "project",
+    "type": "plugin",
     "require": {
         "php": "8.1"
     },
