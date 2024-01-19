@@ -1,5 +1,5 @@
 {
-    "name": "ds/framework",
+    "name": "daevsoft/framework",
     "description": "The Dsframework",
     "keywords": ["framework", "laravel"],
     "type": "project",
