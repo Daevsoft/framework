@@ -6,24 +6,7 @@ use Ds\Foundations\Common\Func;
 use Ds\Foundations\Config\AppEnv;
 
 define('STRING_EMPTY', '');
-define("ROOT", dirname(__DIR__, 2));
-
-spl_autoload_register(function ($name) {
-    $namespace = substr($name, 0, strpos($name, '\\'));
-    // check if $name is from DS namespace
-    if ($namespace == 'Ds') {
-        require_once dirname(__DIR__) . '\\' . $name . '.php';
-    } else if($namespace == 'App'){
-        require_once dirname(dirname(__DIR__)) . '\\' . $name . '.php';
-    }
-});
-
-function dd(...$var){
-    foreach ($var as $v) {
-        Func::check($v, true);
-    }
-    die();
-}
+define("ROOT", $_SERVER['DOCUMENT_ROOT'].'\\');
 
 abstract class AppIndex {
     public static $SERVER_PROTOCOL;
@@ -64,7 +47,7 @@ abstract class Dir
 
     static function init()
     {
-        self::$MAIN = dirname(__DIR__, 2).'/';
+        self::$MAIN = ROOT;
         self::$APP = self::$MAIN . 'app/';
         self::$ROUTE = self::$APP . 'route/';
         self::$CONTROLLERS = self::$APP . 'controllers/';
@@ -80,4 +63,21 @@ abstract class Dir
         self::$CACHE_TIME = self::$STORAGE.'cache/times/temp';
         include_once self::$CONFIG_TEMP;
     }
+}
+
+spl_autoload_register(function ($name) {
+    $namespace = substr($name, 0, strpos($name, '\\'));
+    // check if $name is from DS namespace
+    if ($namespace == 'Ds') {
+        require_once dirname(__DIR__) . '\\' . $name . '.php';
+    } else if($namespace == 'App'){
+        require_once ROOT . $name . '.php';
+    }
+});
+
+function dd(...$var){
+    foreach ($var as $v) {
+        Func::check($v, true);
+    }
+    die();
 }
