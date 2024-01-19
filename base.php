@@ -74,10 +74,3 @@ spl_autoload_register(function ($name) {
         require_once ROOT . $name . '.php';
     }
 });
-
-function dd(...$var){
-    foreach ($var as $v) {
-        Func::check($v, true);
-    }
-    die();
-}
