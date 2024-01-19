@@ -1,5 +1,0 @@
-<?php
-//error_reporting(0);
-require_once('config/system/ds/Ds.inc.php');
-$ds = new Ds();
-$ds->Start();

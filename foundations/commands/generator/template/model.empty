@@ -1,0 +1,12 @@
+<?php
+namespace App\Models;
+
+use Ds\Foundations\Connection\Models\DsModel;
+
+/**
+ * {ModelName} Model
+ */
+class {ModelName} extends DsModel
+{
+    public $table = '{tableName}';
+}

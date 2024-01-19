@@ -1,0 +1,18 @@
+<?php
+namespace App\Controllers;
+
+use Ds\Foundations\Controller\Controller;
+
+/**
+ * {ControllerName} Controller
+ */
+class {ControllerName} extends Controller
+{
+    public function index()
+    {
+        $data = [
+            'demoVariable' 	=> 'this is sample text variable'
+        ];
+        view('{ControllerName}', $data);
+    }
+}
