@@ -1,0 +1,17 @@
+{
+    "name": "ds/framework",
+    "description": "The Dsframework",
+    "keywords": ["framework", "laravel"],
+    "type": "project",
+    "require": {
+        "php": "8.1"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "daevsoft",
+            "email": "muhamad.deva.arofi@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable"
+}
