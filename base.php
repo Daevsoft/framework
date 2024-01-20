@@ -66,10 +66,12 @@ abstract class Dir
 }
 
 spl_autoload_register(function ($name) {
-    $namespace = substr($name, 0, strpos($name, '\\'));
+    $vendorPos = strpos($name, '\\');
+    $namespace = substr($name, 0, $vendorPos);
     // check if $name is from DS namespace
     if ($namespace == 'Ds') {
-        require_once dirname(__DIR__) . '\\' . $name . '.php';
+        $name = substr($name, $vendorPos);
+        require_once __DIR__ . '\\' . $name . '.php';
     } else if($namespace == 'App'){
         require_once ROOT . $name . '.php';
     }
