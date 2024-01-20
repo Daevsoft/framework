@@ -1,7 +1,7 @@
 {
     "name": "daevsoft/framework",
     "description": "The Dsframework",
-    "keywords": ["framework", "laravel"],
+    "keywords": ["framework", "dsframework", "php", "mvc", "templating"],
     "require": {
         "php": "^8.1"
     },
