@@ -13,6 +13,6 @@ class {ControllerName} extends Controller
         $data = [
             'demoVariable' 	=> 'this is sample text variable'
         ];
-        view('{ControllerName}', $data);
+        view('{ViewName}', $data);
     }
 }
