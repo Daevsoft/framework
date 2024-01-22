@@ -6,6 +6,7 @@ use Ds\Dir;
 use Ds\Foundations\Commands\Console;
 use Ds\Helper\Str;
 use Ds\Foundations\Commands\Runner;
+use Ds\Foundations\Common\File;
 
 // command "add:* args"
 class AddFile extends Runner
@@ -90,8 +91,12 @@ class AddFile extends Runner
   private function createFile($filename, $folder, $source)
   {
     $create = true;
-    $directory = Dir::$APP . $folder . '/' . $filename . '.php';
-    if (file_exists($directory)) {
+    $dir = Dir::$APP . $folder;
+    if(!is_dir($dir)){
+      mkdir($dir, 7777, true);
+    }
+    $dir_filename = $dir . '/' . $filename . '.php';
+    if (file_exists($dir_filename)) {
       Console::writeln('File ' . $filename . ' was exist.');
       $read = readline('Replace it (y/N)? ');
       if ($read == 'y') {
@@ -102,9 +107,7 @@ class AddFile extends Runner
     }
     // Generate file decission
     if ($create) {
-      $file = fopen($directory, 'x+', Str::contains($directory, '/'));
-      fwrite($file, $source);
-      fclose($file);
+      (new File($dir_filename))->create($source)->close();
       Console::writeln($filename . ' successfully created!' . "\n", Console::LIGHT_GREEN);
     } else {
       Console::writeln('Skipped ' . $filename . ' ' . '!' . "\n", Console::DARK_GRAY);
