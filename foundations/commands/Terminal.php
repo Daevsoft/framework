@@ -5,6 +5,7 @@ namespace Ds\Foundations\Commands;
 use Ds\Dir;
 use Ds\Foundations\Commands\Generator\AddFile;
 use Ds\Foundations\Commands\Serve\Server;
+use Ds\Foundations\Common\Cache;
 use Ds\Helper\Str;
 
 class Terminal
@@ -16,9 +17,16 @@ class Terminal
         'config' => EnvGenerator::class
     ];
 
+    private function setupTerminal(){
+        Dir::init();
+        $cache = new Cache();
+        $cache->clearAllPages();
+        $cache->clearReferences();
+    }
+
     public function __construct($argv)
     {
-        Dir::init();
+        $this->setupTerminal();
         $this->args = array_slice($argv, 1);
         $this->validate();
     }

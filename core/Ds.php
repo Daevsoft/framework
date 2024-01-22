@@ -24,6 +24,7 @@ class Ds
    public function __construct()
    {
       Dir::init();
+      include_once Dir::$CONFIG_TEMP;
       dsException::init();
       $this->initDebugger();
 

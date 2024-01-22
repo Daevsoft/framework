@@ -2,9 +2,6 @@
     "name": "daevsoft/framework",
     "description": "The Dsframework",
     "keywords": ["framework", "dsframework", "php", "mvc", "templating"],
-    "require": {
-        "php": "^8.1"
-    },
     "license": "MIT",
     "authors": [
         {
@@ -12,5 +9,8 @@
             "email": "muhamad.deva.arofi@gmail.com"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^8.1"
+    }
 }

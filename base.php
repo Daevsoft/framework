@@ -61,7 +61,6 @@ abstract class Dir
         self::$CONFIG_TEMP = self::$CACHE . 'config.temp.php';
         self::$VENDOR = self::$MAIN. 'vendor/';
         self::$CACHE_TIME = self::$STORAGE.'cache/times/temp';
-        include_once self::$CONFIG_TEMP;
     }
 }
 
