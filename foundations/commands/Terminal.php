@@ -6,6 +6,7 @@ use Ds\Dir;
 use Ds\Foundations\Commands\Generator\AddFile;
 use Ds\Foundations\Commands\Serve\Server;
 use Ds\Foundations\Common\Cache;
+use Ds\Foundations\Common\File;
 use Ds\Helper\Str;
 
 class Terminal
@@ -22,6 +23,23 @@ class Terminal
         $cache = new Cache();
         $cache->clearAllPages();
         $cache->clearReferences();
+        $this->initRoute();
+    }
+
+    private function initRoute(){
+        $fileRoutes = Dir::$ROUTE . 'web.php';
+        if(!file_exists($fileRoutes)){
+            if(!is_dir(Dir::$ROUTE)){
+                mkdir(Dir::$ROUTE, 7777, true);
+            }
+            $routeContent = "
+            <?php\n
+            use App\Controllers\IndexController;\n
+            use Ds\Foundations\Routing\Route;\n
+            \n
+            Route::get('/', [IndexController::class, 'index']);\n";
+            (new File($fileRoutes))->create($routeContent)->close();
+        }
     }
 
     public function __construct($argv)

@@ -3,7 +3,7 @@
 namespace Ds\Foundations\Config;
 
 use Ds\Dir;
-use Ds\Helper\File;
+use Ds\Foundations\Common\File;
 
 class AppEnv {
     private $envfile;

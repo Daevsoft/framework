@@ -5,6 +5,7 @@ namespace Ds\Foundations\Routing;
 use App\Middlewares\Kernel;
 use Closure;
 use Ds\Dir;
+use Ds\Foundations\Common\File;
 use Ds\Foundations\Common\Func;
 use Ds\Foundations\Debugger\Debug;
 use Ds\Foundations\Network\Request;
@@ -28,7 +29,8 @@ class RouteProvider extends Kernel implements Provider
     }
     function install()
     {
-        require_once Dir::$ROUTE . 'web.php';
+        $fileRoutes = Dir::$ROUTE . 'web.php';
+        require_once $fileRoutes;
         Func::check('RouteProvider installed !');
     }
     function run()

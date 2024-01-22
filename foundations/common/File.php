@@ -14,7 +14,6 @@ class File
 
     private $path;
     private $filename;
-    private $basename;
     private $stream;
     
     public function __construct($path) {
