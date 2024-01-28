@@ -8,9 +8,9 @@ function describe($name, $callback){
   $test = $callback();
   $execTime = microtime(true) - $time;
   $test->commit();
+  Console::write("| ".number_format($execTime, 4,'.','') . 's ', Console::DARK_GRAY);
   $test->printResult();
-  Console::write('> '.$name . "\t");
-  Console::writeln("\t".number_format($execTime, 4,'.','') . 's', Console::DARK_GRAY);
+  Console::writeln('> '.$name . "\t");
 }
 
 function mock(string $providerClass){

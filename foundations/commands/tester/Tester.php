@@ -33,10 +33,12 @@ class Tester extends Runner {
     }else{
       $start = microtime(true);
       if($this->options[0] == '--unit'){
+        Console::writeln('-------------------------------');
         foreach (glob(ROOT.'tests\\unit\\*.spec.php') as $filename) {
           $clearFilename = substr($filename, strrpos($filename,'\\') + 1);
           Console::writeln("[$clearFilename] ", Console::BLUE);
           require_once $filename;
+          Console::writeln('-------------------------------');
         }
         $end = microtime(true) - $start;
         Console::write((self::$passTotal + self::$failTotal) . ' Test Completed! (', Console::LIGHT_YELLOW);

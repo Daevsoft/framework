@@ -1,0 +1,20 @@
+<?php
+
+use Ds\Foundations\Commands\Tester\Assert;
+// use Ds\Foundations\Connection\DatabaseProvider;
+
+// Mock Database for Model Class
+// mock(DatabaseProvider::class);
+
+describe('{testname} is one number', function(){
+  $expect = 1;
+  return Assert::equal(1, $expect);
+});
+
+describe('{testname} Count is one thousand', function(){
+  $count = 0;
+  for ($i=0; $i < 1000; $i++) { 
+    $count += $i;
+  }
+  return Assert::check($count == 1000);
+});

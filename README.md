@@ -5,7 +5,6 @@ Ds (Like 'this') framework V3 is dsframework major updates for dsframework. New 
   <li>Pie Template</li>
   <li>Query Builder</li>
   <li>Model ORM (coming soon)</li>
-  <li>Unit Testing</li>
   <li>and any others..</li>
 </ul>
 <br>

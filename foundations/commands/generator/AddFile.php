@@ -30,11 +30,55 @@ class AddFile extends Runner
       case 'view':
         $this->createView();
         break;
+      case 'test':
+        $this->createTest();
+        break;
   
       default:
         Console::writeln('Oops..', Console::RED);
         Console::write('do you mean, add:model, add:controller, or add:view ?', Console::DARK_GRAY);
         break;
+    }
+  }
+  private function createTest()
+  {
+    $_files = $this->options;
+    if($_files[0] == '--unit'){
+      array_shift($this->options);
+      $this->createTestUnit();
+      return;
+    }
+    foreach ($_files as $file) {
+        $_filenames  = trim($file);
+        $source = file_get_contents(__DIR__.'/template/test.empty');
+        $className = $_filenames;
+        $methodName = 'test_'.strtolower($_filenames);
+
+        if(strstr($className, 'Test') == STRING_EMPTY){
+            $className .= 'Test';
+        }
+        $source = Str::replace($source, [
+            '{testname}' => $className,
+            '{testname_small}' => $methodName,
+        ]);
+        $className .= '.spec';
+
+        $this->createFile($className, Dir::$MAIN.'tests', $source);
+    }
+  }
+  private function createTestUnit()
+  {
+    $_files = $this->options;
+    foreach ($_files as $file) {
+        $_filenames  = trim($file);
+        $source = file_get_contents(__DIR__.'/template/test-unit.empty');
+        
+        $source = Str::replace($source, [
+            '{testname}' => $_filenames,
+        ]);
+        $_filenames .= '.spec';
+
+        $this->createFile($_filenames, Dir::$MAIN.'tests\\unit', $source);
     }
   }
   private function createView()
@@ -91,11 +135,11 @@ class AddFile extends Runner
   private function createFile($filename, $folder, $source)
   {
     $create = true;
-    $dir = Dir::$APP . $folder;
-    if(!is_dir($dir)){
-      mkdir($dir, 7777, true);
+    // $dir = $folder;
+    if(!is_dir($folder)){
+      mkdir($folder, 7777, true);
     }
-    $dir_filename = $dir . '/' . $filename . '.php';
+    $dir_filename = $folder . '/' . $filename . '.php';
     if (file_exists($dir_filename)) {
       Console::writeln('File ' . $filename . ' was exist.');
       $read = readline('Replace it (y/N)? ');

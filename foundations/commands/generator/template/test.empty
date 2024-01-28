@@ -1,0 +1,10 @@
+<?php
+
+use PHPUnit\Framework\TestCase;
+
+class {testname} extends TestCase{
+  public function test_{testname_small}(){
+    $expect = 'hello';
+    $this->assertTrue('hello' == $expect);
+  }
+}
