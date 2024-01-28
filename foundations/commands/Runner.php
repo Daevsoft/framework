@@ -9,5 +9,6 @@ abstract class Runner
     {
         $this->options = $options;
     }
+    function setup(){}
     function run(){}
 }

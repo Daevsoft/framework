@@ -47,12 +47,12 @@ class Ds
       foreach ($this->providers as $provider) {
          $provider->install();
       }
-      foreach ($this->providers as $provider) {
-         $provider->run();
-      }
    }
    public function connect()
    {
+      foreach ($this->providers as $provider) {
+         $provider->run();
+      }
       Func::check('Connected');
       Debug::writeLog();
    }

@@ -16,8 +16,6 @@ use Ds\Foundations\Config\Env;
 use PDO;
 use PDOException;
 
-use function Ds\Foundations\Config\env;
-
 define('SQLSERV', 'sqlserv');
 define('MYSQL', 'mysql');
 define('POSTGRE', 'pgsql');
@@ -412,6 +410,9 @@ class Db extends QueryCommon
         $columnIsRaw = $this->checkRaw($columnName);
         if ($columnIsRaw) {
             $columnName = 'p' . time();
+        }
+        if($this->whereValues == null){
+            $this->whereValues = [];
         }
         $setWhere->BindName = str_replace('.', '_', $columnName) . '_' . $this->identity . '_' . count($this->whereValues);
         $setWhere->IsRaw = $isRaw;
@@ -1136,7 +1137,6 @@ class Db extends QueryCommon
     {
         try {
             $this->generateQuery();
-            // var_dump($this->query);
             $this->statement = $this->connection->prepare($this->query);
             $this->attachParameter();
             $result = $this->statement->execute();

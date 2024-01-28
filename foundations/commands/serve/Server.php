@@ -5,6 +5,7 @@ namespace Ds\Foundations\Commands\Serve;
 use Ds\Foundations\Commands\Console;
 use Ds\Foundations\Commands\EnvGenerator;
 use Ds\Foundations\Commands\Runner;
+use Ds\Foundations\Common\Cache;
 use Ds\Helper\Str;
 
 class Server extends Runner
@@ -17,8 +18,15 @@ class Server extends Runner
             echo "fail : $port\n";
         }
     }
+    private function clearCache(){
+        $cache = new Cache();
+        $cache->clearAllPages();
+        $cache->clearReferences();
+    }
     public function serve($_host)
     {
+        $this->clearCache();
+
         $envGenerator = new EnvGenerator();
         $envGenerator->run();
         
@@ -47,7 +55,7 @@ class Server extends Runner
             if ($mac) ("open \"http://" . $_serverRun . "\"");
 
             // Start web server command
-            exec('php -S ' . $_serverRun);
+            exec('php -S ' . $_serverRun . ' -t public');
         } else {
             Console::write('Failed to connect !', Console::RED);
         }

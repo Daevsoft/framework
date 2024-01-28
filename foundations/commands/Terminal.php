@@ -5,6 +5,7 @@ namespace Ds\Foundations\Commands;
 use Ds\Dir;
 use Ds\Foundations\Commands\Generator\AddFile;
 use Ds\Foundations\Commands\Serve\Server;
+use Ds\Foundations\Commands\Tester\Tester;
 use Ds\Foundations\Common\Cache;
 use Ds\Foundations\Common\File;
 use Ds\Helper\Str;
@@ -15,14 +16,20 @@ class Terminal
     private $commandList = [
         'serve' => Server::class,
         'add:*' => AddFile::class,
-        'config' => EnvGenerator::class
+        'config' => EnvGenerator::class,
+        'test' => Tester::class,
+    ];
+    private $autoload = [
+        'storage\\cache\\config.temp.php',
+        'vendor\\daevsoft\\framework\\foundations\\commands\\tester\\TesterFunc.php',
+        'vendor\\phpunit\\phpunit\\src\\framework\\assert\\Functions.php',
     ];
 
     private function setupTerminal(){
         Dir::init();
-        $cache = new Cache();
-        $cache->clearAllPages();
-        $cache->clearReferences();
+        foreach ($this->autoload as $filename) {
+            require_once Dir::$MAIN.$filename;
+        }
         $this->initRoute();
     }
 

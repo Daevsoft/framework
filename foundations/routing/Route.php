@@ -4,6 +4,7 @@ namespace Ds\Foundations\Routing;
 
 use App\Middlewares\Kernel;
 use Closure;
+use Ds\Foundations\Common\Func;
 use Ds\Foundations\Routing\Attributes\Get;
 use ReflectionClass;
 
@@ -85,6 +86,8 @@ abstract class Route extends Kernel
         }else{
             self::registerRouteByClass($routes);
         }
+        Func::check(self::$groupName, true);
+        
         self::$groupName = null;
     }
     private static function registerRouteByClass(string $controllerName){
