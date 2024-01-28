@@ -53,7 +53,6 @@ class Ds
       foreach ($this->providers as $provider) {
          $provider->run();
       }
-      Func::check('Connected');
       Debug::writeLog();
    }
 }

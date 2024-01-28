@@ -17,9 +17,6 @@ class RouteProvider extends Kernel implements Provider
     private static array $routes;
     public static function addRoute($path, RouteData $options)
     {
-        if ($path == '/') {
-            $path = '/index';
-        }
         $path = substr($path, 1);
         self::$routes[$path] = $options;
     }
@@ -31,17 +28,16 @@ class RouteProvider extends Kernel implements Provider
     {
         $fileRoutes = Dir::$ROUTE . 'web.php';
         require_once $fileRoutes;
-        Func::check('RouteProvider installed !');
+        // RouteProvider installed !
     }
     function run()
     {
-        Func::check('RouteProvider running..');
+        // RouteProvider running..
         $uri = $_SERVER['PATH_INFO'] ?? '/';
         if ($uri == '/') {
             $uri = '/index';
         }
         $request_uri = substr($uri, 1);
-        Func::check($request_uri);
         $this->findRoute($request_uri);
     }
     public function findRoute(string $request)
@@ -73,13 +69,10 @@ class RouteProvider extends Kernel implements Provider
                 }
             }
             if ($isRight == $rtc) {
-                Func::check('Route is : '  . $route);
                 $this->executeRoute($callback, $args);
                 break;
             }
         }
-
-        Func::check('Iterating : ' . $iterate);
     }
     public function validateMiddleware(RouteData $route, Request $request):Response
     {

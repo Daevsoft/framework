@@ -9,6 +9,9 @@ abstract class RouteRequestAttr {
   protected $uri;
   protected $requestMethod;
   public function __construct($uri) {
+    if($uri == '/'){
+      $uri = '';
+    }
     $this->uri = $uri;
   }
   public function apply($controllerName, $methodName){}

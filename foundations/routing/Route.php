@@ -27,6 +27,9 @@ abstract class Route extends Kernel
 
     private static function registerRoute($url, Closure|array $target)
     {
+        if ($url == '/') {
+            $url = '/index';
+        }
         if (self::$groupName != null) {
             $url = self::$groupName . $url;
         }
@@ -86,9 +89,12 @@ abstract class Route extends Kernel
         }else{
             self::registerRouteByClass($routes);
         }
-        Func::check(self::$groupName, true);
-        
-        self::$groupName = null;
+        $lastPosition = strrpos(self::$groupName, '/');
+        if($lastPosition > 1){
+            self::$groupName = substr(self::$groupName, 0, $lastPosition);
+        }else{
+            self::$groupName = null;
+        }
     }
     private static function registerRouteByClass(string $controllerName){
         $controller = new $controllerName();
