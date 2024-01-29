@@ -95,7 +95,7 @@ class AddFile extends Runner
         if(strstr($file, '.pie') == STRING_EMPTY){
             $_filenames .= '.pie';
         }
-        $this->createFile($_filenames, 'views', $source);
+        $this->createFile($_filenames, Dir::$APP.'views', $source);
     }
   }
   private function createController()
@@ -114,7 +114,7 @@ class AddFile extends Runner
         '{ViewName}' => strtolower(Str::replace($_filenames, 'controller')),
       ]);
       $_filenames = ucfirst($_filenames);
-      $this->createFile($_filenames, 'controllers', $source);
+      $this->createFile($_filenames, Dir::$APP.'controllers', $source);
     }
   }
   private function createModel()
@@ -128,7 +128,7 @@ class AddFile extends Runner
         '{tableName}' => strtolower($filename)
       ]);
       $filename = ucfirst($filename);
-      $this->createFile($filename, 'models', $source);
+      $this->createFile($filename, Dir::$APP.'models', $source);
     }
   }
 
