@@ -5,7 +5,10 @@ namespace Ds\Foundations\Routing;
 use App\Middlewares\Kernel;
 use Closure;
 use Ds\Foundations\Common\Func;
+use Ds\Foundations\Routing\Attributes\Delete;
 use Ds\Foundations\Routing\Attributes\Get;
+use Ds\Foundations\Routing\Attributes\Post;
+use Ds\Foundations\Routing\Attributes\Put;
 use ReflectionClass;
 
 abstract class Route extends Kernel
@@ -14,6 +17,9 @@ abstract class Route extends Kernel
     const POST = 'POST';
     const PUT = 'PUT';
     const DELETE = 'DELETE';
+    const ROUTE_TYPE = [Get::class, Post::class, Delete::class, Put::class];
+    const ROUTE_TYPE_LENGTH = 4;
+
     private static array|null $middlewares;
     private static $EMPTY_ROUTE;
     private static $groupName = null;
@@ -103,15 +109,18 @@ abstract class Route extends Kernel
         $lenMethods = count($methods);
         for ($i=0; $i < $lenMethods; $i++) { 
             $method = $methods[$i];
-            $attributes = $method->getAttributes(Get::class);
-            if(isset($attributes[0])){
-                $lenAttributes = count($attributes);
-                for ($j=0; $j < $lenAttributes; $j++) { 
-                    $attribute = $attributes[$j];
-
-                    $methodName = $method->getName();
-                    $attrRoute = $attribute->newInstance();
-                    $attrRoute->apply($controllerName, $methodName);
+            for ($rTypeIndex=0; $rTypeIndex < self::ROUTE_TYPE_LENGTH; $rTypeIndex++) { 
+                $rType = self::ROUTE_TYPE[$rTypeIndex];
+                $attributes = $method->getAttributes($rType);
+                if(isset($attributes[0])){
+                    $lenAttributes = count($attributes);
+                    for ($j=0; $j < $lenAttributes; $j++) { 
+                        $attribute = $attributes[$j];
+    
+                        $methodName = $method->getName();
+                        $attrRoute = $attribute->newInstance();
+                        $attrRoute->apply($controllerName, $methodName);
+                    }
                 }
             }
 
