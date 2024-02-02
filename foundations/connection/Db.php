@@ -29,6 +29,7 @@ class Db extends QueryCommon
     private $password;
     private $database;
     private $ssl_cert;
+    private $ssl_verify;
     public static $module_name = '__db_class';
     private $columns;
     protected $primaryKey = 'id';
@@ -118,6 +119,7 @@ class Db extends QueryCommon
         $this->password = Env::get('DB_PASSWORD');
         $this->database = Env::get('DB_NAME');
         $this->ssl_cert = Env::get('SSL_CERT');
+        $this->ssl_verify = Env::get('SSL_VERIFY', false);
         
         try {
             if(empty($this->database)){
