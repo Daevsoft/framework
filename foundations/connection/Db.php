@@ -28,6 +28,7 @@ class Db extends QueryCommon
     private $username;
     private $password;
     private $database;
+    private $ssl_cert;
     public static $module_name = '__db_class';
     private $columns;
     protected $primaryKey = 'id';
@@ -111,11 +112,12 @@ class Db extends QueryCommon
      */
     public function setupProvider()
     {
-        $this->driver = Env::get('DRIVER');
-        $this->host = Env::get('HOST');
-        $this->username = Env::get('USERNAME');
-        $this->password = Env::get('PASSWORD');
-        $this->database = Env::get('DATABASE');
+        $this->driver = Env::get('DB_DRIVER');
+        $this->host = Env::get('DB_HOST');
+        $this->username = Env::get('DB_USERNAME');
+        $this->password = Env::get('DB_PASSWORD');
+        $this->database = Env::get('DB_NAME');
+        $this->ssl_cert = Env::get('SSL_CERT');
         
         try {
             if(empty($this->database)){
@@ -134,6 +136,19 @@ class Db extends QueryCommon
             //throw $th;
         }
     }
+    
+    /**
+     * Get options for pdo connection
+     *
+     * @return array|null
+     */
+    private function getDbOptions():array|null{
+        if($this->ssl_cert == null) return null;
+        return array(
+            PDO::MYSQL_ATTR_SSL_CA => $this->ssl_cert,
+            PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+        );
+    }
     /**
      * Get pdo connection instance
      *
@@ -143,8 +158,9 @@ class Db extends QueryCommon
     {
         try {
             $con_string = $this->getHostConnection();
+            $options = $this->getDbOptions();
             if (is_null($this->connection) && $con_string != null) {
-                $this->connection = new PDO($con_string, Env::get('USERNAME'), Env::get('PASSWORD'));
+                $this->connection = new PDO($con_string, $this->username, $this->password, $options);
                 $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             }
             // return PDO instance
