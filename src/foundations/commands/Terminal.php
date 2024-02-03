@@ -21,7 +21,7 @@ class Terminal
     ];
     private $autoload = [
         'storage\\cache\\config.temp.php',
-        'vendor\\daevsoft\\framework\\foundations\\commands\\tester\\TesterFunc.php',
+        'vendor\\daevsoft\\framework\\src\\foundations\\commands\\tester\\TesterFunc.php',
         'vendor\\phpunit\\phpunit\\src\\framework\\assert\\Functions.php',
     ];
 

@@ -6,7 +6,7 @@ use Ds\Foundations\Common\Func;
 use Ds\Foundations\Config\AppEnv;
 
 define('STRING_EMPTY', '');
-define("ROOT", dirname(__DIR__, 3).'\\');
+define("ROOT", dirname(__DIR__, 4).'\\');
 
 abstract class AppIndex {
     public static $SERVER_PROTOCOL;
