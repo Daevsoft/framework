@@ -28,7 +28,9 @@ class Terminal
     private function setupTerminal(){
         Dir::init();
         foreach ($this->autoload as $filename) {
-            require_once Dir::$MAIN.$filename;
+            $autoloadFile = Dir::$MAIN.$filename;
+            if(file_exists($autoloadFile))
+                require_once $autoloadFile;
         }
         $this->initRoute();
     }
