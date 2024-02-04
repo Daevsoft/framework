@@ -20,6 +20,11 @@ class File
         $this->path = $path;
         $this->filename = basename($path);
     }
+    private function checkDir($dir){
+        if(!is_dir($dir)){
+            mkdir($dir);
+        }
+    }
     public function close()
     {
         fclose($this->stream);
@@ -32,6 +37,7 @@ class File
     }
     public function create($contents = STRING_EMPTY)
     {
+        $this->checkDir(dirname($this->path));
         $this->stream = fopen($this->path, self::$createWrite);
         fwrite($this->stream, $contents);
         return $this;
