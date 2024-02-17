@@ -11,6 +11,10 @@ use Ds\Foundations\Debugger\Debug;
 use Ds\Foundations\Network\Request;
 use Ds\Foundations\Network\Response;
 use Ds\Foundations\Provider;
+use Reflection;
+use ReflectionClass;
+use ReflectionFunction;
+use Symfony\Component\VarDumper\VarDumper;
 
 class RouteProvider extends Kernel implements Provider
 {
@@ -116,15 +120,35 @@ class RouteProvider extends Kernel implements Provider
             }
             $response = null;
             if (is_array($route->target)) {
-                $obj = new $route->target[0]();
+                $className = $route->target[0];
+                $methodName = $route->target[1];
+                // Instance of Controller
+                $obj = new $className();
                 $route->target[0] = $obj;
-                $params[] = $middlewareResponse->request;
+                // die();
+                $reflectionFunction = new ReflectionClass($obj);
+                $reflectMethod = $reflectionFunction->getMethod($methodName);
+                $parameters = $reflectMethod->getParameters();
+                $totalParameters = $reflectMethod->getNumberOfParameters();
+                $this->assignRequest($middlewareResponse->request, $parameters, $totalParameters, $params);
                 $response = call_user_func_array($route->target, $params);
             } else if ($route->target instanceof Closure) {
-                // $params[] = new Request();
+                $reflectionFunction = new ReflectionFunction($route->target);
+                $parameters = $reflectionFunction->getParameters();
+                $totalParameters = $reflectionFunction->getNumberOfParameters();
+                $this->assignRequest($middlewareResponse->request, $parameters, $totalParameters, $params);
                 $response = call_user_func_array($route->target, $params);
             }
             $this->response($response);
+        }
+    }
+    private function assignRequest(Request $request, array $parameters, int $totalParameters, array &$params){
+        for ($i=0; $i < $totalParameters; $i++) { 
+            $p = $parameters[$i]->name;
+            if($p == 'request'){
+                $params['request'] = $request;
+                break;
+            }
         }
     }
     function response($value)
