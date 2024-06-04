@@ -216,7 +216,8 @@ use function Ds\Base\App\Config\env;
                     <li onclick="showCode(this)" data-line="<?php echo $i ?>" class="<?php echo $i == 0 ? 'file-selected' : '' ?>">
                         <?php 
                         if(isset($trace['file'])){
-                            echo str_replace(ROOT, '...', $trace['file']).'('.$trace['line'].')';
+                            $fname = str_replace(ROOT, '...', $trace['file']).'('.$trace['line'].')';
+                            echo str_replace('vendor\\daevsoft\\', '\\', $fname);
                         }else{
                             var_dump($trace);
                         }

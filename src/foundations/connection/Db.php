@@ -15,6 +15,7 @@ use Closure;
 use Ds\Foundations\Config\Env;
 use PDO;
 use PDOException;
+use Symfony\Component\VarDumper\VarDumper;
 
 define('SQLSERV', 'sqlserv');
 define('MYSQL', 'mysql');
@@ -101,11 +102,12 @@ class Db extends QueryCommon
      */
     public function __construct()
     {
+    }
+    public function init(){
         $this->setupProvider();
         $this->identity = Db::$identity_increment;
         Db::$identity_increment++;
         $this->sqlModel = new SqlModel($this, $this->quotSql, $this->endQuotSql, $this->bindSymbol);
-        $this->getConnection();
     }
     /**
      * @param  string $provider
@@ -165,6 +167,7 @@ class Db extends QueryCommon
                 $this->connection = new PDO($con_string, $this->username, $this->password, $options);
                 $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             }
+
             // return PDO instance
             return $this->connection;
         } catch (PDOException $ex) {
@@ -253,7 +256,10 @@ class Db extends QueryCommon
      */
     public function select($arg1, $arg2 = null)
     {
+        // Redefine new connection for subquery
         $db = new Db();
+        // Reinit DB because the Connection maybe turn into sub query
+        $db->init();
         $db->queryType = self::SELECT;
 
         if (is_string($arg1) && (is_string($arg2) || is_null($arg2))) {

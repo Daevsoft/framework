@@ -27,7 +27,7 @@ class DsModel
             $this->table = substr($this->table, strrpos($this->table, '\\') + 1);
             $this->table = strtolower($this->table);
         }
-        $this->connection = DatabaseProvider::$db;
+        $this->connection = DatabaseProvider::getConnection();
     }
     /**
      * Generating select query
@@ -57,8 +57,8 @@ class DsModel
         $obj = new $classname;
         if(is_null($columns))
             $columns = $obj->table;
+        
         return $obj->connection->select($columns, $from);
-        // return $this;
     }
     public function query($syntax)
     {
@@ -344,7 +344,7 @@ class DsModel
         $tableName = $obj->table;
         return $obj->select($columns, $tableName)->where($columnName, $columnValue)->get_row_object();
     }
-    public static function exist($columnName, $columnValue){
+    public static function exist($columnName, $columnValue = null){
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
@@ -359,24 +359,30 @@ class DsModel
         $id = $data->id ?? 0;
         $isExist = $obj->select($tableName)->where('id', $id)->get_exist();
         $data = (array) $data;
-        if ($isExist) {
-            $obj->update($tableName, $data)->where('id', $id)->execute();
-        } else {
-            $obj->insert($tableName, $data);
-        }
+
         $includeTimestamp = isset($data['timestamp']);
         if($includeTimestamp || $return){
             if(!$includeTimestamp){
                 $data['timestamp'] = Date::timestamp();
             }
-            return $obj->select($tableName)->where('timestamp', $data['timestamp'])->get_row_assoc();
         }
+        if ($isExist) {
+            $obj->update($tableName, $data)->where('id', $id)->execute();
+        } else {
+            $obj->insert($tableName, $data);
+        }
+        return $obj->select($tableName)->where('timestamp', $data['timestamp'])->get_row_object();
+        
     }
-    public static function remove($id)
+    public static function remove(int|array $idWhere)
     {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
-        $obj->delete(strtolower($tableName))->where('id', $id)->execute();
+        if(is_array($idWhere)){
+            $obj->delete(strtolower($tableName))->where($idWhere)->execute();
+        }else{
+            $obj->delete(strtolower($tableName))->where('id', $idWhere)->execute();
+        }
     }
 }

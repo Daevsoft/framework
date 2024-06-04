@@ -217,8 +217,10 @@ class PageProvider implements Provider
     private function php_initialize($_sources){
             // Definition Index Regex
             $regex_pattern = array(
+                // @{{  Text }}
+                '/\@\{\{(.*)\}\}/iXsuUm',
                 // {{  Text }}
-                '/\{\{\s(.*)\s\}\}/iXsuUm',
+                '/[^\@]\{\{\s(.*)\s\}\}/iXsuUm',
                 // {! Text !}
                 '/\{\!\s(.*)\s\!\}/iXsuUm',
                 // << Syntax >>
@@ -263,10 +265,10 @@ class PageProvider implements Provider
             );
             // Replacing Index Regex
             $regex_replace = array(
+                // @{{ Text }}
+                '{{(\1)}}',
                 // _(( Text ))
                 '<?php echo(\1); ?>',
-                // @(( Text ))
-                // '((\1))',
                 // (! Text !)
                 '<?php echo(htmlspecialchars("\1")); ?>',
                 // << Syntax >>

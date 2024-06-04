@@ -30,9 +30,9 @@ class Ds
 
       AppIndex::init();
       $this->providers = [
+         new DatabaseProvider(),
          new RouteProvider(),
-         new Controller(),
-         new DatabaseProvider()
+         new Controller()
       ];
       $this->loadProviders();
    }
