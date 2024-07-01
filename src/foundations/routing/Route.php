@@ -118,6 +118,7 @@ abstract class Route extends Kernel
                         $attribute = $attributes[$j];
     
                         $methodName = $method->getName();
+                        // RouteRequestAttr
                         $attrRoute = $attribute->newInstance();
                         $attrRoute->apply($controllerName, $methodName);
                     }

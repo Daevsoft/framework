@@ -8,6 +8,9 @@ use Ds\Foundations\Routing\Route;
 class Get extends RouteRequestAttr{
   protected $requestMethod = 'get';
   public function apply($controllerName, $methodName){
-    Route::get($this->uri, [$controllerName, $methodName]);
+    $route = Route::get($this->uri, [$controllerName, $methodName]);
+    if($this->middlewares != null){
+      $route->middleware($this->middlewares);
+    }
   }
 }

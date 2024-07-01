@@ -3,6 +3,7 @@
 namespace Ds\Foundations\Commands;
 
 use Ds\Dir;
+use Ds\Foundations\Commands\CronJob\Worker;
 use Ds\Foundations\Commands\Generator\AddFile;
 use Ds\Foundations\Commands\Serve\Server;
 use Ds\Foundations\Commands\Tester\Tester;
@@ -18,11 +19,13 @@ class Terminal
         'add:*' => AddFile::class,
         'config' => EnvGenerator::class,
         'test' => Tester::class,
+        'cronjob' => Worker::class,
     ];
     private $autoload = [
-        'storage\\cache\\config.temp.php',
-        'vendor\\daevsoft\\framework\\src\\foundations\\commands\\tester\\TesterFunc.php',
-        'vendor\\phpunit\\phpunit\\src\\framework\\assert\\Functions.php',
+        'storage'.SLASH.'cache'.SLASH.'config.temp.php',
+        'app'.SLASH.'functions'.SLASH.'fun.php',
+        'vendor'.SLASH.'daevsoft'.SLASH.'framework'.SLASH.'src'.SLASH.'Foundations'.SLASH.'Commands'.SLASH.'Tester'.SLASH.'TesterFunc.php',
+        'vendor'.SLASH.'phpunit'.SLASH.'phpunit'.SLASH.'src'.SLASH.'Framework'.SLASH.'Assert'.SLASH.'Functions.php',
     ];
 
     private function setupTerminal(){
@@ -78,11 +81,14 @@ class Terminal
             if(!Str::empty($otherArg)){
                 $options = [$otherArg, ...$options];
             }
-            $runner = new $this->commandList[$command]($options);
+            $runner = $this->createInstanceRunner($command, $options);
             $runner->run();
         } else {
             Console::write('Command [' . $this->args[0] . '] not found!');
             die();
         }
+    }
+    private function createInstanceRunner($name, $options):mixed{
+        return new $this->commandList[$name]($options);
     }
 }

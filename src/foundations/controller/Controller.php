@@ -9,10 +9,10 @@ class Controller implements Provider
 {
     function install()
     {
-        Func::check('Controller installed !');
+        //Func::check('Controller installed !');
     }
     function run()
     {
-        Func::check('Controller running..');
+        //Func::check('Controller running..');
     }
 }

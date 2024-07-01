@@ -15,6 +15,7 @@ use Closure;
 use Ds\Foundations\Config\Env;
 use PDO;
 use PDOException;
+use PDOStatement;
 use Symfony\Component\VarDumper\VarDumper;
 
 define('SQLSERV', 'sqlserv');
@@ -46,8 +47,7 @@ class Db extends QueryCommon
      *
      * @var PDOStatement
      */
-    private $statement;
-    private $transaction;
+    private PDOStatement $statement;
     /**
      * @var array<SetWhere>
      */
@@ -482,6 +482,19 @@ class Db extends QueryCommon
         } else {
             return $this->where1($arg1);
         }
+    }
+    
+    public function isNull($columnName){
+        return $this->where($columnName,' ', Db::raw('IS NULL'));
+    }
+    public function orIsNull($columnName){
+        return $this->or($columnName,' ', Db::raw('IS NULL'));
+    }
+    public function isNotNull($columnName){
+        return $this->where($columnName,' ', Db::raw('IS NOT NULL'));
+    }
+    public function orIsNotNull($columnName){
+        return $this->or($columnName,' ', Db::raw('IS NOT NULL'));
     }
     /**
      * Where OR
@@ -928,7 +941,8 @@ class Db extends QueryCommon
             }
             // skip where is raw
             if ($_value instanceof SetWhereRaw && $_value->IsRaw) {
-                $value = '(' . $_value->Value . ')';
+                // $value = '(' . $_value->Value . ')';
+                $value = ' ' . $_value->Value . ' ';
                 $whereQuery .= $this->whereStringMapper(
                     $_value->Operator,
                     $_value->Column,
@@ -1121,15 +1135,15 @@ class Db extends QueryCommon
         $this->attachDbValues($db, $data);
         return $db;
     }
-    public function bulkInsertObject($tableName, $arrayData)
+    public function bulkInsertObject($tableName, $arrayData, $onDuplicateKeyUpdate = null)
     {
         $columns = array_keys($arrayData[0]);
-        return $this->bulkInsertArray($tableName, $columns, $arrayData);
+        return $this->bulkInsertArray($tableName, $columns, $arrayData, $onDuplicateKeyUpdate);
     }
-    public function bulkInsertArray($tableName, $columns, $arrayData)
+    public function bulkInsertArray($tableName, $columns, $arrayData, $onDuplicateKeyUpdate = null)
     {
         $db = $this->sqlModel->insert($tableName);
-        return $db->bulkInsert($columns, $arrayData);
+        return $db->bulkInsert($columns, $arrayData, $onDuplicateKeyUpdate);
     }
     private function attachDbValues(SqlModel &$dbUtil, &$data)
     {
@@ -1217,7 +1231,7 @@ class Db extends QueryCommon
     {
         return $this->get_all(PDO::FETCH_NUM);
     }
-    public function get_object()
+    public function get_object():mixed
     {
         return $this->get_all(PDO::FETCH_OBJ);
     }

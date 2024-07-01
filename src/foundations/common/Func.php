@@ -13,4 +13,19 @@ class Func
             echo '</pre>';
         }
     }
+    
+    public static function isSlash()
+    {
+        return strpos(__DIR__, '/') >= 0;
+    }
+
+    public static function replaceSlash($text)
+    {
+        if (self::isSlash()) {
+            return str_ireplace('\\', '/', $text);
+        } else {
+            return $text;
+        }
+    }
+
 }

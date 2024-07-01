@@ -78,7 +78,7 @@ class RouteProvider extends Kernel implements Provider
             }
         }
     }
-    public function validateMiddleware(RouteData $route, Request $request):Response
+    public function validateMiddleware(RouteData $route, Request $request): Response
     {
         $middlewares = null;
         if (is_string($route->middlewares)) {
@@ -142,10 +142,11 @@ class RouteProvider extends Kernel implements Provider
             $this->response($response);
         }
     }
-    private function assignRequest(Request $request, array $parameters, int $totalParameters, array &$params){
-        for ($i=0; $i < $totalParameters; $i++) { 
+    private function assignRequest(Request $request, array $parameters, int $totalParameters, array &$params)
+    {
+        for ($i = 0; $i < $totalParameters; $i++) {
             $p = $parameters[$i]->name;
-            if($p == 'request'){
+            if ($p == 'request') {
                 $params['request'] = $request;
                 break;
             }

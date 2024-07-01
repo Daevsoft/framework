@@ -24,7 +24,7 @@ class Request
             case 'headers':
                 return getallheaders();
             default:
-                return $_REQUEST[$name];
+                return $_REQUEST[$name] ?? null;
         }
     }
     public function add($propName, $value){

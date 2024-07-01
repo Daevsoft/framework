@@ -16,7 +16,7 @@ class DsModel
     /**
      * @var Db $connection
      */
-    protected $connection;
+    protected Db $connection;
     protected $primaryKey = NULL;
     public $table = NULL;
 
@@ -274,9 +274,26 @@ class DsModel
     {
         $this->connection->bulkInsertArray($tableName, $columns, $arrayData)->execute();
     }
-    public function insert_bulk($tableName, $arrayData)
+    /* 
+    Example
+        $onDuplicateKeyUpdate = function($row) {
+            return ['id' => $row['id]];
+        }
+        query : ... ON DUPLICATE KEY UPDATE id=row[id]
+    */
+    public function insert_bulk($tableName, $arrayData, $onDuplicateKeyUpdate = null)
     {
-        $this->connection->bulkInsertObject($tableName, $arrayData)->execute();
+        if(count($arrayData) == 0)
+            return;
+
+        if(is_bool($onDuplicateKeyUpdate) && $onDuplicateKeyUpdate){
+            $columns = array_keys($arrayData[0]);
+            $onDuplicateKeyUpdate = [];
+            foreach ($columns as $column) {
+                $onDuplicateKeyUpdate[$column] = 'VALUES('.$column.')';
+            }
+        }
+        $this->connection->bulkInsertObject($tableName, $arrayData,$onDuplicateKeyUpdate)->execute();
     }
     public function update($tableName, $data = null)
     {
@@ -313,6 +330,7 @@ class DsModel
     }
     public static function all($columns = [])
     {
+        if(is_string($columns)) $columns = explode(',',$columns);
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
@@ -343,6 +361,36 @@ class DsModel
         $obj = new $className();
         $tableName = $obj->table;
         return $obj->select($columns, $tableName)->where($columnName, $columnValue)->get_row_object();
+    }
+    public static function findIsNull($columnName, $columns = '*'){
+        $className = get_called_class();
+        $obj = new $className();
+        $tableName = $obj->table;
+        return $obj->select($columns, $tableName)->isNull($columnName)->get_row_object();
+    }
+    public static function findIsNotNull($columnName, $columns = '*'){
+        $className = get_called_class();
+        $obj = new $className();
+        $tableName = $obj->table;
+        return $obj->select($columns, $tableName)->isNotNull($columnName)->get_row_object();
+    }
+    public static function findsBy($columnName, $columnValue, $columns = '*'){
+        $className = get_called_class();
+        $obj = new $className();
+        $tableName = $obj->table;
+        return $obj->select($columns, $tableName)->where($columnName, $columnValue)->get_object();
+    }
+    public static function findsIsNull($columnName, $columns = '*'){
+        $className = get_called_class();
+        $obj = new $className();
+        $tableName = $obj->table;
+        return $obj->select($columns, $tableName)->isNull($columnName)->get_object();
+    }
+    public static function findsIsNotNull($columnName, $columns = '*'){
+        $className = get_called_class();
+        $obj = new $className();
+        $tableName = $obj->table;
+        return $obj->select($columns, $tableName)->isNotNull($columnName)->get_object();
     }
     public static function exist($columnName, $columnValue = null){
         $className = get_called_class();

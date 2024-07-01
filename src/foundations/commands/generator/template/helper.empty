@@ -1,0 +1,12 @@
+<?php
+namespace App\Helpers;
+
+/**
+ * {HelperName} Helper
+ */
+class {HelperName}
+{
+  public function __construct()
+  {
+  }
+}

@@ -14,5 +14,5 @@ function describe($name, $callback){
 }
 
 function mock(string $providerClass){
-  (new $providerClass)->install();
+  (new $providerClass())->install();
 }

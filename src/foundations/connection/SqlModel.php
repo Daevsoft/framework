@@ -203,7 +203,6 @@ class SqlModel extends QueryCommon
         }
 
         $this->dbUtils->query($this->query);
-
         foreach ($this->columnValues as $_value) {
             if ($_value instanceof SetRaw && $_value->IsRaw)
                 continue;
@@ -264,7 +263,12 @@ class SqlModel extends QueryCommon
         $bindings = STRING_EMPTY;
         foreach ($this->columnValues as $_value) {
             $columns .= ',' . $this->WrapQuot($_value->Column);
-            if (($_value instanceof SetRaw) && $_value->IsRaw) {
+            // if null
+            if($_value->Value == null){
+                $bindings .= ',NULL';
+                continue;
+            }
+            if (($_value instanceof SetRaw && $_value->IsRaw)) {
                 $bindings .= "," . $_value->Value;
             } else {
                 $bindings .= "," . ($_value->CustomBind != null ?
@@ -309,27 +313,31 @@ class SqlModel extends QueryCommon
         }
         $this->query .= " WHERE" . $whereQuery;
     }
-    public function bulkInsert($columns, $arrayData)
+    public function bulkInsert($columns, $arrayData, $onDuplicateKeyUpdate = null)
     {
         $this->sqlModelType = self::BULK_INSERT;
+        $onDuplicate = '';
+        if($onDuplicateKeyUpdate != null){
+            $duplicates = $onDuplicateKeyUpdate;
+            $duplicatesTemp = [];
+            foreach ($duplicates as $key => $value) {
+                $duplicatesTemp[] = $key.'='.$value; 
+            }
+            $onDuplicate = ' ON DUPLICATE KEY UPDATE '. implode(',', $duplicatesTemp);
+        }
 
         $columnsQuery = implode(', ', array_map(function ($column) {
             return $this->WrapQuot($column);
         }, $columns));
         $this->query .= '(' . $columnsQuery . ') VALUES ';
-
-        $this->query .= implode(',', array_map(function ($row) {
-            $isContainKey = array_keys($row)[0] !== 0; // check is not object
-            $values = null;
-            if ($isContainKey) {
-                $values = array_values($row);
-            } else {
-                $values = $row;
-            }
-            return '(' . implode(',', array_map(function ($value) {
-                return '\'' . $value . '\'';
-            }, $values)) . ')';
-        }, $arrayData));
+        $this->query .= implode(',', array_map(function ($row, $index) use($columns) {
+            return '(' . implode(',', array_map(function ($column) use($index, $row) {
+                $bindName = $column.$index;
+                $this->addValue($bindName, $row[$column]);
+                return  $this->bindSymbol.$bindName;
+            }, $columns)) . ') ';
+        }, $arrayData, array_keys($arrayData)));
+        $this->query .= $onDuplicate;
 
         return $this;
     }

@@ -8,6 +8,9 @@ use Ds\Foundations\Routing\Route;
 class Delete extends RouteRequestAttr{
   protected $requestMethod = 'delete';
   public function apply($controllerName, $methodName){
-    Route::delete($this->uri, [$controllerName, $methodName]);
+    $route = Route::delete($this->uri, [$controllerName, $methodName]);
+    if($this->middlewares != null){
+      $route->middleware($this->middlewares);
+    }
   }
 }

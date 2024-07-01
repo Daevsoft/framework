@@ -8,6 +8,9 @@ use Ds\Foundations\Routing\Route;
 class Put extends RouteRequestAttr{
   protected $requestMethod = 'put';
   public function apply($controllerName, $methodName){
-    Route::put($this->uri, [$controllerName, $methodName]);
+    $route = Route::put($this->uri, [$controllerName, $methodName]);
+    if($this->middlewares != null){
+      $route->middleware($this->middlewares);
+    }
   }
 }

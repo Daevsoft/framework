@@ -1,1 +1,3 @@
-{{ 'this is {filename} view' }}
+<template>
+  {{ 'this is {filename} view' }}
+</template>

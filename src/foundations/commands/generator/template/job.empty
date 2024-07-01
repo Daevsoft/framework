@@ -1,0 +1,15 @@
+<?php
+
+use Ds\Foundations\Commands\CronJob\Job;
+use Ds\Foundations\Connection\DatabaseProvider;
+use Ds\Foundations\Commands\Console;
+
+class {JobClassName} extends Job {
+  protected function start()
+  {
+    mock(DatabaseProvider::class);
+    // $controller = new MyController();
+    // $result = $controller->migrateEpisode(2024, 2024);
+    // Console::writeln('{JobClassName} Done !', Console::GREEN);
+  }
+}
