@@ -442,6 +442,9 @@ class Db extends QueryCommon
         $setWhere->IsRaw = $isRaw;
         return $setWhere;
     }
+    public function isQueryTypeReady(){
+        return !is_null($this->queryType);
+    }
     /**
      * Where
      * ```php

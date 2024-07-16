@@ -55,9 +55,9 @@ class DsModel
     {
         $classname = get_called_class();
         $obj = new $classname;
-        if(is_null($columns))
+        if (is_null($columns))
             $columns = $obj->table;
-        
+
         return $obj->connection->select($columns, $from);
     }
     public function query($syntax)
@@ -217,8 +217,31 @@ class DsModel
      */
     public function where($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
+        if (!$this->connection->isQueryTypeReady()) {
+            $this->connection = $this->connection->select($this->table);
+        }
         $this->connection = $this->connection->where($arg1, $arg2, $arg3, $arg4);
         return $this;
+    }
+    // called when Model::method() was called
+    public static function __callStatic($method, $arguments)
+    {
+        switch ($method) {
+            case 'where':
+                return self::initiateClass()->where(...$arguments);
+            case 'save':
+                return self::initiateClass()->save(...$arguments);
+            case 'update':
+                return self::initiateClass()->update(...$arguments);
+            case 'like':
+                return self::initiateClass()->like(...$arguments);
+            case 'select':
+                return self::initiateClass()->select(...$arguments);
+
+            default:
+                return call_user_func('self::' . $method, ...$arguments);
+                break;
+        }
     }
     // // where x like y
     /**
@@ -283,17 +306,17 @@ class DsModel
     */
     public function insert_bulk($tableName, $arrayData, $onDuplicateKeyUpdate = null)
     {
-        if(count($arrayData) == 0)
+        if (count($arrayData) == 0)
             return;
 
-        if(is_bool($onDuplicateKeyUpdate) && $onDuplicateKeyUpdate){
+        if (is_bool($onDuplicateKeyUpdate) && $onDuplicateKeyUpdate) {
             $columns = array_keys($arrayData[0]);
             $onDuplicateKeyUpdate = [];
             foreach ($columns as $column) {
-                $onDuplicateKeyUpdate[$column] = 'VALUES('.$column.')';
+                $onDuplicateKeyUpdate[$column] = 'VALUES(' . $column . ')';
             }
         }
-        $this->connection->bulkInsertObject($tableName, $arrayData,$onDuplicateKeyUpdate)->execute();
+        $this->connection->bulkInsertObject($tableName, $arrayData, $onDuplicateKeyUpdate)->execute();
     }
     public function update($tableName, $data = null)
     {
@@ -330,7 +353,7 @@ class DsModel
     }
     public static function all($columns = [])
     {
-        if(is_string($columns)) $columns = explode(',',$columns);
+        if (is_string($columns)) $columns = explode(',', $columns);
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
@@ -338,10 +361,15 @@ class DsModel
             return $obj->select($columns, $tableName)->get_object();
         return $obj->select($tableName)->get_object();
     }
+    public static function initiateClass()
+    {
+        $className = get_called_class();
+        return new $className();
+    }
     public static function last($columns = [])
     {
         $className = get_called_class();
-        $obj = new $className();
+        $obj = self::initiateClass();
         $tableName = $obj->table;
         if (count($columns) > 0)
             return $obj->select($columns, $tableName)->desc('id')->limit(1)->get_row_object();
@@ -356,43 +384,50 @@ class DsModel
         // $tableName = $obj->table;
         // return $obj->select($columns, $tableName)->where('id', $id)->get_row_object();
     }
-    public static function findBy($columnName, $columnValue, $columns = '*'){
+    public static function findBy($columnName, $columnValue, $columns = '*')
+    {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
         return $obj->select($columns, $tableName)->where($columnName, $columnValue)->get_row_object();
     }
-    public static function findIsNull($columnName, $columns = '*'){
+    public static function findIsNull($columnName, $columns = '*')
+    {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
         return $obj->select($columns, $tableName)->isNull($columnName)->get_row_object();
     }
-    public static function findIsNotNull($columnName, $columns = '*'){
+    public static function findIsNotNull($columnName, $columns = '*')
+    {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
         return $obj->select($columns, $tableName)->isNotNull($columnName)->get_row_object();
     }
-    public static function findsBy($columnName, $columnValue, $columns = '*'){
+    public static function findsBy($columnName, $columnValue, $columns = '*')
+    {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
         return $obj->select($columns, $tableName)->where($columnName, $columnValue)->get_object();
     }
-    public static function findsIsNull($columnName, $columns = '*'){
+    public static function findsIsNull($columnName, $columns = '*')
+    {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
         return $obj->select($columns, $tableName)->isNull($columnName)->get_object();
     }
-    public static function findsIsNotNull($columnName, $columns = '*'){
+    public static function findsIsNotNull($columnName, $columns = '*')
+    {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
         return $obj->select($columns, $tableName)->isNotNull($columnName)->get_object();
     }
-    public static function exist($columnName, $columnValue = null){
+    public static function exist($columnName, $columnValue = null)
+    {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
@@ -409,8 +444,8 @@ class DsModel
         $data = (array) $data;
 
         $includeTimestamp = isset($data['timestamp']);
-        if($includeTimestamp || $return){
-            if(!$includeTimestamp){
+        if ($includeTimestamp || $return) {
+            if (!$includeTimestamp) {
                 $data['timestamp'] = Date::timestamp();
             }
         }
@@ -420,16 +455,15 @@ class DsModel
             $obj->insert($tableName, $data);
         }
         return $obj->select($tableName)->where('timestamp', $data['timestamp'])->get_row_object();
-        
     }
     public static function remove(int|array $idWhere)
     {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
-        if(is_array($idWhere)){
+        if (is_array($idWhere)) {
             $obj->delete(strtolower($tableName))->where($idWhere)->execute();
-        }else{
+        } else {
             $obj->delete(strtolower($tableName))->where('id', $idWhere)->execute();
         }
     }
