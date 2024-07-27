@@ -1,0 +1,189 @@
+* {
+  font-family: roboto, arial, sans-serif;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.BoxDsException__ {
+  border-radius: 12px;
+  box-shadow: 1px 1px 5px black;
+  overflow: hidden;
+  margin: 10px;
+  font-family: monaco, times new roman;
+  font-weight: 300;
+}
+
+.ContentDsException__ {
+  margin: 2px;
+  padding: 5px;
+}
+
+.HeaderDsException__ {
+  position: relative;
+  border-radius: 4px 4px 0px 0px;
+  display: block;
+  top: 0;
+  padding: 10px;
+  background: #182435;
+  border-bottom: 4px solid #ff1100;
+  font-size: 1.2em;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+}
+
+.CodeDsException {
+  display: block;
+  background-color: #000066;
+  padding: 10px;
+  color: white;
+}
+
+.boxErrorTree {
+  box-shadow: 0 2px 5px grey;
+  transition: 200ms ease-in-out;
+  border-radius: 4px;
+  display: inline-flex;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.errorMessage {
+  font-size: medium;
+  margin: 0;
+  padding: 8px;
+}
+
+.boxErrorTree:hover {
+  background-color: whitesmoke;
+}
+
+.orange {
+  color: orange;
+}
+
+.ds_line_break_error {
+  background-color: #ee990045;
+  height: 20px;
+  width: 10000%;
+  display: block;
+  position: absolute;
+  left: -12px;
+  z-index: 10;
+}
+
+.errcode-lines,
+.errcode-lines-main {
+  background: #182435;
+  border-radius: 8px;
+  border: 1px solid #bfbfbf;
+  padding: 12px;
+}
+
+.ds_line_break_no {
+  float: left;
+  padding: 0 10px;
+  color: #9a9a9a;
+  text-align: right;
+  background: #1d2d43;
+}
+
+.errcode-wrapper * {
+  font-family: consolas, monospace, arial;
+}
+
+.errcode-wrapper {
+  margin: 10px 0;
+  width: 100%;
+}
+
+.hide {
+  display: none;
+}
+
+.errcode-files ul li {
+  list-style: none;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: small;
+  border-collapse: collapse;
+  border: 1px solid #00000026;
+}
+
+.errcode-files ul {
+  padding: 0 10px;
+}
+
+.errcode-files ul li:hover {
+  background: #dbdbdb;
+}
+
+li.file-selected {
+  background: #cbcbcb;
+}
+
+pre[class*=language-] {
+  padding: 0 0 0 12px;
+  margin: 0;
+}
+
+code[class*=language-],
+pre[class*=language-] {
+  text-shadow: none;
+  color: cyan;
+  z-index: 100;
+  position: absolute;
+  left: 43px;
+  top: 0;
+  width: 93%;
+  height: 100%;
+}
+
+.token.important,
+.token.regex,
+.token.variable,
+.token.punctuation {
+  color: #e7e7e7;
+}
+
+.language-css .token.string,
+.style .token.string,
+.token.entity,
+.token.operator,
+.token.url {
+  background-color: transparent;
+  color: #ff00d4;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #ff00d4;
+}
+
+.token.class-name,
+.token.function {
+  color: #00ff00;
+}
+
+.token.boolean,
+.token.constant,
+.token.deleted,
+.token.number,
+.token.property,
+.token.symbol,
+.token.tag {
+  color: orange;
+}
+
+.token.attr-name,
+.token.builtin,
+.token.char,
+.token.inserted,
+.token.selector,
+.token.string {
+  color: #ffeb3b;
+}

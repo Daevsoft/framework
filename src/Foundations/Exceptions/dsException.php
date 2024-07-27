@@ -6,28 +6,39 @@ use Ds\Dir;
 use Ds\Foundations\Commands\Console;
 use Ds\Foundations\Common\File;
 use Ds\Foundations\Common\Func;
+use Ds\Foundations\Config\Env;
 use Ds\Foundations\Debugger\Debug;
 use Exception;
+use Throwable;
 
 class dsException extends Exception
 {
-    private $exception;
+    private Exception|Throwable $exception;
     private $filename;
     private $filename_real;
     private $additionalMessage = '';
     public static function init()
     {
         set_error_handler(function ($code, $msg, $filename, $line) {
-            $dsE = new dsException($msg, $filename, $line);
-            $dsE->show_exception(true);
-            Debug::error($dsE);
+            
+            if(Env::get('STATUS') == 'development'){
+                $dsE = new dsException($msg, $filename, $line);
+                $dsE->show_exception(true);
+                Debug::error($dsE);
+            }else{
+                echo file_get_contents(Dir::$VIEWS.(Env::get('404_PAGE', 'page-404.html')));
+            }
             Debug::writeLog();
             die();
         });
         set_exception_handler(function ($ex) {
-            $dsE = new dsException($ex, $ex->getFile(), $ex->getLine(), $ex->getMessage());
-            $dsE->show_exception(true);
-            Debug::error($dsE);
+            if(Env::get('STATUS') == 'development'){
+                $dsE = new dsException($ex, $ex->getFile(), $ex->getLine(), $ex->getMessage());
+                $dsE->show_exception(true);
+                Debug::error($dsE);
+            }else{
+                echo file_get_contents(Dir::$VIEWS.(Env::get('404_PAGE', 'page-404.html')));
+            }
             Debug::writeLog();
             die();
         });
@@ -94,9 +105,26 @@ class dsException extends Exception
 
                 $logFile = new File(Dir::$CACHE . 'log' . SLASH . 'error_' . date('Ymd') . '.html');
                 $logFile->create($content)->close();
-                Console::writeln('Error (' . $filename . ') : ' . $this->exception->getMessage(), Console::LIGHT_RED);
+                
+                $errorMsg = '  ERROR : ' . $this->simplePath($this->exception->getFile()) . ' ('.$this->exception->getLine().")\n";
+                $errorMsg .= '  Message : ' .$this->exception->getMessage();
+                echo "\e[0;41;31m".$errorMsg."\e[0m\n";
+                $this->show_cli_trace($arrTrace);
             }
         }
+    }
+    private function simplePath($path){
+        return str_replace(ROOT, '.'.SLASH, $path);
+    }
+    private function show_cli_trace($arrTrace){
+        $len = count($arrTrace);
+        for ($i = $len - 1; $i > 0; $i--) {
+            $trace = $arrTrace[$i];
+            Console::writeln('+'.str_repeat('-', 30), Console::LIGHT_RED);
+            Console::writeln('| Trace File: '.$this->simplePath($trace['file']). ' ('.$trace['line'].')', Console::LIGHT_RED);
+            Console::writeln('|      Function : '.$trace['function'], Console::LIGHT_RED);
+        }
+        Console::writeln('+'.str_repeat('-', 30), Console::LIGHT_RED);
     }
     public function display_line_error($_arrFile, $_line)
     {

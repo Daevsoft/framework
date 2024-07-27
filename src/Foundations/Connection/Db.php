@@ -344,8 +344,8 @@ class Db extends QueryCommon
             $fromTable = $this->WrapQuot($tableOrDb);
         } else if (is_object($tableOrDb) && $tableOrDb instanceof Db) {
             // TODO alias table
-            $this->copyProperties($tableOrDb);
             $fromTable = '(' . $tableOrDb->getQuery() . ')';
+            $this->copyProperties($tableOrDb);
         }
         return $fromTable;
     }
@@ -545,8 +545,14 @@ class Db extends QueryCommon
         } else if (is_object($arrValues) && $arrValues instanceof Db) {
             $in = $arrValues->getQuery();
             $this->copyProperties($arrValues);
+        } else if(is_callable($arrValues)){
+            $db = new Db();
+            $db->init();
+            $func = $arrValues($db);
+            $in = $func->getQuery();
+            $this->copyProperties($func);
         }
-        return $this->where($column1, 'IN', self::raw($in));
+        return $this->where($column1, 'IN', self::raw('('.$in.')'));
     }
     public function orWhereIn($column1, $arrValues)
     {
@@ -558,6 +564,12 @@ class Db extends QueryCommon
         } else if (is_object($arrValues) && $arrValues instanceof Db) {
             $in = $arrValues->getQuery();
             $this->copyProperties($arrValues);
+        } else if(is_callable($arrValues)){
+            $db = new Db();
+            $db->init();
+            $func = $arrValues($db);
+            $in = $func->getQuery();
+            $this->copyProperties($func);
         }
         return $this->or($column1, 'IN', self::raw('(' . $in . ')'));
     }
@@ -912,6 +924,13 @@ class Db extends QueryCommon
         $cloned->attachParent($this->parentDb ?? $this);
         return $cloned;
     }
+    public function copy(){
+        $cloned = new Db();
+        $cloned->init();
+        $cloned->query($this->getQuery());
+        $cloned->copyProperties($this);
+        return $cloned;
+    }
     /**
      * generateWhere
      *
@@ -928,7 +947,6 @@ class Db extends QueryCommon
     }
     private function wrapWhere($whereValues, &$operator = null)
     {
-
         if($whereValues == null) return STRING_EMPTY;
         $whereLength = count($whereValues);
         if ($whereLength == 0) return STRING_EMPTY;
@@ -1064,7 +1082,7 @@ class Db extends QueryCommon
         return $this->query;
     }
 
-    protected function clear()
+    public function clear()
     {
         $this->whereValues = [];
         $this->orderAdditional = STRING_EMPTY;
@@ -1074,6 +1092,9 @@ class Db extends QueryCommon
         $this->queryType = null;
         $this->additionalParameters = [];
         $this->query = STRING_EMPTY;
+        if ($this->connection != null) {
+            $this->connection = null;
+        }
     }
 
     private function addOptionOrder()
@@ -1177,6 +1198,7 @@ class Db extends QueryCommon
     public function execute()
     {
         try {
+            $this->getConnection();
             $this->generateQuery();
             $this->statement = $this->connection->prepare($this->query);
             $this->attachParameter();
@@ -1218,9 +1240,10 @@ class Db extends QueryCommon
     {
         return $this->readAll($target);
     }
-    public function count_rows()
+    public function count()
     {
-        return count($this->get_all(PDO::FETCH_ASSOC));
+        $this->query('SELECT COUNT(1) total FROM ('.$this->query.') x');
+        return $this->get_row_object()->total;
     }
     public function get()
     {

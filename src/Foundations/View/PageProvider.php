@@ -256,6 +256,8 @@ class PageProvider implements Provider
                 // Break Case
                 '/\@(break)/s',
                 '/\@(endswitch)/s',
+                // Continue
+                '/\@(continue)/s',
                 // @slot
                 // '/\@(slot\(\'(.*)\'\))/iXsuUm',
                 // @use
@@ -303,6 +305,8 @@ class PageProvider implements Provider
                 '<? \1; ?>',
                 // Endswitch Case
                 '<?php \1; ?>',
+                // Continue
+                '<? \1; ?>',
                 // Slot
                 // Use
                 //

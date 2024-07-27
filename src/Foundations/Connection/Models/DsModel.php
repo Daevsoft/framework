@@ -313,7 +313,7 @@ class DsModel
             $columns = array_keys($arrayData[0]);
             $onDuplicateKeyUpdate = [];
             foreach ($columns as $column) {
-                $onDuplicateKeyUpdate[$column] = 'VALUES(' . $column . ')';
+                $onDuplicateKeyUpdate[$column] = $column;
             }
         }
         $this->connection->bulkInsertObject($tableName, $arrayData, $onDuplicateKeyUpdate)->execute();
@@ -454,7 +454,8 @@ class DsModel
         } else {
             $obj->insert($tableName, $data);
         }
-        return $obj->select($tableName)->where('timestamp', $data['timestamp'])->get_row_object();
+        if($return)
+            return $obj->select($tableName)->where('timestamp', $data['timestamp'])->get_row_object();
     }
     public static function remove(int|array $idWhere)
     {

@@ -5,7 +5,7 @@ namespace Ds;
 
 function isSlash()
 {
-    return strpos(__DIR__, '/') >= 0;
+    return strstr(__DIR__, '/') != false;
 }
 
 function replaceSlash($text)

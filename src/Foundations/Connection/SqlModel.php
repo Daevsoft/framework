@@ -204,7 +204,8 @@ class SqlModel extends QueryCommon
 
         $this->dbUtils->query($this->query);
         foreach ($this->columnValues as $_value) {
-            if ($_value instanceof SetRaw && $_value->IsRaw)
+            if (($_value instanceof SetRaw && $_value->IsRaw) || 
+                ($_value->Value == null && $this->sqlModelType == self::INSERT))
                 continue;
 
             $this->dbUtils->addParameter($_value);
@@ -212,8 +213,9 @@ class SqlModel extends QueryCommon
         foreach ($this->whereValues as $_value) {
             $this->dbUtils->addParameter($_value);
         }
+        $execute = $this->dbUtils->execute();
         $this->clear();
-        return $this->dbUtils->execute();
+        return $execute;
     }
 
     /**
@@ -225,6 +227,7 @@ class SqlModel extends QueryCommon
     {
         $this->whereValues = array();
         $this->columnValues = array();
+        $this->dbUtils->clear();
     }
 
     /**
@@ -321,7 +324,7 @@ class SqlModel extends QueryCommon
             $duplicates = $onDuplicateKeyUpdate;
             $duplicatesTemp = [];
             foreach ($duplicates as $key => $value) {
-                $duplicatesTemp[] = $key.'='.$value; 
+                $duplicatesTemp[] = (is_numeric($key) ? $value : $key).'=VALUES('.$value.')'; 
             }
             $onDuplicate = ' ON DUPLICATE KEY UPDATE '. implode(',', $duplicatesTemp);
         }
@@ -338,7 +341,6 @@ class SqlModel extends QueryCommon
             }, $columns)) . ') ';
         }, $arrayData, array_keys($arrayData)));
         $this->query .= $onDuplicate;
-
         return $this;
     }
 }
