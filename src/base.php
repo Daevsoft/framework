@@ -18,7 +18,9 @@ function replaceSlash($text)
 }
 
 define('STRING_EMPTY', '');
-define('SLASH', isSlash() ? '/' : '\\');
+if(!defined('SLASH')){
+    define('SLASH', isSlash() ? '/' : '\\');
+}
 define("ROOT", dirname(__DIR__, 4) . SLASH);
 
 abstract class AppIndex

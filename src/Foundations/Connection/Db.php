@@ -103,10 +103,12 @@ class Db extends QueryCommon
     public function __construct()
     {
     }
-    public function init(){
+    public function init()
+    {
         $this->setupProvider();
         $this->identity = Db::$identity_increment;
         Db::$identity_increment++;
+        
         $this->sqlModel = new SqlModel($this, $this->quotSql, $this->endQuotSql, $this->bindSymbol);
     }
     /**
@@ -122,9 +124,9 @@ class Db extends QueryCommon
         $this->database = Env::get('DB_NAME');
         $this->ssl_cert = Env::get('SSL_CERT');
         $this->ssl_verify = Env::get('SSL_VERIFY', false);
-        
+
         try {
-            if(empty($this->database)){
+            if (empty($this->database)) {
                 throw new dsException('Database not found!');
             }
             if (
@@ -140,14 +142,15 @@ class Db extends QueryCommon
             //throw $th;
         }
     }
-    
+
     /**
      * Get options for pdo connection
      *
      * @return array|null
      */
-    private function getDbOptions():array|null{
-        if($this->ssl_cert == null) return null;
+    private function getDbOptions(): array|null
+    {
+        if ($this->ssl_cert == null) return null;
         return array(
             PDO::MYSQL_ATTR_SSL_CA => $this->ssl_cert,
             PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
@@ -184,19 +187,17 @@ class Db extends QueryCommon
     private function getHostConnection()
     {
         $_db_key = $_host_key = STRING_EMPTY;
-        if(Str::empty($this->driver) || Str::empty($this->database)) return null;
+        if (Str::empty($this->driver) || Str::empty($this->database)) return null;
         switch ($this->driver) {
                 // MySql Provider
             case MYSQL:
                 $_db_key = 'dbname';
                 $_host_key = 'host';
-                $this->setBehavior('`', '`');
                 break;
                 // SQL Server Provider
             case SQLSERV:
                 $_db_key = 'Database';
                 $_host_key = 'Server';
-                $this->setBehavior('[', ']');
                 break;
         }
         return $this->driver . ':' . $_host_key . '=' .
@@ -206,7 +207,16 @@ class Db extends QueryCommon
 
     private function setup()
     {
-        $this->getConnection();
+        switch ($this->driver) {
+                // MySql Provider
+            case MYSQL:
+                $this->setBehavior('`', '`');
+                break;
+                // SQL Server Provider
+            case SQLSERV:
+                $this->setBehavior('[', ']');
+                break;
+        }
         $this->clear();
     }
     /**
@@ -435,14 +445,15 @@ class Db extends QueryCommon
         if ($columnIsRaw) {
             $columnName = 'p' . time();
         }
-        if($this->whereValues == null){
+        if ($this->whereValues == null) {
             $this->whereValues = [];
         }
         $setWhere->BindName = str_replace('.', '_', $columnName) . '_' . $this->identity . '_' . count($this->whereValues);
         $setWhere->IsRaw = $isRaw;
         return $setWhere;
     }
-    public function isQueryTypeReady(){
+    public function isQueryTypeReady()
+    {
         return !is_null($this->queryType);
     }
     /**
@@ -486,18 +497,22 @@ class Db extends QueryCommon
             return $this->where1($arg1);
         }
     }
-    
-    public function isNull($columnName){
-        return $this->where($columnName,' ', Db::raw('IS NULL'));
+
+    public function isNull($columnName)
+    {
+        return $this->where($columnName, ' ', Db::raw('IS NULL'));
     }
-    public function orIsNull($columnName){
-        return $this->or($columnName,' ', Db::raw('IS NULL'));
+    public function orIsNull($columnName)
+    {
+        return $this->or($columnName, ' ', Db::raw('IS NULL'));
     }
-    public function isNotNull($columnName){
-        return $this->where($columnName,' ', Db::raw('IS NOT NULL'));
+    public function isNotNull($columnName)
+    {
+        return $this->where($columnName, ' ', Db::raw('IS NOT NULL'));
     }
-    public function orIsNotNull($columnName){
-        return $this->or($columnName,' ', Db::raw('IS NOT NULL'));
+    public function orIsNotNull($columnName)
+    {
+        return $this->or($columnName, ' ', Db::raw('IS NOT NULL'));
     }
     /**
      * Where OR
@@ -545,14 +560,14 @@ class Db extends QueryCommon
         } else if (is_object($arrValues) && $arrValues instanceof Db) {
             $in = $arrValues->getQuery();
             $this->copyProperties($arrValues);
-        } else if(is_callable($arrValues)){
+        } else if (is_callable($arrValues)) {
             $db = new Db();
             $db->init();
             $func = $arrValues($db);
             $in = $func->getQuery();
             $this->copyProperties($func);
         }
-        return $this->where($column1, 'IN', self::raw('('.$in.')'));
+        return $this->where($column1, 'IN', self::raw('(' . $in . ')'));
     }
     public function orWhereIn($column1, $arrValues)
     {
@@ -564,7 +579,7 @@ class Db extends QueryCommon
         } else if (is_object($arrValues) && $arrValues instanceof Db) {
             $in = $arrValues->getQuery();
             $this->copyProperties($arrValues);
-        } else if(is_callable($arrValues)){
+        } else if (is_callable($arrValues)) {
             $db = new Db();
             $db->init();
             $func = $arrValues($db);
@@ -924,7 +939,8 @@ class Db extends QueryCommon
         $cloned->attachParent($this->parentDb ?? $this);
         return $cloned;
     }
-    public function copy(){
+    public function copy()
+    {
         $cloned = new Db();
         $cloned->init();
         $cloned->query($this->getQuery());
@@ -947,7 +963,7 @@ class Db extends QueryCommon
     }
     private function wrapWhere($whereValues, &$operator = null)
     {
-        if($whereValues == null) return STRING_EMPTY;
+        if ($whereValues == null) return STRING_EMPTY;
         $whereLength = count($whereValues);
         if ($whereLength == 0) return STRING_EMPTY;
 
@@ -1051,7 +1067,7 @@ class Db extends QueryCommon
      */
     private function generateJoins()
     {
-        if($this->joinValues == null) return STRING_EMPTY;
+        if ($this->joinValues == null) return STRING_EMPTY;
         $joinLength = count($this->joinValues);
         if ($joinLength == 0) return STRING_EMPTY;
 
@@ -1242,7 +1258,7 @@ class Db extends QueryCommon
     }
     public function count()
     {
-        $this->query('SELECT COUNT(1) total FROM ('.$this->query.') x');
+        $this->query('SELECT COUNT(1) total FROM (' . $this->query . ') x');
         return $this->get_row_object()->total;
     }
     public function get()
@@ -1257,7 +1273,7 @@ class Db extends QueryCommon
     {
         return $this->get_all(PDO::FETCH_NUM);
     }
-    public function get_object():mixed
+    public function get_object(): mixed
     {
         return $this->get_all(PDO::FETCH_OBJ);
     }

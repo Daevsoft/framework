@@ -412,6 +412,17 @@ class DsModel
         $tableName = $obj->table;
         return $obj->select($columns, $tableName)->where($columnName, $columnValue)->get_object();
     }
+    public static function findsWhere(
+        $arg1,
+        $arg2 = null,
+        $arg3 = null,
+        $arg4 = null)
+    {
+        $className = get_called_class();
+        $obj = new $className();
+        $tableName = $obj->table;
+        return $obj->select($tableName)->where($arg1, $arg2, $arg3, $arg4)->get_object();
+    }
     public static function findsIsNull($columnName, $columns = '*')
     {
         $className = get_called_class();
