@@ -166,9 +166,15 @@ class Db extends QueryCommon
         try {
             $con_string = $this->getHostConnection();
             $options = $this->getDbOptions();
-            if (is_null($this->connection) && $con_string != null) {
+            // if(!isset($this->connection)){
+            //     $this->connection = null;
+            // }
+            if (is_null($this->connection) && $con_string != null && is_null(DatabaseProvider::getConnection()->connection)) {
                 $this->connection = new PDO($con_string, $this->username, $this->password, $options);
                 $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $this->connection->setAttribute(PDO::ATTR_PERSISTENT, false);
+            }else{
+                $this->connection = DatabaseProvider::getConnection()->connection;
             }
 
             // return PDO instance
@@ -501,6 +507,14 @@ class Db extends QueryCommon
     public function isNull($columnName)
     {
         return $this->where($columnName, ' ', Db::raw('IS NULL'));
+    }
+    public function like($columnName, $value)
+    {
+        return $this->where($columnName, ' LIKE ', '%'.$value.'%');
+    }
+    public function orLike($columnName, $value)
+    {
+        return $this->or($columnName, ' LIKE ', $value);
     }
     public function orIsNull($columnName)
     {
@@ -1108,8 +1122,9 @@ class Db extends QueryCommon
         $this->queryType = null;
         $this->additionalParameters = [];
         $this->query = STRING_EMPTY;
-        if ($this->connection != null) {
-            $this->connection = null;
+        if (isset($this->connection) && $this->connection != null) {
+            $this->statement->closeCursor();
+            // unset($this->connection);
         }
     }
 
@@ -1211,13 +1226,16 @@ class Db extends QueryCommon
     {
         return $this->sqlModel->delete($tableName);
     }
+    private function prepareQuery(){
+        $this->generateQuery();
+        $this->statement = $this->connection->prepare($this->query);
+        $this->attachParameter();
+    }
     public function execute()
     {
         try {
             $this->getConnection();
-            $this->generateQuery();
-            $this->statement = $this->connection->prepare($this->query);
-            $this->attachParameter();
+            $this->prepareQuery();
             $result = $this->statement->execute();
             $this->clear();
             return $result;
@@ -1232,14 +1250,20 @@ class Db extends QueryCommon
 
     public function readAll($fetch_type = PDO::FETCH_OBJ)
     {
-        $this->execute();
+        $this->getConnection();
+        $this->prepareQuery();
+        $this->statement->execute();
         $result = $this->statement->fetchAll($fetch_type);
+        $this->clear();
         return $result;
     }
     public function read($fetch_type = PDO::FETCH_OBJ)
     {
-        $this->execute();
+        $this->getConnection();
+        $this->prepareQuery();
+        $this->statement->execute();
         $result = $this->statement->fetch($fetch_type);
+        $this->clear();
         return $result;
     }
     public static function raw($value)

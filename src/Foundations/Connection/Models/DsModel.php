@@ -16,9 +16,12 @@ class DsModel
     /**
      * @var Db $connection
      */
-    protected Db $connection;
+    protected function connection():Db{
+        return DatabaseProvider::getConnection();
+    }
     protected $primaryKey = NULL;
     public $table = NULL;
+    
 
     public function __construct()
     {
@@ -27,7 +30,6 @@ class DsModel
             $this->table = substr($this->table, strrpos($this->table, '\\') + 1);
             $this->table = strtolower($this->table);
         }
-        $this->connection = DatabaseProvider::getConnection();
     }
     /**
      * Generating select query
@@ -58,26 +60,26 @@ class DsModel
         if (is_null($columns))
             $columns = $obj->table;
 
-        return $obj->connection->select($columns, $from);
+        return $obj->connection()->select($columns, $from);
     }
     public function query($syntax)
     {
-        return $this->connection->query($syntax);
+        return $this->connection()->query($syntax);
     }
     public function getQuery()
     {
-        return $this->connection->getQuery();
+        return $this->connection()->getQuery();
     }
     public function distinct($columns, $from = NULL)
     {
-        $newDb = new Db();
-        return $newDb->distinct($columns, $from);
+        // $newDb = new Db();
+        return $this->connection()->distinct($columns, $from);
     }
     // String Columns = 'columnGroup1, columnGroup2'
     // Array Columns = ['columnGroup1', 'columnGroup2']
     public function groupBy($columns)
     {
-        $this->connection = $this->connection->groupBy($columns);
+        $this->connection()->groupBy($columns);
         return $this;
     }
     /**
@@ -88,17 +90,17 @@ class DsModel
      */
     public function asc($column_name)
     {
-        $this->connection = $this->connection->asc($column_name);
+        $this->connection()->asc($column_name);
         return $this;
     }
     public function limit($length = 1, $start = 0)
     {
-        $this->connection = $this->connection->limit($length, $start);
+        $this->connection()->limit($length, $start);
         return $this;
     }
     public function desc($column_name)
     {
-        $this->connection = $this->connection->desc($column_name);
+        $this->connection()->desc($column_name);
         return $this;
     }
     /**
@@ -120,7 +122,7 @@ class DsModel
      */
     public function join($arg1, $arg2, $arg3, $arg4 = null, $arg5 = null)
     {
-        $this->connection = $this->connection->join($arg1, $arg2, $arg3, $arg4, $arg5);
+        $this->connection()->join($arg1, $arg2, $arg3, $arg4, $arg5);
         return $this;
     }
     /**
@@ -142,12 +144,12 @@ class DsModel
      */
     public function leftJoin($arg1, $arg2, $arg3, $arg4 = null)
     {
-        $this->connection = $this->connection->leftJoin($arg1, $arg2, $arg3, $arg4);
+        $this->connection()->leftJoin($arg1, $arg2, $arg3, $arg4);
         return $this;
     }
     public function having($columns)
     {
-        $this->connection = $this->connection->having($columns);
+        $this->connection()->having($columns);
         return $this;
     }
     /**
@@ -161,7 +163,7 @@ class DsModel
      */
     public function and($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
-        $this->connection = $this->connection->and($arg1, $arg2, $arg3, $arg4);
+        $this->connection()->and($arg1, $arg2, $arg3, $arg4);
         return $this;
     }
     /**
@@ -184,7 +186,7 @@ class DsModel
      */
     public function or($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
-        $this->connection = $this->connection->or($arg1, $arg2, $arg3, $arg4);
+        $this->connection()->or($arg1, $arg2, $arg3, $arg4);
         return $this;
     }
     /**
@@ -217,10 +219,10 @@ class DsModel
      */
     public function where($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
-        if (!$this->connection->isQueryTypeReady()) {
-            $this->connection = $this->connection->select($this->table);
+        if (!$this->connection()->isQueryTypeReady()) {
+            $this->connection()->select($this->table);
         }
-        $this->connection = $this->connection->where($arg1, $arg2, $arg3, $arg4);
+        $this->connection()->where($arg1, $arg2, $arg3, $arg4);
         return $this;
     }
     // called when Model::method() was called
@@ -264,7 +266,7 @@ class DsModel
      */
     public function like($column, $value)
     {
-        $this->connection = $this->where($column, ' LIKE ', $value);
+        $this->where($column, ' LIKE ', $value);
         return $this;
     }
     /**
@@ -276,7 +278,7 @@ class DsModel
      */
     public function orLike($column, $value)
     {
-        $this->connection = $this->or($column, ' LIKE ', $value);
+        $this->or($column, ' LIKE ', $value);
         return $this;
     }
     // // where x = y
@@ -291,11 +293,11 @@ class DsModel
     }
     public function insert($tableName, $data = null)
     {
-        return $this->connection->insert($tableName, $data)->execute();
+        return $this->connection()->insert($tableName, $data)->execute();
     }
     public function insert_bulk_array($tableName, $columns, $arrayData)
     {
-        $this->connection->bulkInsertArray($tableName, $columns, $arrayData)->execute();
+        $this->connection()->bulkInsertArray($tableName, $columns, $arrayData)->execute();
     }
     /* 
     Example
@@ -316,11 +318,11 @@ class DsModel
                 $onDuplicateKeyUpdate[$column] = $column;
             }
         }
-        $this->connection->bulkInsertObject($tableName, $arrayData, $onDuplicateKeyUpdate)->execute();
+        $this->connection()->bulkInsertObject($tableName, $arrayData, $onDuplicateKeyUpdate)->execute();
     }
     public function update($tableName, $data = null)
     {
-        $db = $this->connection->update($tableName, $data);
+        $db = $this->connection()->update($tableName, $data);
 
         if ($this->primaryKey == null)
             return $db;
@@ -349,7 +351,7 @@ class DsModel
     // }
     public function delete($tableName)
     {
-        return $this->connection->delete($tableName);
+        return $this->connection()->delete($tableName);
     }
     public static function all($columns = [])
     {
