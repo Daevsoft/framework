@@ -2,21 +2,37 @@
 
 namespace Ds\Foundations\Network;
 
-use AllowDynamicProperties;
-
-#[AllowDynamicProperties]
-class Request
+abstract class RequestAbstract
 {
-    public function __construct()
+    protected function rules()
     {
+        return null;
     }
+    public function validated($rule = null)
+    {
+        $rule = $rule ?? $this->rules();
+        if ($rule == null) {
+            return true;
+        }
+        // do validation
+        Validator::make($this->all(), $rule);
+    }
+    public function all()
+    {
+        return [];
+    }
+}
+
+// #[AllowDynamicProperties]
+class Request extends RequestAbstract
+{
     public function json()
     {
         return json_decode(file_get_contents('php://input'));
     }
     public function all()
     {
-        return (array)$this->json();
+        return $_REQUEST;
     }
     public function __get($name)
     {
@@ -27,7 +43,8 @@ class Request
                 return $_REQUEST[$name] ?? null;
         }
     }
-    public function add($propName, $value){
+    public function add($propName, $value)
+    {
         $this->{$propName} = $value;
     }
 }

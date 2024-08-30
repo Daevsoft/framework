@@ -5,16 +5,13 @@ namespace Ds\Foundations\Routing;
 use App\Middlewares\Kernel;
 use Closure;
 use Ds\Dir;
-use Ds\Foundations\Common\File;
-use Ds\Foundations\Common\Func;
 use Ds\Foundations\Debugger\Debug;
 use Ds\Foundations\Network\Request;
 use Ds\Foundations\Network\Response;
 use Ds\Foundations\Provider;
-use Reflection;
+use Ds\Foundations\View\PageProvider;
 use ReflectionClass;
 use ReflectionFunction;
-use Symfony\Component\VarDumper\VarDumper;
 
 class RouteProvider extends Kernel implements Provider
 {
@@ -24,17 +21,17 @@ class RouteProvider extends Kernel implements Provider
         $path = substr($path, 1);
         self::$routes[$path] = $options;
     }
-    public static function assignMiddleware($path, string|array $middleware)
+    public static function assignMiddleware($path, string | array $middleware)
     {
         return self::$routes[$path]->middleware($middleware);
     }
-    function install()
+    public function install()
     {
         $fileRoutes = Dir::$ROUTE . 'web.php';
         require_once $fileRoutes;
         // RouteProvider installed !
     }
-    function run()
+    public function run()
     {
         // RouteProvider running..
         $uri = $_SERVER['PATH_INFO'] ?? '/';
@@ -77,6 +74,7 @@ class RouteProvider extends Kernel implements Provider
                 break;
             }
         }
+        PageProvider::page_not_found();
     }
     public function validateMiddleware(RouteData $route, Request $request): Response
     {
@@ -86,7 +84,7 @@ class RouteProvider extends Kernel implements Provider
         } else if (is_array($route->middlewares)) {
             $middlewares = $route->middlewares;
         }
-        // execute middleware 
+        // execute middleware
         $countMiddlewares = count($middlewares);
         $continue = new Response(true, $request);
         for ($i = 0; $i < $countMiddlewares; $i++) {
@@ -113,6 +111,7 @@ class RouteProvider extends Kernel implements Provider
         if ($route instanceof RouteData) {
             $middlewareResponse = new Response();
             if ($route->middlewares != null) {
+                $middlewareResponse->request = new Request();
                 $middlewareResponse = $this->validateMiddleware($route, $middlewareResponse->request);
                 if (!$middlewareResponse) {
                     return; // TODO Route Validation
@@ -136,11 +135,21 @@ class RouteProvider extends Kernel implements Provider
                 $reflectionFunction = new ReflectionFunction($route->target);
                 $parameters = $reflectionFunction->getParameters();
                 $totalParameters = $reflectionFunction->getNumberOfParameters();
-                $this->assignRequest($middlewareResponse->request, $parameters, $totalParameters, $params);
-                $response = call_user_func_array($route->target, $params);
+                for ($iParam = 0; $iParam < $totalParameters; $iParam++) {
+                    $paramType = $parameters[$iParam]->getType();
+                    if (is_subclass_of($paramType->getName(), Request::class)) {
+                        $parameters[$iParam] = $this->createInstance($paramType->getName());
+                    }
+                }
+                $response = call_user_func_array($route->target, $parameters);
             }
             $this->response($response);
         }
+    }
+    private function createInstance($className)
+    {
+        $instance = new ReflectionClass($className);
+        return $instance->newInstance();
     }
     private function assignRequest(Request $request, array $parameters, int $totalParameters, array &$params)
     {
@@ -152,7 +161,7 @@ class RouteProvider extends Kernel implements Provider
             }
         }
     }
-    function response($value)
+    public function response($value)
     {
         if (is_array($value) || is_object($value)) {
             Debug::disabled();

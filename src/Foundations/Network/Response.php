@@ -9,6 +9,9 @@ class Response
     public function __construct(bool $isValid = true, Request $request = null)
     {
         $this->isValid = $isValid;
-        $this->request = $request ?? new Request();
+        if ($request != null) {
+            $this->request = $request;
+        }
+
     }
 }
