@@ -27,6 +27,7 @@ class RouteProvider extends Kernel implements Provider
     }
     public function install()
     {
+        $this->boot();
         $fileRoutes = Dir::$ROUTE . 'web.php';
         require_once $fileRoutes;
         // RouteProvider installed !
@@ -114,7 +115,7 @@ class RouteProvider extends Kernel implements Provider
                 $middlewareResponse->request = new Request();
                 $middlewareResponse = $this->validateMiddleware($route, $middlewareResponse->request);
                 if (!$middlewareResponse) {
-                    return; // TODO Route Validation
+                    return; // TODO Route Validation Result
                 }
             }
             $response = null;
@@ -124,42 +125,40 @@ class RouteProvider extends Kernel implements Provider
                 // Instance of Controller
                 $obj = new $className();
                 $route->target[0] = $obj;
-                // die();
+
                 $reflectionFunction = new ReflectionClass($obj);
                 $reflectMethod = $reflectionFunction->getMethod($methodName);
-                $parameters = $reflectMethod->getParameters();
-                $totalParameters = $reflectMethod->getNumberOfParameters();
-                $this->assignRequest($middlewareResponse->request, $parameters, $totalParameters, $params);
-                $response = call_user_func_array($route->target, $params);
+                $response = $this->responseReflector($reflectMethod, $route, $params);
             } else if ($route->target instanceof Closure) {
                 $reflectionFunction = new ReflectionFunction($route->target);
-                $parameters = $reflectionFunction->getParameters();
-                $totalParameters = $reflectionFunction->getNumberOfParameters();
-                for ($iParam = 0; $iParam < $totalParameters; $iParam++) {
-                    $paramType = $parameters[$iParam]->getType();
-                    if (is_subclass_of($paramType->getName(), Request::class)) {
-                        $parameters[$iParam] = $this->createInstance($paramType->getName());
-                    }
-                }
-                $response = call_user_func_array($route->target, $parameters);
+                $response = $this->responseReflector($reflectionFunction, $route, $params);
             }
             $this->response($response);
         }
+    }
+    private function responseReflector($reflector, $route, $params)
+    {
+        $parameters = $reflector->getParameters();
+        $totalParameters = $reflector->getNumberOfParameters();
+        return $this->routeResponse($route->target, $parameters, $totalParameters, $params);
+    }
+    private function routeResponse($target, $parameters, $totalParameters, $routeParams)
+    {
+        for ($iParam = 0; $iParam < $totalParameters; $iParam++) {
+            $paramType = $parameters[$iParam]->getType();
+            if ($paramType != null && is_subclass_of($paramType->getName(), Request::class)) {
+                $parameters[$iParam] = $this->createInstance($paramType->getName());
+            } else {
+                $paramName = $parameters[$iParam]->getName();
+                $parameters[$iParam] = $routeParams[$paramName] ?? null;
+            }
+        }
+        return call_user_func_array($target, $parameters);
     }
     private function createInstance($className)
     {
         $instance = new ReflectionClass($className);
         return $instance->newInstance();
-    }
-    private function assignRequest(Request $request, array $parameters, int $totalParameters, array &$params)
-    {
-        for ($i = 0; $i < $totalParameters; $i++) {
-            $p = $parameters[$i]->name;
-            if ($p == 'request') {
-                $params['request'] = $request;
-                break;
-            }
-        }
     }
     public function response($value)
     {
@@ -170,5 +169,6 @@ class RouteProvider extends Kernel implements Provider
         } else {
             echo $value;
         }
+        die;
     }
 }

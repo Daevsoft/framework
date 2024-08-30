@@ -2,6 +2,8 @@
 
 namespace Ds\Foundations\Network;
 
+use Ds\Foundations\Validator\Validator;
+
 abstract class RequestAbstract
 {
     protected function rules()
@@ -46,5 +48,9 @@ class Request extends RequestAbstract
     public function add($propName, $value)
     {
         $this->{$propName} = $value;
+    }
+    public function old($key)
+    {
+        return flash($key);
     }
 }
