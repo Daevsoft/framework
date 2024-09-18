@@ -1,5 +1,9 @@
 <?php
+
 namespace Ds\Foundations\Validator;
+
+use Ds\Foundations\Network\Request;
+use Ds\Foundations\Routing\RouteProvider;
 
 class Validator
 {
@@ -15,7 +19,6 @@ class Validator
 
         $validator = new Validator($rules);
         $validator->doValidate($input);
-
     }
     public function doValidate($input)
     {
@@ -32,11 +35,30 @@ class Validator
             $this->execResult($result);
         }
     }
+    private function saveErrorFlash($result)
+    {
+        foreach ($result['errors'] as $key => $message) {
+            set_flash('error_' . $key, $message);
+        }
+    }
+    private function clearError()
+    {
+        if (isset($_SESSION)) {
+            foreach ($_SESSION as $key => $value) {
+                if (strstr($key, 'flash__') != false) {
+                    unset($_SESSION[$key]);
+                }
+            }
+        }
+    }
     private function execResult($result)
     {
+        $this->clearError();
         if (!is_null($result)) {
-            if (isset($_REQUEST['HTTP_REFERRER'])) {
-                header('Location:' . $_REQUEST['HTTP_REFERRER']);
+            if (Request::getReferrer() != null) {
+                // save into flash
+                $this->saveErrorFlash($result);
+                header('Location:' . Request::getReferrer());
                 die;
             } else {
                 header('Content-Type:application/json');

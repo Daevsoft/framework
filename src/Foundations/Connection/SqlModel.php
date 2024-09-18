@@ -110,6 +110,38 @@ class SqlModel extends QueryCommon
         $this->whereValues[] = $setWhere;
         return $this;
     }
+    public function whereRaw($columnName, $value, $oOperator = '=', $customBind = null, $operator = 'AND')
+    {
+        $setWhere = new SetWhereRaw($columnName, $value, $oOperator, $this->GetType($value), $customBind, $operator);
+        $this->whereValues[] = $setWhere;
+        return $this;
+    }
+
+    public function whereIn($column1, $arrValues)
+    {
+        $in = '';
+        if (is_array($arrValues)) {
+            $arrValues = array_map(fn($value) => '\'' . $value . '\'', $arrValues);
+            $in = implode(',', $arrValues);
+        } else if (is_string($arrValues)) {
+            $in = $arrValues;
+        }
+        return $this->whereRaw($column1, '(' . $in . ')', 'IN');
+    }
+    public function orWhereIn($column1, $arrValues)
+    {
+        $in = '';
+        if (is_array($arrValues)) {
+            $in = implode($arrValues);
+        } else if (is_string($arrValues)) {
+            $in = $arrValues;
+        }
+        return $this->orWhereRaw($column1, Db::raw('(' . $in . ')'), 'IN');
+    }
+    public function orWhereRaw($columnName, $value, $oOperator = '=', $customBind = null)
+    {
+        return $this->whereRaw($columnName, $value, $oOperator, $customBind, 'OR');
+    }
     /**
      * orWhere Where condition with OR
      *
@@ -198,22 +230,27 @@ class SqlModel extends QueryCommon
             case self::BULK_INSERT:;
                 break;
             default:
-                return null;
+                return;
                 break;
         }
 
         $this->dbUtils->query($this->query);
         foreach ($this->columnValues as $_value) {
-            if (($_value instanceof SetRaw && $_value->IsRaw) || 
-                ($_value->Value == null && $this->sqlModelType == self::INSERT))
+            if (($_value instanceof SetRaw && $_value->IsRaw) ||
+                ($_value->Value == null && $this->sqlModelType == self::INSERT)
+            )
                 continue;
 
             $this->dbUtils->addParameter($_value);
         }
         foreach ($this->whereValues as $_value) {
+            if ($_value instanceof SetWhereRaw) continue;
             $this->dbUtils->addParameter($_value);
         }
         $execute = $this->dbUtils->execute();
+        if ($this->sqlModelType == self::INSERT) {
+            $execute = $this->dbUtils->getLastId();
+        }
         $this->clear();
         return $execute;
     }
@@ -252,7 +289,6 @@ class SqlModel extends QueryCommon
             $setQuery .= ',' . $this->WrapQuot($_value->Column) . '=' . $bindingValue;
         }
         $this->query .= trim($setQuery, ',');
-
         $this->generateWhere();
     }
     /**
@@ -267,7 +303,7 @@ class SqlModel extends QueryCommon
         foreach ($this->columnValues as $_value) {
             $columns .= ',' . $this->WrapQuot($_value->Column);
             // if null
-            if($_value->Value == null){
+            if ($_value->Value == null) {
                 $bindings .= ',NULL';
                 continue;
             }
@@ -320,24 +356,24 @@ class SqlModel extends QueryCommon
     {
         $this->sqlModelType = self::BULK_INSERT;
         $onDuplicate = '';
-        if($onDuplicateKeyUpdate != null){
+        if ($onDuplicateKeyUpdate != null) {
             $duplicates = $onDuplicateKeyUpdate;
             $duplicatesTemp = [];
             foreach ($duplicates as $key => $value) {
-                $duplicatesTemp[] = (is_numeric($key) ? $value : $key).'=VALUES('.$value.')'; 
+                $duplicatesTemp[] = (is_numeric($key) ? $value : $key) . '=VALUES(' . $value . ')';
             }
-            $onDuplicate = ' ON DUPLICATE KEY UPDATE '. implode(',', $duplicatesTemp);
+            $onDuplicate = ' ON DUPLICATE KEY UPDATE ' . implode(',', $duplicatesTemp);
         }
 
         $columnsQuery = implode(', ', array_map(function ($column) {
             return $this->WrapQuot($column);
         }, $columns));
         $this->query .= '(' . $columnsQuery . ') VALUES ';
-        $this->query .= implode(',', array_map(function ($row, $index) use($columns) {
-            return '(' . implode(',', array_map(function ($column) use($index, $row) {
-                $bindName = $column.$index;
+        $this->query .= implode(',', array_map(function ($row, $index) use ($columns) {
+            return '(' . implode(',', array_map(function ($column) use ($index, $row) {
+                $bindName = $column . $index;
                 $this->addValue($bindName, $row[$column]);
-                return  $this->bindSymbol.$bindName;
+                return  $this->bindSymbol . $bindName;
             }, $columns)) . ') ';
         }, $arrayData, array_keys($arrayData)));
         $this->query .= $onDuplicate;

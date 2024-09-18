@@ -38,6 +38,9 @@ class AddFile extends Runner
       case 'job':
         $this->createJob();
         break;
+      case 'migration':
+        $this->createMigration();
+        break;
 
       default:
         Console::writeln('Oops..', Console::RED);
@@ -101,6 +104,22 @@ class AddFile extends Runner
         $_filenames .= '.job';
       }
       $this->createFile($_filenames, Dir::$JOBS, $source);
+    }
+  }
+  private function createMigration()
+  {
+    $_files = $this->options;
+    foreach ($_files as $file) {
+      $_filenames  = trim($file);
+      $source = file_get_contents(__DIR__ . SLASH . 'template' . SLASH . 'migration.empty');
+
+      $source = Str::replace($source, [
+        '{MigrationName}' => $file
+      ]);
+
+      $_filenames = date('Y_m_d_').'create_table_' . $_filenames;
+
+      $this->createFile($_filenames, Dir::$MIGRATIONS, $source);
     }
   }
   private function createView()

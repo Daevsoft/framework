@@ -15,4 +15,7 @@ class Controller implements Provider
     {
         //Func::check('Controller running..');
     }
+    protected function redirect($route){
+        header('Location: '.$route);
+    }
 }

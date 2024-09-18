@@ -1,4 +1,5 @@
 <?php
+
 namespace Ds\Foundations\Validator;
 
 use Closure;
@@ -15,7 +16,7 @@ class ValidationRule
         $this->message = $message;
         $this->action = $action;
     }
-    public function runValidation($value, $field, $options): bool | ValidationResult
+    public function runValidation($value, $field, $options): bool|ValidationResult
     {
         return ($this->action)($value, $field, $options, $this);
     }

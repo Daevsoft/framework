@@ -10,7 +10,9 @@ use Ds\Foundations\Controller\Controller;
 use Ds\Foundations\Debugger\Debug;
 use Ds\Foundations\Exceptions\dsException;
 use Ds\Foundations\Routing\RouteProvider;
+use Ds\Foundations\Session\SessionProvider;
 use Ds\Foundations\Validator\ValidationProvider;
+use Ds\Foundations\View\PageProvider;
 
 class Ds
 {
@@ -28,7 +30,9 @@ class Ds
 
         AppIndex::init();
         $this->providers = [
+            new SessionProvider(),
             new DatabaseProvider(),
+            new PageProvider(),
             new RouteProvider(),
             new Controller(),
             new ValidationProvider(),

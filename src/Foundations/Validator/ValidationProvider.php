@@ -1,4 +1,5 @@
 <?php
+
 namespace Ds\Foundations\Validator;
 
 use Ds\Foundations\Provider;
@@ -21,12 +22,8 @@ class ValidationProvider implements Provider
         }
     }
 
-    public function install()
-    {
-    }
-    public function run()
-    {
-    }
+    public function install() {}
+    public function run() {}
     public static function boot()
     {
         if (!self::$installed) {
@@ -58,7 +55,7 @@ class ValidationProvider implements Provider
             self::$installed = true;
         }
     }
-    public static function validate($field, $value, $key, $params): ValidationResult
+    public static function validate($field, $value, $key, $params): bool|ValidationResult
     {
         return self::$errorValidation[$key]->runValidation($value, $field, $params);
     }

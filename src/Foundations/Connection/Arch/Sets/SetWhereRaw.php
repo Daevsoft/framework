@@ -9,5 +9,5 @@ class SetWhereRaw extends SetWhere
      *
      * @var bool
      */
-    public $IsRaw;
+    public $IsRaw = true;
 }

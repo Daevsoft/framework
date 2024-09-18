@@ -2,6 +2,9 @@
 
 namespace Ds\Foundations\Connection;
 
+use Closure;
+use Ds\Dir;
+use Ds\Foundations\Config\Env;
 use Ds\Foundations\Connection\Arch\QueryCommon;
 use Ds\Foundations\Connection\Arch\Sets\Join;
 use Ds\Foundations\Connection\Arch\Sets\Set;
@@ -11,16 +14,14 @@ use Ds\Foundations\Exceptions\dsException;
 use Ds\Foundations\Provider;
 use Ds\Helper\Str;
 use Exception;
-use Closure;
-use Ds\Foundations\Config\Env;
 use PDO;
 use PDOException;
 use PDOStatement;
-use Symfony\Component\VarDumper\VarDumper;
 
 define('SQLSERV', 'sqlserv');
 define('MYSQL', 'mysql');
 define('POSTGRE', 'pgsql');
+define('SQLITE', 'sqlite');
 define('SPACE', ' ');
 
 class Db extends QueryCommon
@@ -76,11 +77,11 @@ class Db extends QueryCommon
      */
     private $parentDb;
     /**
-     * @var int 
+     * @var int
      */
     public static $identity_increment;
-    /** 
-     * @var int 
+    /**
+     * @var int
      */
     private $identity = 0;
 
@@ -101,14 +102,13 @@ class Db extends QueryCommon
      * @return void
      */
     public function __construct()
-    {
-    }
+    {}
     public function init()
     {
         $this->setupProvider();
         $this->identity = Db::$identity_increment;
         Db::$identity_increment++;
-        
+
         $this->sqlModel = new SqlModel($this, $this->quotSql, $this->endQuotSql, $this->bindSymbol);
     }
     /**
@@ -148,9 +148,12 @@ class Db extends QueryCommon
      *
      * @return array|null
      */
-    private function getDbOptions(): array|null
+    private function getDbOptions(): array | null
     {
-        if ($this->ssl_cert == null) return null;
+        if ($this->ssl_cert == null) {
+            return null;
+        }
+
         return array(
             PDO::MYSQL_ATTR_SSL_CA => $this->ssl_cert,
             PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
@@ -187,32 +190,38 @@ class Db extends QueryCommon
     private function getHostConnection()
     {
         $_db_key = $_host_key = STRING_EMPTY;
-        if (Str::empty($this->driver) || Str::empty($this->database)) return null;
+        if (Str::nullEmpty($this->driver) || (Str::nullEmpty($this->database) && !Str::nullEmpty($this->host))) {
+            return null;
+        }
+
         switch ($this->driver) {
-                // MySql Provider
+            // MySql Provider
             case MYSQL:
                 $_db_key = 'dbname';
                 $_host_key = 'host';
                 break;
-                // SQL Server Provider
+            // SQL Server Provider
             case SQLSERV:
                 $_db_key = 'Database';
                 $_host_key = 'Server';
                 break;
         }
+        if ($this->driver == SQLITE) {
+            return $this->driver . ':' . Dir::$SQLITE;
+        }
         return $this->driver . ':' . $_host_key . '=' .
-            $this->host . ';' . $_db_key . '=' .
-            $this->database . ';';
+        $this->host . ';' . $_db_key . '=' .
+        $this->database . ';';
     }
 
     private function setup()
     {
         switch ($this->driver) {
-                // MySql Provider
+            // MySql Provider
             case MYSQL:
                 $this->setBehavior('`', '`');
                 break;
-                // SQL Server Provider
+            // SQL Server Provider
             case SQLSERV:
                 $this->setBehavior('[', ']');
                 break;
@@ -227,7 +236,10 @@ class Db extends QueryCommon
      */
     public function addParameter($set)
     {
-        if ($set instanceof SetWhereRaw && $set->IsRaw) return $this;
+        if ($set instanceof SetWhereRaw && $set->IsRaw) {
+            return $this;
+        }
+
         $this->additionalParameters[] = $set;
         return $this;
     }
@@ -245,7 +257,7 @@ class Db extends QueryCommon
     /**
      * Generating select query
      * example :
-     * 
+     *
      * ```php
      * select('mytable')
      * // or
@@ -254,12 +266,12 @@ class Db extends QueryCommon
      * select([ 'column1', ... ], 'mytable')
      * // or
      * select([
-     *      'column1' => 'alias1', 
+     *      'column1' => 'alias1',
      *      'column2' => 'alias2',
      *      ...
      * ], 'mytable')
      * ```
-     * 
+     *
      * @param  string|string[] $arg1 Table name or columns name
      * @param  string|string[] $arg2 will be table name
      * @return Db
@@ -326,10 +338,13 @@ class Db extends QueryCommon
         $columnAlias = '';
         if (is_object($table)) {
             $tableAlias = ' x';
-            if ($isRaw === false)
+            if ($isRaw === false) {
                 $columnAlias = 'x.';
+            }
         }
-        if (!$isRaw) $columns = $this->WrapQuot($columns);
+        if (!$isRaw) {
+            $columns = $this->WrapQuot($columns);
+        }
 
         $sql = 'SELECT ' . $columnAlias . $columns . ' FROM ' . $fromTable . $tableAlias;
         return $this->query($sql);
@@ -342,7 +357,10 @@ class Db extends QueryCommon
             $spaceIndex = strrpos($column, ' ');
             $column = ($spaceIndex !== false) ? substr($column, $spaceIndex + 1) : $column;
             $dotIndex = strpos($column, '.');
-            if ($dotIndex !== false) $column = substr($column, $dotIndex + 1);
+            if ($dotIndex !== false) {
+                $column = substr($column, $dotIndex + 1);
+            }
+
             $columns[] = Str::replace($column, '`');
         }
         return $columns;
@@ -415,7 +433,7 @@ class Db extends QueryCommon
      * @param  mixed $arg4 (optional)
      * @return Db
      */
-    public function and($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    public function  and ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         return $this->where($arg1, $arg2, $arg3, $arg4, SqlOperator::AND);
     }
@@ -432,7 +450,7 @@ class Db extends QueryCommon
      */
     private function createWhere($operator, $columnName, $operand, $value, $customBind, $isRaw = false)
     {
-        if (is_callable($value)) {
+        if ($value instanceof Closure) {
             $db = $this->clone();
             $db = $value($db);
             $value = $db->generateQuery();
@@ -477,11 +495,15 @@ class Db extends QueryCommon
      */
     public function where($arg1, $arg2 = null, $arg3 = null, $arg4 = null, $arg5 = null)
     {
-        if (is_array($arg1) || is_object($arg1)) return $this->where1($arg1);
+        if (is_array($arg1) || is_object($arg1)) {
+            return $this->where1($arg1);
+        }
 
         if (!is_null($arg5)) {
-            if (is_null($arg3))
+            if (is_null($arg3)) {
                 return $this->where3($arg1, $arg2, $arg3, $arg5);
+            }
+
             return $this->where4($arg1, $arg2, $arg3, $arg4, $arg5);
         } else if (!is_null($arg4)) {
             return $this->where4($arg1, $arg2, $arg3, $arg4, SqlOperator::AND);
@@ -489,7 +511,10 @@ class Db extends QueryCommon
             if (is_callable($arg3)) {
                 return $this->where3($arg1, $arg2, $arg3);
             }
-            if (is_null($arg5))  $arg5 = SqlOperator::AND;
+            if (is_null($arg5)) {
+                $arg5 = SqlOperator::AND;
+            }
+
             return $this->where4($arg1, $arg2, $arg3, null, $arg5);
         } else if (!is_null($arg2)) {
             return $this->where2($arg1, $arg2);
@@ -532,7 +557,7 @@ class Db extends QueryCommon
      * @param  mixed $arg4
      * @return Db
      */
-    public function or($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    public function  or ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         if ($arg2 == null) {
             return $this->or1($arg1);
@@ -554,13 +579,14 @@ class Db extends QueryCommon
     {
         $in = '';
         if (is_array($arrValues)) {
+            $arrValues = array_map(fn($value) => Db::raw('\'' . $value . '\''), $arrValues);
             $in = implode(',', $arrValues);
         } else if (is_string($arrValues)) {
             $in = $arrValues;
         } else if (is_object($arrValues) && $arrValues instanceof Db) {
             $in = $arrValues->getQuery();
             $this->copyProperties($arrValues);
-        } else if (is_callable($arrValues)) {
+        } else if ($arrValues instanceof Closure) {
             $db = new Db();
             $db->init();
             $func = $arrValues($db);
@@ -620,7 +646,7 @@ class Db extends QueryCommon
     }
     /**
      * Where with array parameter
-     * 
+     *
      * ```php
      * $whereCollection = [
      *    'column1' => 'value1',
@@ -708,8 +734,10 @@ class Db extends QueryCommon
         $setWhere = $this->createWhere($operator, $columnName, $oOperand, $value, $customBind, $isRaw);
         // it's for generating sub query in where
         $this->whereValues[] = $setWhere;
-        if ($this->parentDb)
+        if ($this->parentDb) {
             $this->parentDb->addParameter($setWhere);
+        }
+
         return $this;
     }
     /**
@@ -721,7 +749,10 @@ class Db extends QueryCommon
      */
     public function orderBy($columns, $orderType = Db::ASC)
     {
-        if (is_array($columns)) $columns = implode(',', $columns);
+        if (is_array($columns)) {
+            $columns = implode(',', $columns);
+        }
+
         $this->orderAdditional = ' ORDER BY ' . $columns . SPACE . $orderType;
         return $this;
     }
@@ -774,8 +805,9 @@ class Db extends QueryCommon
     private function addJoinSet($tableName, $onColumn1, $onColumn2, $type = SqlOperator::INNER)
     {
         // check if tableName is sub query or not
-        if ($tableName[0] != '(')
+        if ($tableName[0] != '(') {
             $tableName = $this->WrapQuot($tableName);
+        }
 
         // new join set
         $joinObject = new Join();
@@ -794,7 +826,7 @@ class Db extends QueryCommon
      * ->join('table1', 'table1.column1', 'table2.column2')
      * // INNER JOIN table1 tbl1 ON tbl1.column1 = tbl2.column
      * ->join('table1 tbl1', 'tbl1.column1', 'tbl2.column')
-     * // INNER JOIN (SELECT * FROM table2) tbl2 
+     * // INNER JOIN (SELECT * FROM table2) tbl2
      * //            ON tbl1.column1=tbl2.column
      * ->join(fn($db) => $db->select('table2'),
      * 'tbl2', 'tbl1.column1', 'tbl2.column')
@@ -834,8 +866,10 @@ class Db extends QueryCommon
     {
         $dbClone = $this->clone();
         $dbClone = $subQuery($dbClone);
-        if (!empty($alias))
+        if (!empty($alias)) {
             $dbClone->identity = $alias;
+        }
+
         $queryTarget = $dbClone->generateQuery();
         $this->copyProperties($dbClone);
         return $this->addJoinSet('(' . $queryTarget . ') ' . $dbClone->identity, $onColumn1, $onColumn2, $joinType);
@@ -877,7 +911,7 @@ class Db extends QueryCommon
      * // OR
      * ->leftJoin('table2 a', 'a.column1', 'table1.column1')
      * // OR
-     * ->leftJoin(fn($db) => $db->select('table3')->where(....), 
+     * ->leftJoin(fn($db) => $db->select('table3')->where(....),
      * 'a', 'a.column1', 'table1.column1')
      * ```
      *
@@ -889,10 +923,11 @@ class Db extends QueryCommon
      */
     public function leftJoin($arg1, $arg2, $arg3, $arg4 = null)
     {
-        if (is_string($arg1))
+        if (is_string($arg1)) {
             return $this->join($arg1, $arg2, $arg3, SqlOperator::LEFT);
-        else
+        } else {
             return $this->join($arg1, $arg2, $arg3, $arg4, SqlOperator::LEFT);
+        }
     }
     /**
      * Right join
@@ -901,7 +936,7 @@ class Db extends QueryCommon
      * // OR
      * ->leftJoin('table2 a', 'a.column1', 'table1.column1')
      * // OR
-     * ->leftJoin(fn($db) => $db->select('table3')->where(....), 
+     * ->leftJoin(fn($db) => $db->select('table3')->where(....),
      * 'a', 'a.column1', 'table1.column1')
      * ```
      *
@@ -913,10 +948,11 @@ class Db extends QueryCommon
      */
     public function rightJoin($arg1, $arg2, $arg3, $arg4 = null)
     {
-        if (is_string($arg1))
+        if (is_string($arg1)) {
             return $this->join($arg1, $arg2, $arg3, SqlOperator::RIGHT);
-        else
+        } else {
             return $this->join($arg1, $arg2, $arg3, $arg4, SqlOperator::RIGHT);
+        }
     }
     /**
      * attachParent
@@ -933,7 +969,7 @@ class Db extends QueryCommon
      *
      * @return Db
      */
-    private function clone()
+    private function clone ()
     {
         $cloned = new Db();
         $cloned->attachParent($this->parentDb ?? $this);
@@ -955,23 +991,34 @@ class Db extends QueryCommon
     private function generateWhere()
     {
         $resultWhere = STRING_EMPTY;
-        if ($this->whereValues)
+        if ($this->whereValues) {
             $resultWhere = $this->wrapWhere($this->whereValues);
-        if (empty($resultWhere))
+        }
+
+        if (empty($resultWhere)) {
             return $resultWhere;
+        }
+
         return (!is_null($this->queryType) ? ' WHERE ' : STRING_EMPTY) . $resultWhere;
     }
     private function wrapWhere($whereValues, &$operator = null)
     {
-        if ($whereValues == null) return STRING_EMPTY;
+        if ($whereValues == null) {
+            return STRING_EMPTY;
+        }
+
         $whereLength = count($whereValues);
-        if ($whereLength == 0) return STRING_EMPTY;
+        if ($whereLength == 0) {
+            return STRING_EMPTY;
+        }
 
         $whereQuery = STRING_EMPTY;
         $firstCondition = true;
         foreach ($whereValues as $key => $_value) {
-            if (is_string($key))
+            if (is_string($key)) {
                 $operator = substr($key, 0, strpos($key, '_'));
+            }
+
             if ($firstCondition) {
                 $_value->Operator = STRING_EMPTY;
                 $firstCondition = false;
@@ -989,7 +1036,6 @@ class Db extends QueryCommon
                 continue;
             }
 
-
             if (is_array($_value)) {
                 $whereQuery .= SPACE . $operator . ' (';
                 $whereQuery .= $this->wrapWhere($_value, $operator);
@@ -999,12 +1045,15 @@ class Db extends QueryCommon
                     $query = $_value->generateQuery();
                     $whereQuery .= SPACE . $operator . ' (' . $query . ')';
                 } else {
-                    if ($_value->IsFromChild) continue;
+                    if ($_value->IsFromChild) {
+                        continue;
+                    }
 
                     $bindingValue = $_value->Value;
 
-                    if ($_value instanceof SetWhere)
+                    if ($_value instanceof SetWhere) {
                         $bindingValue = is_callable($_value->CustomBind) ? call_user_func($_value->CustomBind, $this->assignBindSymbol($_value->BindName)) : $this->assignBindSymbol($_value->BindName);
+                    }
 
                     $whereQuery .= $this->whereStringMapper($_value->Operator, $this->WrapQuot($_value->Column), $_value->ValueOperator, $bindingValue);
                     // bind parameter into connection
@@ -1035,13 +1084,15 @@ class Db extends QueryCommon
      */
     public function groupBy($columns)
     {
-        if ($columns == null) return $this;
+        if ($columns == null) {
+            return $this;
+        }
 
         $this->groupAdditional = ' GROUP BY ';
 
-        if (is_string($columns))
+        if (is_string($columns)) {
             $this->groupAdditional .= $columns;
-        else if (is_array($columns)) {
+        } else if (is_array($columns)) {
             $wrappedColumns = array_map(function ($col) {
                 return $this->WrapQuot($col);
             }, $columns);
@@ -1051,8 +1102,9 @@ class Db extends QueryCommon
     }
     private function generateGroup()
     {
-        if ($this->groupAdditional != null)
+        if ($this->groupAdditional != null) {
             $this->query .= $this->groupAdditional;
+        }
     }
     public function having($rawQuery)
     {
@@ -1067,15 +1119,20 @@ class Db extends QueryCommon
      */
     private function generateJoins()
     {
-        if ($this->joinValues == null) return STRING_EMPTY;
+        if ($this->joinValues == null) {
+            return STRING_EMPTY;
+        }
+
         $joinLength = count($this->joinValues);
-        if ($joinLength == 0) return STRING_EMPTY;
+        if ($joinLength == 0) {
+            return STRING_EMPTY;
+        }
 
         $joinQuery = STRING_EMPTY;
         foreach ($this->joinValues as $_value) {
             $joinType = $_value->JoinType;
             $joinQuery .= SPACE . $joinType .
-                ' JOIN ' . $_value->Table . ' ON ' . $_value->OnColumn . '=' . $_value->OnValue;
+            ' JOIN ' . $_value->Table . ' ON ' . $_value->OnColumn . '=' . $_value->OnValue;
         }
         return $joinQuery;
     }
@@ -1093,8 +1150,10 @@ class Db extends QueryCommon
         $this->addOptionGroup();
         $this->addOptionOrder();
         $this->addOptionLimit();
-        if ($this->parentDb != null)
+        if ($this->parentDb != null) {
             $this->parentDb = null;
+        }
+
         return $this->query;
     }
 
@@ -1108,9 +1167,9 @@ class Db extends QueryCommon
         $this->queryType = null;
         $this->additionalParameters = [];
         $this->query = STRING_EMPTY;
-        if ($this->connection != null) {
-            $this->connection = null;
-        }
+        // if ($this->connection != null) {
+        //     $this->connection = null;
+        // }
     }
 
     private function addOptionOrder()
@@ -1150,10 +1209,14 @@ class Db extends QueryCommon
     }
     private function bindParameters(&$parameters)
     {
+        if (is_null($parameters)) {
+            return;
+        }
+
         foreach ($parameters as $parameter) {
-            if (is_array($parameter))
+            if (is_array($parameter)) {
                 $this->bindParameters($parameter);
-            else {
+            } else {
                 $parameter->BindName = $this->assignBindSymbol($parameter->BindName);
                 $this->statement->bindParam($parameter->BindName, $parameter->Value, $parameter->VType);
             }
@@ -1170,8 +1233,10 @@ class Db extends QueryCommon
     public function insert($tableName, $data = null)
     {
         $db = $this->sqlModel->insert($tableName);
-        if ($data == null)
+        if ($data == null) {
             return $db;
+        }
+
         $this->attachDbValues($db, $data);
         return $db;
     }
@@ -1187,7 +1252,9 @@ class Db extends QueryCommon
     }
     private function attachDbValues(SqlModel &$dbUtil, &$data)
     {
-        if ($data == null) return;
+        if ($data == null) {
+            return;
+        }
 
         foreach ($data as $columnName => $value) {
             $dbUtil->addValue($columnName, $value);
@@ -1202,8 +1269,10 @@ class Db extends QueryCommon
     public function update($tableName, $data = null)
     {
         $db = $this->sqlModel->update($tableName);
-        if ($data == null)
+        if ($data == null) {
             return $db;
+        }
+
         $this->attachDbValues($db, $data);
         return $db;
     }
@@ -1211,7 +1280,11 @@ class Db extends QueryCommon
     {
         return $this->sqlModel->delete($tableName);
     }
-    public function execute()
+    public function getLastId()
+    {
+        return $this->connection->lastInsertId() ?? 0;
+    }
+    public function execute($throwException = false)
     {
         try {
             $this->getConnection();
@@ -1222,6 +1295,9 @@ class Db extends QueryCommon
             $this->clear();
             return $result;
         } catch (Exception $ex) {
+            if ($throwException) {
+                return throw $ex;
+            }
             $de = new dsException($ex);
             $de->addMessage('<br>Query : <b>' . $this->query . '</b>');
             $de->addMessage('<br>Parameters : <pre><code>' . print_r($this->additionalParameters, true) . '</code></pre>');
@@ -1329,7 +1405,7 @@ class Db extends QueryCommon
     {
         return $this->get_row(PDO::FETCH_NAMED);
     }
-    public function get_row($target = NULL)
+    public function get_row($target = null)
     {
         $target = is_null($target) ? PDO::FETCH_BOTH : $target;
         return $this->read($target);

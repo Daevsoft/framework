@@ -3,6 +3,8 @@
 use Ds\AppIndex;
 use Ds\Foundations\View\PageProvider;
 use Ds\Foundation\View\Slot;
+use Ds\Foundations\Config\Env;
+use Ds\Helper\Str;
 
 if (!function_exists('asset')) {
     function asset($_fileName)
@@ -19,8 +21,9 @@ if (!function_exists('get_slot')) {
 
 function view($viewname = 'index', $data = [])
 {
+    $viewname = Str::replace($viewname, '.', SLASH);
     if ($viewname != null) {
-        $page = new PageProvider();
+        $page = PageProvider::init();
         $page->__page($viewname, $data);
     }
 }
@@ -36,10 +39,6 @@ function unsession($key)
 {
     unset($_SESSION[$key]);
 }
-function session_end()
-{
-    session_destroy();
-}
 function flash($key, $defaultValue = null)
 {
     $key = 'flash__' . $key;
@@ -47,7 +46,20 @@ function flash($key, $defaultValue = null)
     unsession($key);
     return $flash;
 }
+function is_flash($key)
+{
+    $key = 'flash__' . $key;
+    return isset($_SESSION[$key]);
+}
 function set_flash($key, $content)
 {
-    session('flash__' . $key, $content);
+    $key = 'flash__' . $key;
+    session([$key => $content]);
+}
+function js_source($src){
+    if(Env::get('STATUS') == 'production'){
+        echo '<script src="/public/assets/js/'.$src.'.js"></script>';
+    }else{
+        echo '<script src="/assets/js/'.$src.'.js"></script>';
+    }
 }

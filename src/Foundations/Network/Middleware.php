@@ -2,7 +2,11 @@
 
 namespace Ds\Foundations\Network;
 
-interface Middleware
+abstract class Middleware
 {
-    function handle(Request $request, $next): Response|null;
+    public $options;
+    function handle(Request $request, $next): Response | null
+    {
+        return $next();
+    }
 }

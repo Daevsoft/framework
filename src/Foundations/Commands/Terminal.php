@@ -9,6 +9,7 @@ use Ds\Foundations\Commands\Serve\Server;
 use Ds\Foundations\Commands\Tester\Tester;
 use Ds\Foundations\Common\Cache;
 use Ds\Foundations\Common\File;
+use Ds\Foundations\Migrate\Migration;
 use Ds\Helper\Str;
 
 class Terminal
@@ -20,28 +21,34 @@ class Terminal
         'config' => EnvGenerator::class,
         'test' => Tester::class,
         'cronjob' => Worker::class,
+        'migrate' => Migration::class,
+        'cache' => Cache::class,
     ];
     private $autoload = [
-        'storage'.SLASH.'cache'.SLASH.'config.temp.php',
-        'app'.SLASH.'functions'.SLASH.'fun.php',
-        'vendor'.SLASH.'daevsoft'.SLASH.'framework'.SLASH.'src'.SLASH.'Foundations'.SLASH.'Commands'.SLASH.'Tester'.SLASH.'TesterFunc.php',
-        'vendor'.SLASH.'phpunit'.SLASH.'phpunit'.SLASH.'src'.SLASH.'Framework'.SLASH.'Assert'.SLASH.'Functions.php',
+        'storage' . SLASH . 'cache' . SLASH . 'config.temp.php',
+        'app' . SLASH . 'functions' . SLASH . 'fun.php',
+        'vendor' . SLASH . 'daevsoft' . SLASH . 'framework' . SLASH . 'src' . SLASH . 'Foundations' . SLASH . 'Commands' . SLASH . 'Tester' . SLASH . 'TesterFunc.php',
+        'vendor' . SLASH . 'phpunit' . SLASH . 'phpunit' . SLASH . 'src' . SLASH . 'Framework' . SLASH . 'Assert' . SLASH . 'Functions.php',
     ];
 
-    private function setupTerminal(){
+    private function setupTerminal()
+    {
         Dir::init();
         foreach ($this->autoload as $filename) {
-            $autoloadFile = Dir::$MAIN.$filename;
-            if(file_exists($autoloadFile))
+            $autoloadFile = Dir::$MAIN . $filename;
+            if (file_exists($autoloadFile)) {
                 require_once $autoloadFile;
+            }
+
         }
         $this->initRoute();
     }
 
-    private function initRoute(){
+    private function initRoute()
+    {
         $fileRoutes = Dir::$ROUTE . 'web.php';
-        if(!file_exists($fileRoutes)){
-            if(!is_dir(Dir::$ROUTE)){
+        if (!file_exists($fileRoutes)) {
+            if (!is_dir(Dir::$ROUTE)) {
                 mkdir(Dir::$ROUTE, 7777, true);
             }
             $routeContent = "
@@ -72,13 +79,13 @@ class Terminal
     {
         $command = $this->args[0];
         $otherArg = '';
-        if(Str::contains($command, ':')){
+        if (Str::contains($command, ':')) {
             $otherArg = substr($command, strpos($command, ':') + 1);
-            $command = substr($command, 0, strpos($command, ':')+1).'*';
+            $command = substr($command, 0, strpos($command, ':') + 1) . '*';
         }
         if (isset($this->commandList[$command])) {
             $options = count($this->args) > 1 ? array_slice($this->args, 1) : [];
-            if(!Str::empty($otherArg)){
+            if (!Str::empty($otherArg)) {
                 $options = [$otherArg, ...$options];
             }
             $runner = $this->createInstanceRunner($command, $options);
@@ -88,7 +95,8 @@ class Terminal
             die();
         }
     }
-    private function createInstanceRunner($name, $options):mixed{
+    private function createInstanceRunner($name, $options): mixed
+    {
         return new $this->commandList[$name]($options);
     }
 }

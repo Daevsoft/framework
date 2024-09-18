@@ -16,10 +16,10 @@ use ReflectionFunction;
 class RouteProvider extends Kernel implements Provider
 {
     private static array $routes;
-    public static function addRoute($path, RouteData $options)
+    public static function addRoute($path, RouteData $route)
     {
         $path = substr($path, 1);
-        self::$routes[$path] = $options;
+        self::$routes[$path] = $route;
     }
     public static function assignMiddleware($path, string | array $middleware)
     {
@@ -89,13 +89,16 @@ class RouteProvider extends Kernel implements Provider
         $countMiddlewares = count($middlewares);
         $continue = new Response(true, $request);
         for ($i = 0; $i < $countMiddlewares; $i++) {
-            $mName = $middlewares[$i];
+            $middlewareName = explode(':', $middlewares[$i]);
+            $mName = $middlewareName[0];
+            $mOptions = count($middlewareName) > 1 ? array_splice($middlewareName, 1) : null;
             if (!isset($this->middlewareAlias[$mName])) {
                 // TODO Error middleware not registered
                 echo 'Middleware \'' . $mName . '\' not registered!';
                 die();
             }
             $classM = new $this->middlewareAlias[$mName]();
+            $classM->options = ($mOptions != null) ? explode(',', $mOptions[0]) : null;
             $continue = $classM->handle($continue->request, function (Request $request = new Request()) {
                 return new Response(true, $request);
             }) ?? new Response(false);
@@ -114,7 +117,7 @@ class RouteProvider extends Kernel implements Provider
             if ($route->middlewares != null) {
                 $middlewareResponse->request = new Request();
                 $middlewareResponse = $this->validateMiddleware($route, $middlewareResponse->request);
-                if (!$middlewareResponse) {
+                if (!$middlewareResponse->isValid) {
                     return; // TODO Route Validation Result
                 }
             }
@@ -142,11 +145,11 @@ class RouteProvider extends Kernel implements Provider
         $totalParameters = $reflector->getNumberOfParameters();
         return $this->routeResponse($route->target, $parameters, $totalParameters, $params);
     }
-    private function routeResponse($target, $parameters, $totalParameters, $routeParams)
+    private function routeResponse($target, &$parameters, $totalParameters, $routeParams)
     {
         for ($iParam = 0; $iParam < $totalParameters; $iParam++) {
             $paramType = $parameters[$iParam]->getType();
-            if ($paramType != null && is_subclass_of($paramType->getName(), Request::class)) {
+            if ($paramType != null && class_exists($paramType->getName())) {
                 $parameters[$iParam] = $this->createInstance($paramType->getName());
             } else {
                 $paramName = $parameters[$iParam]->getName();

@@ -1,6 +1,7 @@
 <?php
 
 namespace Ds\Foundations\Connection\Arch;
+
 use Ds\Helper\Str;
 
 use PDO;
@@ -83,7 +84,7 @@ class QueryCommon
      * @param  bool $reverseQuot
      * @return string
      */
-    protected function WrapQuot($name, $reverseQuot = false)
+    public function WrapQuot($name, $reverseQuot = false)
     {
         $name = trim($name);
         if (empty($name)) return $name;

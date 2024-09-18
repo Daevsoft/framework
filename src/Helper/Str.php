@@ -28,4 +28,7 @@ class Str
     public static function empty($value){
         return $value == STRING_EMPTY;
     }
+    public static function nullEmpty($value){
+        return $value == STRING_EMPTY || is_null($value);
+    }
 }

@@ -90,33 +90,33 @@ abstract class Route extends Kernel
     public static function group(String $name, Closure|string $routes)
     {
         self::$groupName .= '/' . trim($name, " \n\r\t\v\0/");
-        if(!is_string($routes)){
+        if (!is_string($routes)) {
             $routes();
-        }else{
+        } else {
             self::registerRouteByClass($routes);
         }
         $lastPosition = strrpos(self::$groupName, '/');
-        if($lastPosition > 1){
+        if ($lastPosition > 1) {
             self::$groupName = substr(self::$groupName, 0, $lastPosition);
-        }else{
+        } else {
             self::$groupName = null;
         }
     }
-    private static function registerRouteByClass(string $controllerName){
+    private static function registerRouteByClass(string $controllerName)
+    {
         $controller = new $controllerName();
         $reflectionController = new ReflectionClass($controller);
         $methods = $reflectionController->getMethods();
         $lenMethods = count($methods);
-        for ($i=0; $i < $lenMethods; $i++) { 
+        for ($i = 0; $i < $lenMethods; $i++) {
             $method = $methods[$i];
-            for ($rTypeIndex=0; $rTypeIndex < self::ROUTE_TYPE_LENGTH; $rTypeIndex++) { 
+            for ($rTypeIndex = 0; $rTypeIndex < self::ROUTE_TYPE_LENGTH; $rTypeIndex++) {
                 $rType = self::ROUTE_TYPE[$rTypeIndex];
                 $attributes = $method->getAttributes($rType);
-                if(isset($attributes[0])){
+                if (isset($attributes[0])) {
                     $lenAttributes = count($attributes);
-                    for ($j=0; $j < $lenAttributes; $j++) { 
+                    for ($j = 0; $j < $lenAttributes; $j++) {
                         $attribute = $attributes[$j];
-    
                         $methodName = $method->getName();
                         // RouteRequestAttr
                         $attrRoute = $attribute->newInstance();
@@ -124,7 +124,6 @@ abstract class Route extends Kernel
                     }
                 }
             }
-
         }
     }
 }

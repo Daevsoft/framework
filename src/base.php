@@ -56,6 +56,9 @@ abstract class Dir
     static string $JOBS;
     static string $MIDDLEWARES;
     static string $PROVIDERS;
+    static string $DB;
+    static string $MIGRATIONS;
+    static string $SQLITE;
     static string $STORAGE;
     static string $CACHE;
     static string $CONFIG_TEMP;
@@ -68,6 +71,8 @@ abstract class Dir
     {
         self::$MAIN = ROOT;
         self::$APP = self::$MAIN . 'app' . SLASH;
+        self::$DB = self::$MAIN . 'database' . SLASH;
+        self::$MIGRATIONS = self::$DB . 'migrations' . SLASH;
         self::$ROUTE = self::$APP . 'Route' . SLASH;
         self::$CONTROLLERS = self::$APP . 'Controllers' . SLASH;
         self::$MODELS = self::$APP . 'Models' . SLASH;
@@ -82,6 +87,7 @@ abstract class Dir
         self::$CONFIG_TEMP = self::$CACHE . 'config.temp.php';
         self::$VENDOR = self::$MAIN . 'vendor' . SLASH;
         self::$CACHE_TIME = self::$STORAGE . 'cache' . SLASH . 'times' . SLASH . 'temp';
+        self::$SQLITE = self::$DB . 'database.sqlite';
     }
 }
 spl_autoload_register(function ($name) {
