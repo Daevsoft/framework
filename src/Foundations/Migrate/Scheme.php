@@ -19,8 +19,7 @@ class Scheme extends SqlTexter
         return $this->connection->WrapQuot($value);
     }
 
-    public function alter($table, Closure $columnCallback)
-    {}
+    public function alter($table, Closure $columnCallback) {}
 
     public function createTable(String $name, Closure $columnCallback)
     {

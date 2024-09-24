@@ -1,13 +1,28 @@
 <?php
 
-namespace Ds\Foundations\Connection\Arch;
+namespace Ds\Foundations\Connection;
 
+use Ds\Foundations\Config\Env;
+use Ds\Foundations\Exceptions\dsException;
 use Ds\Helper\Str;
-
+use Exception;
 use PDO;
 
-class QueryCommon
+define('SQLSERV', 'sqlserv');
+define('MYSQL', 'mysql');
+define('POSTGRE', 'pgsql');
+define('SQLITE', 'sqlite');
+define('SPACE', ' ');
+
+trait QueryCommon
 {
+    private $driver;
+    private $host;
+    private $username;
+    private $password;
+    private $database;
+    private $ssl_cert;
+    private $ssl_verify;
     public const SELECT = 'SELECT';
     public const DISTINCT = 'DISTINCT';
     public const BULK_INSERT = 'BULK_INSERT';
@@ -156,7 +171,7 @@ class QueryCommon
      * @param  mixed $value
      * @return void
      */
-    protected function checkRaw(&$value)
+    protected function checkRaw(&$value): bool
     {
         if (!is_string($value))
             return false;
@@ -169,5 +184,49 @@ class QueryCommon
             return true;
         }
         return false;
+    }
+    /**
+     * @param  string $provider
+     * @return void
+     */
+    public function setupProvider()
+    {
+        $this->driver = Env::get('DB_DRIVER');
+        $this->host = Env::get('DB_HOST');
+        $this->username = Env::get('DB_USERNAME');
+        $this->password = Env::get('DB_PASSWORD');
+        $this->database = Env::get('DB_NAME');
+        $this->ssl_cert = Env::get('SSL_CERT');
+        $this->ssl_verify = Env::get('SSL_VERIFY', false);
+
+        try {
+            if (empty($this->database)) {
+                throw new dsException('Database not found!');
+            }
+            if (
+                $this->driver == MYSQL ||
+                $this->driver == POSTGRE ||
+                $this->driver == SQLSERV
+            ) {
+                $this->setup();
+            } else {
+                throw new Exception("Provider not supported");
+            }
+        } catch (dsException $th) {
+            //throw $th;
+        }
+    }
+    private function setup()
+    {
+        switch ($this->driver) {
+                // MySql Provider
+            case MYSQL:
+                $this->setBehavior('`', '`');
+                break;
+                // SQL Server Provider
+            case SQLSERV:
+                $this->setBehavior('[', ']');
+                break;
+        }
     }
 }

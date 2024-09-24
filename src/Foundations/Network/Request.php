@@ -134,6 +134,12 @@ class Request extends RequestAbstract
     }
     public function file($field, $filename = null)
     {
+        if (!isset($_FILES['attachment'])) return null;
+        if($filename == null){
+            $random_number = rand();
+            $filename = md5(time() . '_' . $random_number);
+        }
+
         $filename = $filename ?? basename($_FILES[$field]["name"]);
         $target_dir = Dir::$MAIN . 'public/uploads/';
         $target_file = $target_dir . $filename;

@@ -37,6 +37,8 @@ class Migration  extends Runner
         Console::writeln(' Down', Console::DARK_GRAY);
       }
     } catch (\Throwable $th) {
+      Console::write("\n | " . $th->getFile() . '(' . $th->getLine() . ')', Console::DARK_GRAY);
+      Console::writeln("\n | ERROR : " . $th->getMessage(), Console::RED);
     }
   }
   private function validateFile($filename): bool

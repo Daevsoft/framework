@@ -2,16 +2,15 @@
 
 namespace Ds\Foundations\Connection;
 
-use Ds\Foundations\Connection\Arch\QueryCommon;
 use Ds\Foundations\Connection\Arch\Sets\Set;
 use Ds\Foundations\Connection\Arch\Sets\SetRaw;
 use Ds\Foundations\Connection\Arch\Sets\SetWhere;
 use Ds\Foundations\Connection\Arch\Sets\SetWhereRaw;
 use Ds\helper\Str;
 
-class SqlModel extends QueryCommon
+class SqlModel
 {
-
+    use QueryCommon;
     /**
      * query
      *

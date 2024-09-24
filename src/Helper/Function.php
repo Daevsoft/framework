@@ -1,10 +1,10 @@
 <?php
 
 use Ds\AppIndex;
-use Ds\Foundations\View\PageProvider;
-use Ds\Foundation\View\Slot;
 use Ds\Foundations\Config\Env;
-use Ds\Helper\Str;
+use Ds\Foundations\View\PageProvider;
+use Ds\Foundations\View\View;
+use Ds\Foundation\View\Slot;
 
 if (!function_exists('asset')) {
     function asset($_fileName)
@@ -21,7 +21,7 @@ if (!function_exists('get_slot')) {
 
 function view($viewname = 'index', $data = [])
 {
-    $viewname = Str::replace($viewname, '.', SLASH);
+    $viewname = View::filename($viewname);
     if ($viewname != null) {
         $page = PageProvider::init();
         $page->__page($viewname, $data);
@@ -56,10 +56,11 @@ function set_flash($key, $content)
     $key = 'flash__' . $key;
     session([$key => $content]);
 }
-function js_source($src){
-    if(Env::get('STATUS') == 'production'){
-        echo '<script src="/public/assets/js/'.$src.'.js"></script>';
-    }else{
-        echo '<script src="/assets/js/'.$src.'.js"></script>';
+function js_source($src)
+{
+    if (Env::get('STATUS') == 'production') {
+        echo '<script src="/public/assets/js/' . $src . '.js"></script>';
+    } else {
+        echo '<script src="/assets/js/' . $src . '.js"></script>';
     }
 }

@@ -5,7 +5,6 @@ namespace Ds\Foundations\Connection;
 use Closure;
 use Ds\Dir;
 use Ds\Foundations\Config\Env;
-use Ds\Foundations\Connection\Arch\QueryCommon;
 use Ds\Foundations\Connection\Arch\Sets\Join;
 use Ds\Foundations\Connection\Arch\Sets\Set;
 use Ds\Foundations\Connection\Arch\Sets\SetWhere;
@@ -18,21 +17,10 @@ use PDO;
 use PDOException;
 use PDOStatement;
 
-define('SQLSERV', 'sqlserv');
-define('MYSQL', 'mysql');
-define('POSTGRE', 'pgsql');
-define('SQLITE', 'sqlite');
-define('SPACE', ' ');
-
-class Db extends QueryCommon
+class Db
 {
-    private $driver;
-    private $host;
-    private $username;
-    private $password;
-    private $database;
-    private $ssl_cert;
-    private $ssl_verify;
+    use QueryCommon;
+
     public static $module_name = '__db_class';
     private $columns;
     protected $primaryKey = 'id';
@@ -101,8 +89,7 @@ class Db extends QueryCommon
      * @var int
      * @return void
      */
-    public function __construct()
-    {}
+    public function __construct() {}
     public function init()
     {
         $this->setupProvider();
@@ -110,37 +97,6 @@ class Db extends QueryCommon
         Db::$identity_increment++;
 
         $this->sqlModel = new SqlModel($this, $this->quotSql, $this->endQuotSql, $this->bindSymbol);
-    }
-    /**
-     * @param  string $provider
-     * @return void
-     */
-    public function setupProvider()
-    {
-        $this->driver = Env::get('DB_DRIVER');
-        $this->host = Env::get('DB_HOST');
-        $this->username = Env::get('DB_USERNAME');
-        $this->password = Env::get('DB_PASSWORD');
-        $this->database = Env::get('DB_NAME');
-        $this->ssl_cert = Env::get('SSL_CERT');
-        $this->ssl_verify = Env::get('SSL_VERIFY', false);
-
-        try {
-            if (empty($this->database)) {
-                throw new dsException('Database not found!');
-            }
-            if (
-                $this->driver == MYSQL ||
-                $this->driver == POSTGRE ||
-                $this->driver == SQLSERV
-            ) {
-                $this->setup();
-            } else {
-                throw new Exception("Provider not supported");
-            }
-        } catch (dsException $th) {
-            //throw $th;
-        }
     }
 
     /**
@@ -195,12 +151,12 @@ class Db extends QueryCommon
         }
 
         switch ($this->driver) {
-            // MySql Provider
+                // MySql Provider
             case MYSQL:
                 $_db_key = 'dbname';
                 $_host_key = 'host';
                 break;
-            // SQL Server Provider
+                // SQL Server Provider
             case SQLSERV:
                 $_db_key = 'Database';
                 $_host_key = 'Server';
@@ -210,24 +166,10 @@ class Db extends QueryCommon
             return $this->driver . ':' . Dir::$SQLITE;
         }
         return $this->driver . ':' . $_host_key . '=' .
-        $this->host . ';' . $_db_key . '=' .
-        $this->database . ';';
+            $this->host . ';' . $_db_key . '=' .
+            $this->database . ';';
     }
 
-    private function setup()
-    {
-        switch ($this->driver) {
-            // MySql Provider
-            case MYSQL:
-                $this->setBehavior('`', '`');
-                break;
-            // SQL Server Provider
-            case SQLSERV:
-                $this->setBehavior('[', ']');
-                break;
-        }
-        $this->clear();
-    }
     /**
      * addParameter
      *
@@ -433,7 +375,7 @@ class Db extends QueryCommon
      * @param  mixed $arg4 (optional)
      * @return Db
      */
-    public function  and ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    public function  and($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         return $this->where($arg1, $arg2, $arg3, $arg4, SqlOperator::AND);
     }
@@ -557,7 +499,7 @@ class Db extends QueryCommon
      * @param  mixed $arg4
      * @return Db
      */
-    public function  or ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    public function  or($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         if ($arg2 == null) {
             return $this->or1($arg1);
@@ -969,7 +911,7 @@ class Db extends QueryCommon
      *
      * @return Db
      */
-    private function clone ()
+    private function clone()
     {
         $cloned = new Db();
         $cloned->attachParent($this->parentDb ?? $this);
@@ -1132,7 +1074,7 @@ class Db extends QueryCommon
         foreach ($this->joinValues as $_value) {
             $joinType = $_value->JoinType;
             $joinQuery .= SPACE . $joinType .
-            ' JOIN ' . $_value->Table . ' ON ' . $_value->OnColumn . '=' . $_value->OnValue;
+                ' JOIN ' . $_value->Table . ' ON ' . $_value->OnColumn . '=' . $_value->OnValue;
         }
         return $joinQuery;
     }

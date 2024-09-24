@@ -3,9 +3,15 @@
 namespace Ds\Foundations\Migrate;
 
 use Ds\Foundations\Config\Env;
+use Ds\Foundations\Connection\QueryCommon;
 
 class Column extends SqlTexter
 {
+    use QueryCommon;
+    public function __construct()
+    {
+        $this->setupProvider();
+    }
     private function separator()
     {
         if ($this->current != '') {
@@ -24,31 +30,31 @@ class Column extends SqlTexter
         if (Env::get('DB_DRIVER') == SQLITE) {
             $integer = 'INTEGER';
         }
-        return $this->add(' ' . trim($columnName) . ' ' . $integer);
+        return $this->add(' ' . $this->WrapQuot($columnName) . ' ' . $integer);
     }
     public function string($columnName, $length = 255)
     {
-        return $this->add(' ' . trim($columnName) . ' VARCHAR(' . $length . ')');
+        return $this->add(' ' . $this->WrapQuot($columnName) . ' VARCHAR(' . $length . ')');
     }
     public function char($columnName)
     {
-        return $this->add(' ' . trim($columnName) . ' CHAR(1)');
+        return $this->add(' ' . $this->WrapQuot($columnName) . ' CHAR(1)');
     }
     public function text($columnName)
     {
-        return $this->add(' ' . trim($columnName) . ' TEXT');
+        return $this->add(' ' . $this->WrapQuot($columnName) . ' TEXT');
     }
     public function date($columnName)
     {
-        return $this->add(' ' . trim($columnName) . ' DATE');
+        return $this->add(' ' . $this->WrapQuot($columnName) . ' DATE');
     }
     public function datetime($columnName)
     {
-        return $this->add(' ' . trim($columnName) . ' DATETIME');
+        return $this->add(' ' . $this->WrapQuot($columnName) . ' DATETIME');
     }
     public function timestamp($columnName)
     {
-        return $this->add(' ' . trim($columnName) . ' TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP');
+        return $this->add(' ' . $this->WrapQuot($columnName) . ' TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP');
     }
     // -------------------- ATTRIBUTE
     public function primaryKey()

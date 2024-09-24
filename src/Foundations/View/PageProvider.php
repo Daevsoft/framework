@@ -13,7 +13,7 @@ use function Ds\Base\App\Config\env;
 class PageProvider implements Provider
 {
     // true for testing pie cache, false for validate cache timing
-    private $testing_cache = false;
+    private $testing_cache = true;
     private static PageProvider $instance;
 
     // for pie render
@@ -36,7 +36,11 @@ class PageProvider implements Provider
     {
         return self::$instance;
     }
-    public function __page(&$__fl = STRING_EMPTY, &$__dt = array())
+    public function viewFileName($filename)
+    {
+
+    }
+    public function __page($__fl = STRING_EMPTY, $__dt = array())
     {
         try {
             $this->collection_temp = $__dt;
@@ -91,21 +95,24 @@ class PageProvider implements Provider
             // render cache into new file generate
             $this->render_page($dir_cache);
         }
-        $GLOBALS['FILENAMES'] = $dir_cache;
-        $GLOBALS['FILENAMES_REAL'] = $this->_filenames;
         // Extract All Variable
         extract($this->collection_temp);
         require $dir_cache;
     }
-    private function render_page(&$dir_cache)
+    private function renderContents(string $html)
     {
-        $html = file_get_contents($this->_filenames);
         $html = $this->slot_initialize($html);
         $initialize_pie = $this->pie_initialize($html);
         $initialize_pie = ' ' . $initialize_pie;
         $initialize_syntax = $this->php_initialize($initialize_pie);
+        return $initialize_syntax;
+    }
+    private function render_page(&$dir_cache)
+    {
+        $html = file_get_contents($this->_filenames);
+        $resultRender = $this->renderContents($html);
         $php_cache = fopen($dir_cache, 'w');
-        fwrite($php_cache, $initialize_syntax);
+        fwrite($php_cache, $resultRender);
         fclose($php_cache);
     }
     private function renderUsePie($content)
@@ -146,6 +153,78 @@ class PageProvider implements Provider
         }
         $content = preg_replace('/\@(slot\(\'.*\'\))/iXsuUm', '', $content);
         return $content;
+    }
+
+    private function pie_components($render_temp, $pie_precomponent_temp = null)
+    {
+        $pie_filter_pattern = '/<x-(\w+[\w.-]*)([^>]*)([^>]*?)>(.*)<\/x-(\1)>/iXsuUm';
+        // get all string with @join
+        if ($pie_precomponent_temp == null) {
+            // get all join text
+            preg_match_all($pie_filter_pattern, $render_temp, $pie_precomponent_temp);
+        }
+
+        $results = [];
+        foreach ($pie_precomponent_temp[0] as $index => $match) {
+            $raw = $pie_precomponent_temp[0][$index]; // Tag name
+            $tagName = $pie_precomponent_temp[1][$index]; // Tag name
+            $attributesString = trim($pie_precomponent_temp[3][$index]); // Attributes string
+            $innerContent = trim($pie_precomponent_temp[4][$index]); // Inner content
+            // Parse attributes into an associative array
+            $attributes = [];
+            preg_match_all('/(\w+)\s*=\s*"([^"]*)"/iXsuUm', $attributesString, $attrMatches);
+
+            foreach ($attrMatches[1] as $attrIndex => $attrName) {
+                $attributes[$attrName] = $attrMatches[2][$attrIndex];
+            }
+            $resultComponent = $this->renderComponent($raw, $tagName, $attributes, $innerContent);
+            // Store the result
+            $render_temp = str_replace($raw, $resultComponent, $render_temp);
+        }
+        $pie_precomponent_temp_next = [];
+        preg_match_all($pie_filter_pattern, $render_temp, $pie_precomponent_temp_next);
+
+        return (count($pie_precomponent_temp_next[0]) == 0) ?
+        $render_temp : $this->pie_join($render_temp, $pie_precomponent_temp_next);
+    }
+
+    private function renderComponent($raw, $tagName, $attributes, $innerContent)
+    {
+        $attrResult = [];
+        foreach ($attributes as $attrName => $attrValue) {
+            if ($attrName[0] == ':') {
+                $attrResult[] = '\'' . $attrName . '\'=>' . $attrValue . '';
+            } else {
+                $attrResult[] = '\'' . $attrName . '\'=>\'' . $attrValue . '\'';
+            }
+        }
+        $attr = '[';
+        $attr .= implode(',', $attrResult);
+        $attr .= ']';
+
+        $resultRender = $this->renderContents($innerContent);
+
+        $html = file_get_contents(Dir::$VIEWS . View::filename($tagName) . '.pie.php');
+        $slot_list = null;
+        preg_match_all('/<x-slot(?:\s+name="([^"]*)")?\s*\/?>/iXsuUm', $html, $slot_list);
+        // Create $part to fill the slot
+        // if empty, fill slot with resultRender or default innerContent
+        if ($slot_list[0]) {
+            $slotRaw = $slot_list[0];
+            $slotName = $slot_list[1];
+            $lenSlot = count($slotRaw);
+            for ($i = 0; $i < $lenSlot; $i++) {
+                $slot = $slotRaw[$i];
+                $slotKey = $slotName[$i];
+                if ($slotKey == '') {
+                    $html = str_ireplace($slot, $resultRender, $html);
+                }
+            }
+        }
+        dd($resultRender, $html);
+
+        dd('<?php view(\'' . $tagName . '\', ' . $attr . ') ?>');
+        dd($raw, $tagName, $attrResult, $innerContent);
     }
 
     private function pie_join($render_temp, $pie_join_precompile_temp = null)
@@ -220,6 +299,7 @@ class PageProvider implements Provider
     {
         $render_temp = $this->pie_import($render_temp);
         $render_temp = $this->pie_join($render_temp);
+        $render_temp = $this->pie_components($render_temp);
         return $render_temp;
     }
     public function pie_view($render_temp)
