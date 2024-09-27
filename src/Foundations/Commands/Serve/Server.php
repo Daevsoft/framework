@@ -112,6 +112,7 @@ class Server extends Runner
         }
         $requestCode = $str[1];
         $methodRequest = $str[2];
+        Console::write(date('d-m-Y h:i:s') . ' ', Console::DARK_GRAY);
         $output = implode(' ', array_slice($str, 3));
         Console::write($requestCode . ' ');
         $this->printMethodRequest($methodRequest);

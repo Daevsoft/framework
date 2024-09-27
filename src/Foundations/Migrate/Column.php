@@ -7,20 +7,42 @@ use Ds\Foundations\Connection\QueryCommon;
 
 class Column extends SqlTexter
 {
+    private $alterQuery = null;
     use QueryCommon;
     public function __construct()
     {
         $this->setupProvider();
     }
+
     private function separator()
     {
         if ($this->current != '') {
             $this->_add(', ');
         }
     }
-    private function add(String $text)
+    public function add()
+    {
+        // $this->separator();
+        $this->alterQuery = ' ADD COLUMN';
+        return $this;
+    }
+    public function drop($column)
     {
         $this->separator();
+        $this->_add(' DROP COLUMN ' . $this->WrapQuot($column));
+        $this->alterQuery = STRING_EMPTY;
+        return $this;
+    }
+    public function change($column)
+    {
+        $this->alterQuery = (' CHANGE ' . $this->WrapQuot($column));
+        return $this;
+    }
+
+    private function newColumn(String $column, $type)
+    {
+        $this->separator();
+        $text = $this->alterQuery . ' ' . $this->WrapQuot($column) . ' ' . $type;
         $this->_add($text);
         return $this;
     }
@@ -30,31 +52,32 @@ class Column extends SqlTexter
         if (Env::get('DB_DRIVER') == SQLITE) {
             $integer = 'INTEGER';
         }
-        return $this->add(' ' . $this->WrapQuot($columnName) . ' ' . $integer);
+        return $this->newColumn($columnName, $integer);
     }
     public function string($columnName, $length = 255)
     {
-        return $this->add(' ' . $this->WrapQuot($columnName) . ' VARCHAR(' . $length . ')');
+        return $this->newColumn($columnName, 'VARCHAR(' . $length . ')');
     }
     public function char($columnName)
     {
-        return $this->add(' ' . $this->WrapQuot($columnName) . ' CHAR(1)');
+        return $this->newColumn($columnName, 'CHAR(1)');
     }
     public function text($columnName)
     {
-        return $this->add(' ' . $this->WrapQuot($columnName) . ' TEXT');
+        return $this->newColumn($columnName, 'TEXT');
     }
     public function date($columnName)
     {
-        return $this->add(' ' . $this->WrapQuot($columnName) . ' DATE');
+        return $this->newColumn($columnName, 'DATE');
     }
     public function datetime($columnName)
     {
-        return $this->add(' ' . $this->WrapQuot($columnName) . ' DATETIME');
+        return $this->newColumn($columnName, 'DATETIME');
     }
-    public function timestamp($columnName)
+    public function timestamp($columnName, $allowNull = false)
     {
-        return $this->add(' ' . $this->WrapQuot($columnName) . ' TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP');
+        $null = $allowNull ? '' : ' NOT NULL DEFAULT CURRENT_TIMESTAMP';
+        return $this->newColumn($columnName, 'TIMESTAMP' . $null);
     }
     // -------------------- ATTRIBUTE
     public function primaryKey()

@@ -4,13 +4,13 @@ namespace Ds\Foundations\Connection;
 
 use Closure;
 use Ds\Dir;
-use Ds\Foundations\Config\Env;
 use Ds\Foundations\Connection\Arch\Sets\Join;
 use Ds\Foundations\Connection\Arch\Sets\Set;
 use Ds\Foundations\Connection\Arch\Sets\SetWhere;
 use Ds\Foundations\Connection\Arch\Sets\SetWhereRaw;
+use Ds\Foundations\Connection\Exception\DsExceptions;
+use Ds\Foundations\Connection\Exception\DsSolutions;
 use Ds\Foundations\Exceptions\dsException;
-use Ds\Foundations\Provider;
 use Ds\Helper\Str;
 use Exception;
 use PDO;
@@ -89,7 +89,8 @@ class Db
      * @var int
      * @return void
      */
-    public function __construct() {}
+    public function __construct()
+    {}
     public function init()
     {
         $this->setupProvider();
@@ -133,9 +134,10 @@ class Db
             // return PDO instance
             return $this->connection;
         } catch (PDOException $ex) {
-            $ex = new dsException($ex, __FILE__);
-            $ex->show_exception(true);
-            die();
+            // $ex = new dsException($ex, __FILE__);
+            // $ex->show_exception(true);
+            // die();
+            throw $ex;
         }
     }
     /**
@@ -151,12 +153,12 @@ class Db
         }
 
         switch ($this->driver) {
-                // MySql Provider
+            // MySql Provider
             case MYSQL:
                 $_db_key = 'dbname';
                 $_host_key = 'host';
                 break;
-                // SQL Server Provider
+            // SQL Server Provider
             case SQLSERV:
                 $_db_key = 'Database';
                 $_host_key = 'Server';
@@ -166,8 +168,8 @@ class Db
             return $this->driver . ':' . Dir::$SQLITE;
         }
         return $this->driver . ':' . $_host_key . '=' .
-            $this->host . ';' . $_db_key . '=' .
-            $this->database . ';';
+        $this->host . ';' . $_db_key . '=' .
+        $this->database . ';';
     }
 
     /**
@@ -375,7 +377,7 @@ class Db
      * @param  mixed $arg4 (optional)
      * @return Db
      */
-    public function  and($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    public function  and ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         return $this->where($arg1, $arg2, $arg3, $arg4, SqlOperator::AND);
     }
@@ -499,7 +501,7 @@ class Db
      * @param  mixed $arg4
      * @return Db
      */
-    public function  or($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    public function  or ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         if ($arg2 == null) {
             return $this->or1($arg1);
@@ -521,7 +523,7 @@ class Db
     {
         $in = '';
         if (is_array($arrValues)) {
-            $arrValues = array_map(fn($value) => Db::raw('\'' . $value . '\''), $arrValues);
+            $arrValues = array_map(fn($value) => ('\'' . $value . '\''), $arrValues);
             $in = implode(',', $arrValues);
         } else if (is_string($arrValues)) {
             $in = $arrValues;
@@ -911,7 +913,7 @@ class Db
      *
      * @return Db
      */
-    private function clone()
+    private function clone ()
     {
         $cloned = new Db();
         $cloned->attachParent($this->parentDb ?? $this);
@@ -997,7 +999,7 @@ class Db
                         $bindingValue = is_callable($_value->CustomBind) ? call_user_func($_value->CustomBind, $this->assignBindSymbol($_value->BindName)) : $this->assignBindSymbol($_value->BindName);
                     }
 
-                    $whereQuery .= $this->whereStringMapper($_value->Operator, $this->WrapQuot($_value->Column), $_value->ValueOperator, $bindingValue);
+                    $whereQuery .= $this->whereStringMapper($_value->Operator, $_value->Column, $_value->ValueOperator, $bindingValue);
                     // bind parameter into connection
                     $this->addParameter($_value);
                 }
@@ -1016,7 +1018,7 @@ class Db
      */
     private function whereStringMapper($operand, $column, $operator, $value)
     {
-        return SPACE . $operand . SPACE . $column . SPACE . $operator . SPACE . $value;
+        return SPACE . $operand . SPACE . $this->WrapQuot($column) . SPACE . $operator . SPACE . $value;
     }
     /**
      * groupBy
@@ -1074,7 +1076,7 @@ class Db
         foreach ($this->joinValues as $_value) {
             $joinType = $_value->JoinType;
             $joinQuery .= SPACE . $joinType .
-                ' JOIN ' . $_value->Table . ' ON ' . $_value->OnColumn . '=' . $_value->OnValue;
+            ' JOIN ' . $_value->Table . ' ON ' . $_value->OnColumn . '=' . $_value->OnValue;
         }
         return $joinQuery;
     }
@@ -1226,7 +1228,28 @@ class Db
     {
         return $this->connection->lastInsertId() ?? 0;
     }
-    public function execute($throwException = false)
+    public function customExecute(Closure $callbackCustom)
+    {
+        try {
+            $this->getConnection();
+            $this->generateQuery();
+            // custom like count or group
+            $this->query = $callbackCustom($this->query);
+
+            $this->statement = $this->connection->prepare($this->query);
+            $this->attachParameter();
+            $result = $this->statement->execute();
+            $this->clear();
+            return $result;
+        } catch (Exception $ex) {
+            $de = new dsException($ex);
+            $de->addMessage('<br>Query : <b>' . $this->query . '</b>');
+            $de->addMessage('<br>Parameters : <pre><code>' . print_r($this->additionalParameters, true) . '</code></pre>');
+            $de->show_exception(true);
+            die();
+        }
+    }
+    public function execute($returnException = false)
     {
         try {
             $this->getConnection();
@@ -1237,15 +1260,24 @@ class Db
             $this->clear();
             return $result;
         } catch (Exception $ex) {
-            if ($throwException) {
-                return throw $ex;
-            }
-            $de = new dsException($ex);
-            $de->addMessage('<br>Query : <b>' . $this->query . '</b>');
-            $de->addMessage('<br>Parameters : <pre><code>' . print_r($this->additionalParameters, true) . '</code></pre>');
-            $de->show_exception(true);
-            die();
+            $solution = $this->getErrorSolution($ex);
+            throw new DsExceptions($ex->getMessage(), $ex->getCode(), $ex->getPrevious(), $solution);
+            // if ($returnException) {
+            //     return $ex;
+            // }
+            // $de = new dsException($ex);
+            // $de->addMessage('<br>Query : <b>' . $this->query . '</b>');
+            // $de->addMessage('<br>Parameters : <pre><code>' . print_r($this->additionalParameters, true) . '</code></pre>');
+            // $de->show_exception(true);
+            // die();
         }
+    }
+    private function getErrorSolution(Exception $ex)
+    {
+        $title = 'Query';
+        $description = $this->query;
+        $docUrl = '';
+        return new DsSolutions($title, $description, $docUrl);
     }
 
     public function readAll($fetch_type = PDO::FETCH_OBJ)
@@ -1276,8 +1308,12 @@ class Db
     }
     public function count()
     {
-        $this->query('SELECT COUNT(1) total FROM (' . $this->query . ') x');
-        return $this->get_row_object()->total;
+        $this->customExecute(function ($query) {
+            return 'SELECT COUNT(1) total FROM (' . $query . ') x';
+        });
+
+        $result = $this->statement->fetch(PDO::FETCH_OBJ);
+        return $result->total ?? 0;
     }
     public function get()
     {

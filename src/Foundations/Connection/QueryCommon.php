@@ -16,13 +16,13 @@ define('SPACE', ' ');
 
 trait QueryCommon
 {
-    private $driver;
-    private $host;
-    private $username;
-    private $password;
-    private $database;
-    private $ssl_cert;
-    private $ssl_verify;
+    protected $driver;
+    protected $host;
+    protected $username;
+    protected $password;
+    protected $database;
+    protected $ssl_cert;
+    protected $ssl_verify;
     public const SELECT = 'SELECT';
     public const DISTINCT = 'DISTINCT';
     public const BULK_INSERT = 'BULK_INSERT';

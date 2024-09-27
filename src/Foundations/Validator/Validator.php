@@ -32,8 +32,22 @@ class Validator
             }
         }
         if ($result != null) {
+            $this->saveOldValue($input);
             $this->execResult($result);
         }
+    }
+    private function saveOldValue($input)
+    {
+        set_flash('__old_value_', json_encode($input));
+    }
+    public static $oldInput = null;
+    public static function oldValue($key, $defaultValue = null)
+    {
+        if (is_null(self::$oldInput)) {
+            self::$oldInput = json_decode(flash('__old_value_', 'null')) ?? [];
+        }
+        dd(self::$oldInput);
+        return self::$oldInput[$key] ?? $defaultValue;
     }
     private function saveErrorFlash($result)
     {

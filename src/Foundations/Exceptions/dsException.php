@@ -8,6 +8,7 @@ use Ds\Foundations\Common\File;
 use Ds\Foundations\Config\Env;
 use Ds\Foundations\Debugger\Debug;
 use Exception;
+use Spatie\Ignition\Ignition;
 use Throwable;
 
 class dsException extends Exception
@@ -17,29 +18,35 @@ class dsException extends Exception
     private $additionalMessage = '';
     public static function init()
     {
-        set_error_handler(function ($code, $msg, $filename, $line) {
 
-            if (Env::get('STATUS') == 'development') {
-                $dsE = new dsException($msg, $filename, $line);
-                $dsE->show_exception(true);
-                Debug::error($dsE);
-            } else {
+        if (Env::get('STATUS') != 'development') {
+            set_error_handler(function ($code, $msg, $filename, $line) {
+                // if (Env::get('STATUS') == 'development') {
+                //     $dsE = new dsException($msg, $filename, $line);
+                //     $dsE->show_exception(true);
+                //     Debug::error($dsE);
+                // } else {
                 echo file_get_contents(Dir::$VIEWS . (Env::get('404_PAGE', 'page-404.html')));
-            }
-            Debug::writeLog();
-            die();
-        });
-        set_exception_handler(function ($ex) {
-            if (Env::get('STATUS') == 'development') {
-                $dsE = new dsException($ex, $ex->getFile(), $ex->getLine(), $ex->getMessage());
-                $dsE->show_exception(true);
-                Debug::error($dsE);
-            } else {
+                Debug::writeLog();
+                die();
+                // }
+            });
+            set_exception_handler(function ($ex) {
+                // if (Env::get('STATUS') == 'development') {
+                //     $dsE = new dsException($ex, $ex->getFile(), $ex->getLine(), $ex->getMessage());
+                //     $dsE->show_exception(true);
+                //     Debug::error($dsE);
+                // } else {
                 echo file_get_contents(Dir::$VIEWS . (Env::get('404_PAGE', 'page-404.html')));
-            }
-            Debug::writeLog();
-            die();
-        });
+                Debug::writeLog();
+                die();
+                // }
+            });
+        } else {
+            Ignition::make()
+                ->setTheme('dark')
+                ->register();
+        }
     }
     public function addMessage($message)
     {
@@ -93,8 +100,9 @@ class dsException extends Exception
                 $logFile->create($content)->close();
 
                 $errorMsg = '  ERROR : ' . $this->simplePath($this->exception->getFile()) . ' (' . $this->exception->getLine() . ")\n";
-                $errorMsg .= '  Message : ' . $this->exception->getMessage();
-                echo "\e[0;41;31m" . $errorMsg . "\e[0m\n";
+                // echo "\e[0;41;31m" . $errorMsg . "\e[0m\n";
+                Console::writeln($errorMsg, Console::RED);
+                Console::writeln($this->exception->getMessage(), Console::DEFAULT);
                 $this->show_cli_trace($arrTrace);
             }
         }

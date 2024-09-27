@@ -11,6 +11,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "php": "^8.1"
+        "php": "^8.1",
+        "spatie/ignition": "^1.15"
     }
 }

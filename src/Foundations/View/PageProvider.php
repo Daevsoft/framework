@@ -13,7 +13,7 @@ use function Ds\Base\App\Config\env;
 class PageProvider implements Provider
 {
     // true for testing pie cache, false for validate cache timing
-    private $testing_cache = true;
+    private $testing_cache = false;
     private static PageProvider $instance;
 
     // for pie render
@@ -30,16 +30,12 @@ class PageProvider implements Provider
     {
         self::$instance = $this;
     }
-    public function run()
-    {}
+    public function run() {}
     public static function init()
     {
         return self::$instance;
     }
-    public function viewFileName($filename)
-    {
-
-    }
+    public function viewFileName($filename) {}
     public function __page($__fl = STRING_EMPTY, $__dt = array())
     {
         try {
@@ -80,9 +76,11 @@ class PageProvider implements Provider
     private function render_template_alternate()
     {
         // initial cache file directory
-        $file_gen_enc = sha1($this->_filenames) . '.php';
-        $dir_cache = Dir::$CACHE_VIEW . $file_gen_enc;
-        $cache = new CacheView($dir_cache, $this->_filenames);
+        // dd($this->_filenames);
+        // $file_gen_enc = sha1($this->_filenames) . '.php';
+        //Dir::$CACHE_VIEW . $file_gen_enc;
+        $cache = new CacheView($this->_filenames);
+        $dir_cache = Dir::$CACHE_VIEW . $cache->encryptedFile;
         // Checking cache time
         if (
             !$cache->exists()
@@ -91,7 +89,7 @@ class PageProvider implements Provider
             ) || $this->testing_cache
         ) {
             // record into temp file
-            $cache->record_file();
+            $cache->recordViewTime();
             // render cache into new file generate
             $this->render_page($dir_cache);
         }
@@ -185,7 +183,7 @@ class PageProvider implements Provider
         preg_match_all($pie_filter_pattern, $render_temp, $pie_precomponent_temp_next);
 
         return (count($pie_precomponent_temp_next[0]) == 0) ?
-        $render_temp : $this->pie_join($render_temp, $pie_precomponent_temp_next);
+            $render_temp : $this->pie_join($render_temp, $pie_precomponent_temp_next);
     }
 
     private function renderComponent($raw, $tagName, $attributes, $innerContent)
@@ -252,7 +250,7 @@ class PageProvider implements Provider
         preg_match_all($pie_filter_pattern, $render_temp, $pie_join_precompile_temp_next);
 
         return (count($pie_join_precompile_temp_next[0]) == 0) ?
-        $render_temp : $this->pie_join($render_temp, $pie_join_precompile_temp_next);
+            $render_temp : $this->pie_join($render_temp, $pie_join_precompile_temp_next);
     }
     private function pie_import($render_temp)
     {
@@ -299,7 +297,7 @@ class PageProvider implements Provider
     {
         $render_temp = $this->pie_import($render_temp);
         $render_temp = $this->pie_join($render_temp);
-        $render_temp = $this->pie_components($render_temp);
+        // $render_temp = $this->pie_components($render_temp);
         return $render_temp;
     }
     public function pie_view($render_temp)
@@ -368,6 +366,7 @@ class PageProvider implements Provider
             '/\@(error)\((.*)\)/iXsuUm',
             // @auth
             '/\@(auth)/i',
+            '/\@old\((.*)\)/'
         );
         // Replacing Index Regex
         $regex_replace = array(
@@ -394,9 +393,9 @@ class PageProvider implements Provider
             // @notempty
             '<?php if(!empty(\2)){ ?>',
             // @isnull
-            '<?php if(NULL === \2){ ?>',
+            '<?php if(\2 === NULL){ ?>',
             // @!isnull
-            '<?php if(NULL !== \2){ ?>',
+            '<?php if( \2 !== NULL){ ?>',
             // Else
             '<?php }\1{ ?>',
             // @end of loop and condition, break, endswitch
@@ -423,6 +422,8 @@ class PageProvider implements Provider
             '<?= flash(\'error_\'.\2) ?>',
             // Auth
             '<?php if(session(\'user\', false)){ ?>',
+            // Flash
+            '<?= old(\1) ?>',
         );
         // Replacing with regex
         $render_temp = preg_replace($regex_pattern, $regex_replace, $_sources);

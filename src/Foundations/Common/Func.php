@@ -13,7 +13,7 @@ class Func
             echo '</pre>';
         }
     }
-    
+
     public static function isSlash()
     {
         return strpos(__DIR__, '/') >= 0;
@@ -27,5 +27,4 @@ class Func
             return $text;
         }
     }
-
 }

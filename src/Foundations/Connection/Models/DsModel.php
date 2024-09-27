@@ -6,10 +6,11 @@ Model:
 
 namespace Ds\Foundations\Connection\Models;
 
+use ArrayAccess;
 use Ds\Foundations\Connection\DatabaseProvider;
 use Ds\Foundations\Connection\Db;
 
-class DsModel
+class DsModel extends \ArrayIterator implements ArrayAccess
 {
     /**
      * @var Db $connection
@@ -48,21 +49,29 @@ class DsModel
      *
      * @param  string|string[] $arg1 Table name or columns name
      * @param  string|string[] $arg2 will be table name
-     * @return Db
+     * @return DsModel
      */
-    public static function select($columns = null, $from = null)
+    public static function _select($columns = null, $from = null)
     {
         $classname = get_called_class();
+        /**
+         * @var DsModel
+         */
         $obj = new $classname;
         if (is_null($columns)) {
             $columns = $obj->table;
         }
-
-        return $obj->connection->select($columns, $from);
+        return $obj->select($columns, $from ?? $obj->table);
+    }
+    protected function select($columns = null, $from = null)
+    {
+        $this->connection = $this->connection->select($columns, $from);
+        return $this;
     }
     public function query($syntax)
     {
-        return $this->connection->query($syntax);
+        $this->connection = $this->connection->query($syntax);
+        return $this;
     }
     public function getQuery()
     {
@@ -159,7 +168,7 @@ class DsModel
      * @param  mixed $arg4 (optional)
      * @return DsModel
      */
-    public function  and($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    public function  and ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         $this->connection = $this->connection->and($arg1, $arg2, $arg3, $arg4);
         return $this;
@@ -182,7 +191,7 @@ class DsModel
      * @param  mixed $arg4
      * @return DsModel
      */
-    public function  or($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    public function  or ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         $this->connection = $this->connection->or($arg1, $arg2, $arg3, $arg4);
         return $this;
@@ -215,7 +224,7 @@ class DsModel
      * @param  mixed $arg4
      * @return DsModel
      */
-    public function where($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    protected function where($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         if (!$this->connection->isQueryTypeReady()) {
             $this->connection = $this->connection->select($this->table);
@@ -223,12 +232,21 @@ class DsModel
         $this->connection = $this->connection->where($arg1, $arg2, $arg3, $arg4);
         return $this;
     }
+    public function whereIn($column1, $arrValues)
+    {
+        $this->connection = $this->connection->whereIn($column1, $arrValues);
+        return $this;
+    }
     // called when Model::method() was called
+    public function __call($method, $arguments)
+    {
+        return call_user_func_array(array($this, $method), $arguments);
+    }
     public static function __callStatic($method, $arguments)
     {
         switch ($method) {
             case 'where':
-                return self::initiateClass()->where(...$arguments);
+                return call_user_func_array(array(self::initiateClass(), $method), $arguments);
             case 'save':
                 return self::initiateClass()->save(...$arguments);
             case 'update':
@@ -237,9 +255,14 @@ class DsModel
                 return self::initiateClass()->like(...$arguments);
             case 'select':
                 return self::initiateClass()->select(...$arguments);
+            case 'first':{
+                    $obj = self::initiateClass();
+                    return $obj->select($obj->table)->first(...$arguments);
+
+                }
 
             default:
-                return call_user_func('self::' . $method, ...$arguments);
+                return self::{$method}(...$arguments); //call_user_func(class . $method, ...$arguments);
                 break;
         }
     }
@@ -360,6 +383,9 @@ class DsModel
         }
 
         $className = get_called_class();
+        /**
+         * @var DsModel
+         */
         $obj = new $className();
         $tableName = $obj->table;
         if (count($columns) > 0) {
@@ -367,6 +393,20 @@ class DsModel
         }
 
         return $obj->select($tableName)->get_object();
+    }
+    public function get_object()
+    {
+        // $this->dataResult = $this->connection->get_object();
+        // $this->position = 0;
+        return $this->connection->get_object();
+    }
+    public function row()
+    {
+        return $this->connection->get_row_object();
+    }
+    protected function first()
+    {
+        return $this[0];
     }
     public static function initiateClass()
     {
@@ -379,10 +419,10 @@ class DsModel
         $obj = self::initiateClass();
         $tableName = $obj->table;
         if (count($columns) > 0) {
-            return $obj->select($columns, $tableName)->desc('id')->limit(1)->get_row_object();
+            return $obj->select($columns, $tableName)->desc('id')->limit(1)->row();
         }
 
-        return $obj->select($tableName)->desc('id')->limit(1)->get_row_object();
+        return $obj->select($tableName)->desc('id')->limit(1)->row();
     }
 
     public static function find($id, $columns = '*')
@@ -391,28 +431,28 @@ class DsModel
         // $className = get_called_class();
         // $obj = new $className();
         // $tableName = $obj->table;
-        // return $obj->select($columns, $tableName)->where('id', $id)->get_row_object();
+        // return $obj->select($columns, $tableName)->where('id', $id)->row();
     }
     public static function findBy($columnName, $columnValue, $columns = '*')
     {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
-        return $obj->select($columns, $tableName)->where($columnName, $columnValue)->get_row_object();
+        return $obj->select($columns, $tableName)->where($columnName, $columnValue)->row();
     }
     public static function findIsNull($columnName, $columns = '*')
     {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
-        return $obj->select($columns, $tableName)->isNull($columnName)->get_row_object();
+        return $obj->select($columns, $tableName)->isNull($columnName)->row();
     }
     public static function findIsNotNull($columnName, $columns = '*')
     {
         $className = get_called_class();
         $obj = new $className();
         $tableName = $obj->table;
-        return $obj->select($columns, $tableName)->isNotNull($columnName)->get_row_object();
+        return $obj->select($columns, $tableName)->isNotNull($columnName)->row();
     }
     public static function findsBy($columnName, $columnValue, $columns = '*')
     {
@@ -497,7 +537,7 @@ class DsModel
             throw $th;
         }
     }
-    public static function count($where = null)
+    public static function size($where = null): int
     {
         try {
             $className = get_called_class();
@@ -506,7 +546,7 @@ class DsModel
             if ($where != null) {
                 $db->where($where);
             }
-            $data = $db->get_row_object();
+            $data = $db->row();
 
             return $data->total ?? 0;
         } catch (\Throwable $th) {
@@ -534,4 +574,75 @@ class DsModel
             $obj->delete(strtolower($tableName))->where('id', $idWhere)->execute();
         }
     }
+
+    private $dataResult = null;
+    private $position = 0;
+
+    private function validate()
+    {
+        if ($this->dataResult == null) {
+            $this->dataResult = $this->get_object();
+        }
+    }
+
+    public function offsetSet($offset, $value): void
+    {
+        $this->validate();
+        if (is_null($offset)) {
+            $this->dataResult[] = $value;
+        } else {
+            $this->dataResult[$offset] = $value;
+        }
+    }
+
+    public function offsetExists($offset): bool
+    {
+        $this->validate();
+        return isset($this->dataResult[$offset]);
+    }
+
+    public function offsetUnset($offset): void
+    {
+        $this->validate();
+        unset($this->dataResult[$offset]);
+    }
+
+    public function offsetGet($offset): mixed
+    {
+        $this->validate();
+        return isset($this->dataResult[$offset]) ? $this->dataResult[$offset] : null;
+    }
+    // Return the current element
+    public function current(): mixed
+    {
+        $this->validate();
+        return $this->dataResult[$this->position];
+    }
+
+    // Return the current key
+    public function key(): int
+    {
+        $this->validate();
+        return $this->position;
+    }
+
+    // Move forward to the next element
+    public function next(): void
+    {
+        ++$this->position;
+    }
+
+    // Rewind the iterator to the first element
+    public function rewind(): void
+    {
+        $this->position = 0;
+    }
+
+    // Checks if the current position is valid
+    public function valid(): bool
+    {
+        $this->validate();
+        return isset($this->dataResult[$this->position]);
+    }
+
 }

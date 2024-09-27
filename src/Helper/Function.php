@@ -5,6 +5,7 @@ use Ds\Foundations\Config\Env;
 use Ds\Foundations\View\PageProvider;
 use Ds\Foundations\View\View;
 use Ds\Foundation\View\Slot;
+use Ds\Foundations\Validator\Validator;
 
 if (!function_exists('asset')) {
     function asset($_fileName)
@@ -32,7 +33,7 @@ function session($key, $default = null)
     if (is_string($key)) {
         return isset($_SESSION[$key]) ? $_SESSION[$key] : $default;
     } else if (is_array($key)) {
-        $_SESSION = [ ...$_SESSION, ...$key];
+        $_SESSION = [...$_SESSION, ...$key];
     }
 }
 function unsession($key)
@@ -55,6 +56,10 @@ function set_flash($key, $content)
 {
     $key = 'flash__' . $key;
     session([$key => $content]);
+}
+function old($key, $defaultValue = null)
+{
+    return Validator::oldValue($key, $defaultValue);
 }
 function js_source($src)
 {
