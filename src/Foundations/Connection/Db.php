@@ -19,6 +19,16 @@ use PDOStatement;
 
 class Db
 {
+    public const SELECT = 'SELECT';
+    public const DISTINCT = 'DISTINCT';
+    public const BULK_INSERT = 'BULK_INSERT';
+    public const INSERT = 'INSERT';
+    public const UPDATE = 'UPDATE';
+    public const DELETE = 'DELETE';
+
+    public const ASC = 'ASC';
+    public const DESC = 'DESC';
+
     use QueryCommon;
 
     public static $module_name = '__db_class';
@@ -107,7 +117,7 @@ class Db
      */
     private function getDbOptions(): array | null
     {
-        if ($this->ssl_cert == null) {
+        if ($this->ssl_cert == '' || $this->ssl_cert === null) {
             return null;
         }
 
@@ -125,8 +135,8 @@ class Db
     {
         try {
             $con_string = $this->getHostConnection();
-            $options = $this->getDbOptions();
-            if (is_null($this->connection) && $con_string != null) {
+            if ($this->connection === null && $con_string !== null) {
+                $options = $this->getDbOptions();
                 $this->connection = new PDO($con_string, $this->username, $this->password, $options);
                 $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             }
@@ -134,9 +144,6 @@ class Db
             // return PDO instance
             return $this->connection;
         } catch (PDOException $ex) {
-            // $ex = new dsException($ex, __FILE__);
-            // $ex->show_exception(true);
-            // die();
             throw $ex;
         }
     }
@@ -229,7 +236,7 @@ class Db
         $db->queryType = self::SELECT;
 
         if (is_string($arg1) && (is_string($arg2) || is_null($arg2))) {
-            if ($arg2 == null) {
+            if ($arg2 === null) {
                 return $db->select1($arg1);
             } else {
                 $db->columns = [$arg1];
@@ -407,7 +414,7 @@ class Db
         if ($columnIsRaw) {
             $columnName = 'p' . time();
         }
-        if ($this->whereValues == null) {
+        if ($this->whereValues === null) {
             $this->whereValues = [];
         }
         $setWhere->BindName = str_replace('.', '_', $columnName) . '_' . $this->identity . '_' . count($this->whereValues);
@@ -503,11 +510,11 @@ class Db
      */
     public function  or ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
-        if ($arg2 == null) {
+        if ($arg2 === null) {
             return $this->or1($arg1);
-        } else if ($arg3 == null) {
+        } else if ($arg3 === null) {
             return $this->or2($arg1, $arg2);
-        } else if ($arg4 == null) {
+        } else if ($arg4 === null) {
             if (is_string($arg3)) {
                 // when ( column, operator, value)
                 return $this->where4($arg1, $arg2, $arg3, null, SqlOperator::OR);
@@ -788,7 +795,7 @@ class Db
             return $this->join3($arg1, $arg2, $arg3, $arg4);
         } else {
             // else if $arg1 is Closure (subqueries)
-            if ($arg5 == null) {
+            if ($arg5 === null) {
                 return $this->join1($arg1, $arg2, $arg3, $arg4);
             } else {
                 return $this->join2($arg1, $arg2, $arg3, $arg4, $arg5);
@@ -947,7 +954,7 @@ class Db
     }
     private function wrapWhere($whereValues, &$operator = null)
     {
-        if ($whereValues == null) {
+        if ($whereValues === null) {
             return STRING_EMPTY;
         }
 
@@ -1028,7 +1035,7 @@ class Db
      */
     public function groupBy($columns)
     {
-        if ($columns == null) {
+        if ($columns === null) {
             return $this;
         }
 
@@ -1063,7 +1070,7 @@ class Db
      */
     private function generateJoins()
     {
-        if ($this->joinValues == null) {
+        if ($this->joinValues === null) {
             return STRING_EMPTY;
         }
 
@@ -1177,7 +1184,7 @@ class Db
     public function insert($tableName, $data = null)
     {
         $db = $this->sqlModel->insert($tableName);
-        if ($data == null) {
+        if ($data === null) {
             return $db;
         }
 
@@ -1196,7 +1203,7 @@ class Db
     }
     private function attachDbValues(SqlModel &$dbUtil, &$data)
     {
-        if ($data == null) {
+        if ($data === null) {
             return;
         }
 
@@ -1213,7 +1220,7 @@ class Db
     public function update($tableName, $data = null)
     {
         $db = $this->sqlModel->update($tableName);
-        if ($data == null) {
+        if ($data === null) {
             return $db;
         }
 
@@ -1254,7 +1261,7 @@ class Db
         try {
             $this->getConnection();
             $this->generateQuery();
-            $this->statement = $this->connection->prepare($this->query);
+            $this->statement = $this->connection->prepare(query: $this->query);
             $this->attachParameter();
             $result = $this->statement->execute();
             $this->clear();

@@ -13,6 +13,7 @@ use function Ds\Base\App\Config\env;
 class PageProvider implements Provider
 {
     // true for testing pie cache, false for validate cache timing
+    private $slot_var_name = '__slotComponents';
     private $testing_cache = false;
     private static PageProvider $instance;
 
@@ -30,13 +31,15 @@ class PageProvider implements Provider
     {
         self::$instance = $this;
     }
-    public function run() {}
+    public function run()
+    {}
     public static function init()
     {
         return self::$instance;
     }
-    public function viewFileName($filename) {}
-    public function __page($__fl = STRING_EMPTY, $__dt = array())
+    public function viewFileName($filename)
+    {}
+    public function __page($__fl = STRING_EMPTY, $__dt = array(), $slot = null)
     {
         try {
             $this->collection_temp = $__dt;
@@ -63,6 +66,7 @@ class PageProvider implements Provider
             if (!Str::contains($__fl, '.pie')) {
                 // Extract All Variable
                 extract($__dt);
+                // $__slotComponents = new Slot($slot);
                 require $this->_filenames;
             } else {
                 $this->render_template_alternate();
@@ -157,7 +161,7 @@ class PageProvider implements Provider
     {
         $pie_filter_pattern = '/<x-(\w+[\w.-]*)([^>]*)([^>]*?)>(.*)<\/x-(\1)>/iXsuUm';
         // get all string with @join
-        if ($pie_precomponent_temp == null) {
+        if ($pie_precomponent_temp === null) {
             // get all join text
             preg_match_all($pie_filter_pattern, $render_temp, $pie_precomponent_temp);
         }
@@ -183,7 +187,7 @@ class PageProvider implements Provider
         preg_match_all($pie_filter_pattern, $render_temp, $pie_precomponent_temp_next);
 
         return (count($pie_precomponent_temp_next[0]) == 0) ?
-            $render_temp : $this->pie_join($render_temp, $pie_precomponent_temp_next);
+        $render_temp : $this->pie_join($render_temp, $pie_precomponent_temp_next);
     }
 
     private function renderComponent($raw, $tagName, $attributes, $innerContent)
@@ -206,6 +210,7 @@ class PageProvider implements Provider
         $slot_list = null;
         preg_match_all('/<x-slot(?:\s+name="([^"]*)")?\s*\/?>/iXsuUm', $html, $slot_list);
         // Create $part to fill the slot
+        $parts = [];
         // if empty, fill slot with resultRender or default innerContent
         if ($slot_list[0]) {
             $slotRaw = $slot_list[0];
@@ -215,8 +220,11 @@ class PageProvider implements Provider
                 $slot = $slotRaw[$i];
                 $slotKey = $slotName[$i];
                 if ($slotKey == '') {
-                    $html = str_ireplace($slot, $resultRender, $html);
+                    $slotKey = 'default';
                 }
+                $slotRender = ('<?= $' . $this->slot_var_name . '->getSlot(\'' . $slotKey . '\') ?>');
+                $html = str_ireplace($slot, $slotRender, $html);
+                $parts[$slotKey] = 'fn() => ()';
             }
         }
         dd($resultRender, $html);
@@ -227,9 +235,9 @@ class PageProvider implements Provider
 
     private function pie_join($render_temp, $pie_join_precompile_temp = null)
     {
-        $pie_filter_pattern = '/\@join\((.*)\)/iXsuUm';
+        $pie_filter_pattern = '/\@join\((.*)\)[^\)]/iXsuUm';
         // get all string with @join
-        if ($pie_join_precompile_temp == null) {
+        if ($pie_join_precompile_temp === null) {
             // get all join text
             preg_match_all($pie_filter_pattern, $render_temp, $pie_join_precompile_temp);
         }
@@ -250,7 +258,7 @@ class PageProvider implements Provider
         preg_match_all($pie_filter_pattern, $render_temp, $pie_join_precompile_temp_next);
 
         return (count($pie_join_precompile_temp_next[0]) == 0) ?
-            $render_temp : $this->pie_join($render_temp, $pie_join_precompile_temp_next);
+        $render_temp : $this->pie_join($render_temp, $pie_join_precompile_temp_next);
     }
     private function pie_import($render_temp)
     {
@@ -366,7 +374,7 @@ class PageProvider implements Provider
             '/\@(error)\((.*)\)/iXsuUm',
             // @auth
             '/\@(auth)/i',
-            '/\@old\((.*)\)/'
+            '/\@old\((.*)\)/',
         );
         // Replacing Index Regex
         $regex_replace = array(

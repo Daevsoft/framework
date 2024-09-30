@@ -23,15 +23,6 @@ trait QueryCommon
     protected $database;
     protected $ssl_cert;
     protected $ssl_verify;
-    public const SELECT = 'SELECT';
-    public const DISTINCT = 'DISTINCT';
-    public const BULK_INSERT = 'BULK_INSERT';
-    public const INSERT = 'INSERT';
-    public const UPDATE = 'UPDATE';
-    public const DELETE = 'DELETE';
-
-    public const ASC = 'ASC';
-    public const DESC = 'DESC';
 
     /**
      * orderAdditional
@@ -88,7 +79,9 @@ trait QueryCommon
         if ($text == "*" || $text[0] == $this->quotSql) {
             return $text;
         }
-        if (empty($text)) return $text;
+        if (empty($text)) {
+            return $text;
+        }
 
         return $this->quotSql . $text . $this->endQuotSql;
     }
@@ -102,9 +95,14 @@ trait QueryCommon
     public function WrapQuot($name, $reverseQuot = false)
     {
         $name = trim($name);
-        if (empty($name)) return $name;
+        if (empty($name)) {
+            return $name;
+        }
+
         $isRaw = $this->checkRaw($name);
-        if ($isRaw) return $name;
+        if ($isRaw) {
+            return $name;
+        }
 
         $isFunction = preg_match('/.*[(].*[)]/', $name);
         if ($isFunction) {
@@ -128,12 +126,16 @@ trait QueryCommon
             return $this->FixQuot($selected) . ' ' . $this->FixQuot($alias);
         }
         $isFunction = preg_match('/.*[(].*[)]/', $name);
-        if (!$reverseQuot && $isFunction == 1)
+        if (!$reverseQuot && $isFunction == 1) {
             return $this->FixQuot($name);
+        }
+
         if ($name[0] == $this->quotSql) {
             return $name;
-        } else
+        } else {
             return $this->FixQuot($name);
+        }
+
     }
     /**
      * GetType get parameter type of binding params
@@ -154,9 +156,16 @@ trait QueryCommon
     }
     protected function assignBindSymbol($paramName)
     {
-        if (empty($paramName)) return $paramName;
-        if ($paramName[0] == $this->bindSymbol) return $paramName;
-        else return $this->bindSymbol . trim($paramName);
+        if (empty($paramName)) {
+            return $paramName;
+        }
+
+        if ($paramName[0] == $this->bindSymbol) {
+            return $paramName;
+        } else {
+            return $this->bindSymbol . trim($paramName);
+        }
+
     }
     protected function setBehavior($startQuot, $endQuot, $bindSymbol = ':')
     {
@@ -173,8 +182,9 @@ trait QueryCommon
      */
     protected function checkRaw(&$value): bool
     {
-        if (!is_string($value))
+        if (!is_string($value)) {
             return false;
+        }
 
         if (empty($value)) {
             return false;
@@ -219,11 +229,11 @@ trait QueryCommon
     private function setup()
     {
         switch ($this->driver) {
-                // MySql Provider
+            // MySql Provider
             case MYSQL:
                 $this->setBehavior('`', '`');
                 break;
-                // SQL Server Provider
+            // SQL Server Provider
             case SQLSERV:
                 $this->setBehavior('[', ']');
                 break;

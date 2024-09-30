@@ -9,7 +9,7 @@ use Throwable;
 
 class DsExceptions extends Exception implements ProvidesSolution
 {
-    private DsSolutions $solution;
+    private ?DsSolutions $solution;
     public function __construct(string $message = "", $code = 0, Throwable $previous = null, DsSolutions $solution = null)
     {
         parent::__construct($message, (int) $code, $previous);
@@ -17,6 +17,6 @@ class DsExceptions extends Exception implements ProvidesSolution
     }
     public function getSolution(): Solution
     {
-        return $this->solution;
+        return $this->solution ?? new DsSolutions("", "");
     }
 }

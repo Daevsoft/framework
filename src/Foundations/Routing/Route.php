@@ -25,7 +25,7 @@ abstract class Route extends Kernel
     private static $groupName = null;
     private static function emptyRoute(): BaseRoute
     {
-        if (self::$EMPTY_ROUTE == null) {
+        if (self::$EMPTY_ROUTE === null) {
             self::$EMPTY_ROUTE = new BaseRoute();
         }
         return self::$EMPTY_ROUTE;

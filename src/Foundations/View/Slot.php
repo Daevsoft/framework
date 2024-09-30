@@ -1,12 +1,26 @@
 <?php
 namespace Ds\Foundation\View;
 
-class Slot {
-  public static $slots = [];
-  public static function attachSlot($slotName, $content){
-    Slot::$slots[$slotName] = $content;
-  }
-  public static function getSlot($slotName){
-    return Slot::$slots[$slotName] ?? 'Slot '. $slotName . ' not found';
-  }
+use Closure;
+
+class Slot
+{
+    private $slots = [];
+
+    public function __construct(array $slots = [])
+    {
+        $this->slots = $slots;
+    }
+
+    public function attachSlot($slotKey, Closure $content)
+    {
+        Slot::$slots[$slotKey] = $content;
+    }
+    public function getSlot($slotKey)
+    {
+        if (!isset($this->slots[$slotKey])) {
+            return Slot::$slots[$slotKey]();
+        }
+        echo 'Slot ' . $slotKey . ' not found';
+    }
 }

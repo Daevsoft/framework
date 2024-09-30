@@ -29,7 +29,7 @@ class ValidationProvider implements Provider
         if (!self::$installed) {
             self::register(
                 new ValidationRule('required', ' field is required', function ($value, $field, $options, ValidationRule $obj) {
-                    if ($value == null || empty(trim($value))) {
+                    if ($value === null || empty(trim($value))) {
                         $message = $field . $obj->message;
                         return new ValidationResult(false, $message);
                     }

@@ -10,6 +10,7 @@ use Ds\helper\Str;
 
 class SqlModel
 {
+
     use QueryCommon;
     /**
      * query
@@ -65,7 +66,7 @@ class SqlModel
      */
     public function insert($tableName)
     {
-        $this->sqlModelType = self::INSERT;
+        $this->sqlModelType = Db::INSERT;
         $this->query = $this->sqlModelType . " INTO " . $this->WrapQuot($tableName);
         return $this;
     }
@@ -77,7 +78,7 @@ class SqlModel
      */
     public function update($tableName)
     {
-        $this->sqlModelType = self::UPDATE;
+        $this->sqlModelType = Db::UPDATE;
         $this->query = $this->sqlModelType . " " . $this->WrapQuot($tableName);
         return $this;
     }
@@ -89,13 +90,13 @@ class SqlModel
      */
     public function delete($tableName): SqlModel
     {
-        $this->sqlModelType = self::DELETE;
+        $this->sqlModelType = Db::DELETE;
         $this->query = $this->sqlModelType . " FROM " . $this->WrapQuot($tableName);
         return $this;
     }
     /**
      * where Where condition with default AND
-     * 
+     *
      * @param string $columnName
      * @param mixed $value
      * @param string $oOperator value operator
@@ -190,7 +191,7 @@ class SqlModel
      * @param  \Closure $customBind
      * @return SqlModel
      */
-    public function setValue($columnName,  $value,  $customBind = null)
+    public function setValue($columnName, $value, $customBind = null)
     {
         $this->addValue($columnName, $value, $this->GetType($value), $customBind);
         return $this;
@@ -202,7 +203,7 @@ class SqlModel
      * @param  string $value
      * @return SqlModel
      */
-    public function setRawValue($columnName,  $value)
+    public function setRawValue($columnName, $value)
     {
         $this->addRawValue($columnName, $value);
         return $this;
@@ -217,16 +218,16 @@ class SqlModel
     public function execute()
     {
         switch ($this->sqlModelType) {
-            case self::INSERT:
+            case Db::INSERT:
                 $this->setupInsertQuery();
                 break;
-            case self::UPDATE:
+            case Db::UPDATE:
                 $this->setupUpdateQuery();
                 break;
-            case self::DELETE:
+            case Db::DELETE:
                 $this->setupDeleteQuery();
                 break;
-            case self::BULK_INSERT:;
+            case Db::BULK_INSERT: ;
                 break;
             default:
                 return;
@@ -236,18 +237,22 @@ class SqlModel
         $this->dbUtils->query($this->query);
         foreach ($this->columnValues as $_value) {
             if (($_value instanceof SetRaw && $_value->IsRaw) ||
-                ($_value->Value == null && $this->sqlModelType == self::INSERT)
-            )
+                ($_value->Value === null && $this->sqlModelType == Db::INSERT)
+            ) {
                 continue;
+            }
 
             $this->dbUtils->addParameter($_value);
         }
         foreach ($this->whereValues as $_value) {
-            if ($_value instanceof SetWhereRaw) continue;
+            if ($_value instanceof SetWhereRaw) {
+                continue;
+            }
+
             $this->dbUtils->addParameter($_value);
         }
         $execute = $this->dbUtils->execute();
-        if ($this->sqlModelType == self::INSERT) {
+        if ($this->sqlModelType == Db::INSERT) {
             $execute = $this->dbUtils->getLastId();
         }
         $this->clear();
@@ -282,8 +287,8 @@ class SqlModel
                 $bindingValue = $_value->Value;
             } else {
                 $bindingValue = $_value->CustomBind != null ?
-                    ($_value->CustomBind)($this->bindSymbol . $_value->BindName) :
-                    $this->bindSymbol . $_value->BindName;
+                ($_value->CustomBind)($this->bindSymbol . $_value->BindName) :
+                $this->bindSymbol . $_value->BindName;
             }
             $setQuery .= ',' . $this->WrapQuot($_value->Column) . '=' . $bindingValue;
         }
@@ -302,7 +307,7 @@ class SqlModel
         foreach ($this->columnValues as $_value) {
             $columns .= ',' . $this->WrapQuot($_value->Column);
             // if null
-            if ($_value->Value == null) {
+            if ($_value->Value === null) {
                 $bindings .= ',NULL';
                 continue;
             }
@@ -344,8 +349,8 @@ class SqlModel
                 $bindingValue = $_value->Value;
             } else {
                 $bindingValue = $_value->CustomBind != null ?
-                    ($_value->CustomBind)($this->bindSymbol . $_value->BindName) :
-                    $this->bindSymbol . $_value->BindName;
+                ($_value->CustomBind)($this->bindSymbol . $_value->BindName) :
+                $this->bindSymbol . $_value->BindName;
             }
             $whereQuery .= ' ' . $_value->Operator . " " . $this->WrapQuot($_value->Column) . " " . $_value->ValueOperator . " " . $bindingValue;
         }
@@ -353,7 +358,7 @@ class SqlModel
     }
     public function bulkInsert($columns, $arrayData, $onDuplicateKeyUpdate = null)
     {
-        $this->sqlModelType = self::BULK_INSERT;
+        $this->sqlModelType = Db::BULK_INSERT;
         $onDuplicate = '';
         if ($onDuplicateKeyUpdate != null) {
             $duplicates = $onDuplicateKeyUpdate;
@@ -372,7 +377,7 @@ class SqlModel
             return '(' . implode(',', array_map(function ($column) use ($index, $row) {
                 $bindName = $column . $index;
                 $this->addValue($bindName, $row[$column]);
-                return  $this->bindSymbol . $bindName;
+                return $this->bindSymbol . $bindName;
             }, $columns)) . ') ';
         }, $arrayData, array_keys($arrayData)));
         $this->query .= $onDuplicate;

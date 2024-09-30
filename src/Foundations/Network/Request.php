@@ -14,7 +14,7 @@ abstract class RequestAbstract
     public function validated($rule = null)
     {
         $rule = $rule ?? $this->rules();
-        if ($rule == null) {
+        if ($rule === null) {
             return true;
         }
         // do validation
@@ -50,7 +50,7 @@ class Request extends RequestAbstract
     public static function getTrackRoute()
     {
         $track = session('track_route');
-        if ($track == null) {
+        if ($track === null) {
             $track = [];
         } else {
             $track = unserialize($track);
@@ -78,7 +78,7 @@ class Request extends RequestAbstract
     private function getField($name)
     {
         $value = $_REQUEST[$name] ?? null;
-        if ($value == null) {
+        if ($value === null) {
             return $value;
         }
         if (is_string($value)) {
@@ -134,8 +134,11 @@ class Request extends RequestAbstract
     }
     public function file($field, $filename = null)
     {
-        if (!isset($_FILES['attachment'])) return null;
-        if($filename == null){
+        if (!isset($_FILES[$field])) {
+            return null;
+        }
+
+        if ($filename === null) {
             $random_number = rand();
             $filename = md5(time() . '_' . $random_number);
         }
@@ -146,7 +149,7 @@ class Request extends RequestAbstract
         $uploadOk = 1;
         $fileExt = strtolower(pathinfo($_FILES[$field]["name"], PATHINFO_EXTENSION));
         // Check if image file is a actual image or fake image
-        if (isset($_POST["submit"])) {
+        if (count($_POST) > 0) {
             if (in_array($fileExt, ['.bat', '.sh', '.exe', '.apk'])) {
                 $uploadOk = 0;
             }
