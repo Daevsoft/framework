@@ -6,19 +6,17 @@ Model:
 
 namespace Ds\Foundations\Connection\Models;
 
-use ArrayAccess;
 use Ds\Foundations\Common\Collection;
 use Ds\Foundations\Connection\DatabaseProvider;
 use Ds\Foundations\Connection\Db;
-use Ds\Foundations\Connection\Exception\DsExceptions;
-use Spatie\Ignition\Ignition;
+use Ds\Foundations\Network\Request;
 
 class DsModel extends Collection
 {
     /**
      * @var Db $connection
      */
-    protected Db $connection;
+    private Db $connection;
     protected $primaryKey = null;
     public $table = null;
     protected $fillable = null;
@@ -54,7 +52,7 @@ class DsModel extends Collection
      * @param  string|string[] $arg2 will be table name
      * @return DsModel
      */
-    public static function _select($columns = null, $from = null)
+    public static function _select($columns = null, $from = null): DsModel
     {
         $classname = get_called_class();
         /**
@@ -66,12 +64,12 @@ class DsModel extends Collection
         }
         return $obj->select($columns, $from ?? $obj->table);
     }
-    protected function select($columns = null, $from = null)
+    protected function select($columns = null, $from = null): DsModel
     {
         $this->connection = $this->connection->select($columns, $from);
         return $this;
     }
-    public function query($syntax)
+    public function query($syntax): DsModel
     {
         $this->connection = $this->connection->query($syntax);
         return $this;
@@ -92,7 +90,7 @@ class DsModel extends Collection
      * @param array|string $columns
      * @return DsModel
      */
-    public function groupBy($columns)
+    public function groupBy($columns): DsModel
     {
         $this->connection = $this->connection->groupBy($columns);
         return $this;
@@ -176,7 +174,7 @@ class DsModel extends Collection
      * @param  mixed $arg4 (optional)
      * @return DsModel
      */
-    public function  and($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    public function  and ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         $this->connection = $this->connection->and($arg1, $arg2, $arg3, $arg4);
         return $this;
@@ -199,7 +197,7 @@ class DsModel extends Collection
      * @param  mixed $arg4
      * @return DsModel
      */
-    public function  or($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
+    public function  or ($arg1, $arg2 = null, $arg3 = null, $arg4 = null)
     {
         $this->connection = $this->connection->or($arg1, $arg2, $arg3, $arg4);
         return $this;
@@ -263,18 +261,19 @@ class DsModel extends Collection
                 'update',
                 'like',
                 'select',
+                'size',
             ])) {
                 return call_user_func_array(array(self::initiateClass(), $method), $arguments);
             }
             switch ($method) {
-                case 'first': {
+                case 'first':{
                         $obj = self::initiateClass();
                         return $obj->select($obj->table)->first(...$arguments);
                     }
 
-                default:
-                    return self::{$method}(...$arguments); //call_user_func(class . $method, ...$arguments);
-                    break;
+                default:{
+                        return self::{$method}(...$arguments);
+                    }
             }
         } catch (\Throwable $th) {
             throw $th;
@@ -390,7 +389,7 @@ class DsModel extends Collection
     {
         return $this->connection->delete($tableName);
     }
-    public static function all($columns = [])
+    public static function all($columns = []): DsModel
     {
         if (is_string($columns)) {
             $columns = explode(',', $columns);
@@ -403,10 +402,10 @@ class DsModel extends Collection
         $obj = new $className();
         $tableName = $obj->table;
         if (count($columns) > 0) {
-            return $obj->select($columns, $tableName)->get_object();
+            return $obj->select($columns, $tableName);
         }
 
-        return $obj->select($tableName)->get_object();
+        return $obj->select($tableName);
     }
     public function get_object()
     {
@@ -425,7 +424,7 @@ class DsModel extends Collection
     {
         return $this->connection->get_row_object();
     }
-    public function first(?callable $callback = null, $default = null)
+    public function first( ? callable $callback = null, $default = null)
     {
         return parent::first($callback, $default);
     }
@@ -434,7 +433,7 @@ class DsModel extends Collection
         $className = get_called_class();
         return new $className();
     }
-    public function last(?callable $callback = null, $default = null)
+    public function last( ? callable $callback = null, $default = null)
     {
         return parent::last($callback, $default);
     }
@@ -552,7 +551,7 @@ class DsModel extends Collection
             throw $th;
         }
     }
-    public static function size($where = null): int
+    public function size($where = null) : int
     {
         try {
             $className = get_called_class();
@@ -590,45 +589,49 @@ class DsModel extends Collection
         }
     }
 
+    protected function paginate($limit = 10)
+    {
+        $request = new Request();
+        $url = $_SERVER['PATH_INFO'];
+        $currentPage = (int) ($request->page ?? 1);
+        $start = ($currentPage - 1) * $limit;
+        $nextPage = $currentPage + 1;
+        $prevPage = $currentPage - 1;
+        $size = $this->size();
+        $lastPage = ceil($size / $limit);
+        $nextPage = $currentPage == $lastPage ? null : ($currentPage + 1);
+
+        $data = [
+            'data' => $this->limit($limit, $start),
+            'links' => [
+                'prev' => $currentPage == 1 ? null : ($url . '?page=' . $prevPage),
+                'next' => $nextPage != null ? ($url . '?page=' . $nextPage) : null,
+                'first' => $url . '?page=1',
+                'last' => $lastPage === null ? null : ($url . '?page=' . $lastPage),
+            ],
+            'meta' => [
+                'current_page' => $currentPage,
+                'from' => $start,
+                'last_page' => $lastPage,
+                'path' => $url,
+                'per_page' => $limit,
+                'to' => $size,
+                'total' => $size,
+            ],
+        ];
+        return $data;
+    }
+    private $readyExecute = true;
     public function validate()
     {
-        if ($this->array === null) {
+        if ($this->readyExecute) {
             $this->array = $this->get_object();
+            $this->readyExecute = false;
         }
     }
 
-    public function offsetSet($offset, $value): void
-    {
-        $this->validate();
-        parent::offsetSet($offset, $value);
-    }
-
-    public function offsetExists($offset): bool
-    {
-        $this->validate();
-        return parent::offsetExists($offset);
-    }
-
-    public function offsetUnset($offset): void
-    {
-        $this->validate();
-        parent::offsetUnset($offset);
-    }
-
-    public function offsetGet($offset): mixed
-    {
-        $this->validate();
-        return parent::offsetGet($offset);
-    }
-    // Return the current element
-    public function current(): mixed
-    {
-        $this->validate();
-        return parent::current();
-    }
-
     // Return the current key
-    public function key(): int
+    public function key() : int
     {
         $this->validate();
         return $this->position;
@@ -643,7 +646,14 @@ class DsModel extends Collection
     // Rewind the iterator to the first element
     public function rewind(): void
     {
+        $this->validate();
         $this->position = 0;
+    }
+
+    public function count(): int
+    {
+        $this->validate();
+        return $this->size();
     }
 
     // Checks if the current position is valid
@@ -653,5 +663,4 @@ class DsModel extends Collection
         return parent::valid();
     }
     // ------------------- Collection Override
-
 }

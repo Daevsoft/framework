@@ -7,11 +7,11 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Arr;
 use JsonSerializable;
 use SeekableIterator;
-use Stringable;
 
 class Collection extends \ArrayIterator implements SeekableIterator, \Traversable, \Iterator, ArrayAccess, \Serializable, \Countable, JsonSerializable, Arrayable
 {
-    public function validate() {}
+    public function validate()
+    {}
     protected $array = null;
     protected $position = 0;
     public function __construct(array $array)
@@ -123,12 +123,12 @@ class Collection extends \ArrayIterator implements SeekableIterator, \Traversabl
         $this->validate();
         return Arr::exists($this->array, $key);
     }
-    public function first(?callable $callback = null, $default = null)
+    public function first( ? callable $callback = null, $default = null)
     {
         $this->validate();
         return Arr::first($this->array, $callback, $default);
     }
-    public function last(?callable $callback = null, $default = null)
+    public function last( ? callable $callback = null, $default = null)
     {
         $this->validate();
         return Arr::last($this->array, $callback, $default);
@@ -206,7 +206,7 @@ class Collection extends \ArrayIterator implements SeekableIterator, \Traversabl
     public function mapSpread(callable $callback)
     {
         $this->validate();
-        return Arr::mapSpread($this->array,  $callback);
+        return Arr::mapSpread($this->array, $callback);
     }
     public function prepend($value, $key = null)
     {
@@ -273,7 +273,7 @@ class Collection extends \ArrayIterator implements SeekableIterator, \Traversabl
         $this->validate();
         return Arr::wrap($value);
     }
-    public function __toString(): string
+    public function __toString() : string
     {
         $this->validate();
         return json_encode($this->array);
@@ -282,6 +282,20 @@ class Collection extends \ArrayIterator implements SeekableIterator, \Traversabl
     {
         $this->validate();
         return $this->array;
+    }
+    public function toJson($options = 0)
+    {
+        $this->validate();
+        return json_encode($this->array, $options);
+    }
+    public function __sleep()
+    {
+        $this->validate();
+    }
+    public function serialize() : string
+    {
+        $this->validate();
+        return serialize($this->array);
     }
     public function __serialize(): array
     {
@@ -292,5 +306,20 @@ class Collection extends \ArrayIterator implements SeekableIterator, \Traversabl
     {
         $this->validate();
         return $this->array;
+    }
+    public function __get($name)
+    {
+        $this->validate();
+        return $this->{$name};
+    }
+    public function __debugInfo(): array
+    {
+        $this->validate();
+        return $this->array;
+    }
+    public function dump()
+    {
+        $this->validate();
+        dd($this->array);
     }
 }
