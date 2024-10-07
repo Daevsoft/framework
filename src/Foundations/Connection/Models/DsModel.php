@@ -551,7 +551,7 @@ class DsModel extends Collection
             throw $th;
         }
     }
-    public function size($where = null) : int
+    private function size($where = null) : int
     {
         try {
             $className = get_called_class();
