@@ -31,14 +31,12 @@ class PageProvider implements Provider
     {
         self::$instance = $this;
     }
-    public function run()
-    {}
+    public function run() {}
     public static function init()
     {
         return self::$instance;
     }
-    public function viewFileName($filename)
-    {}
+    public function viewFileName($filename) {}
     public function __page($__fl = STRING_EMPTY, $__dt = array(), $slot = null)
     {
         try {
@@ -187,7 +185,7 @@ class PageProvider implements Provider
         preg_match_all($pie_filter_pattern, $render_temp, $pie_precomponent_temp_next);
 
         return (count($pie_precomponent_temp_next[0]) == 0) ?
-        $render_temp : $this->pie_join($render_temp, $pie_precomponent_temp_next);
+            $render_temp : $this->pie_join($render_temp, $pie_precomponent_temp_next);
     }
 
     private function renderComponent($raw, $tagName, $attributes, $innerContent)
@@ -258,7 +256,7 @@ class PageProvider implements Provider
         preg_match_all($pie_filter_pattern, $render_temp, $pie_join_precompile_temp_next);
 
         return (count($pie_join_precompile_temp_next[0]) == 0) ?
-        $render_temp : $this->pie_join($render_temp, $pie_join_precompile_temp_next);
+            $render_temp : $this->pie_join($render_temp, $pie_join_precompile_temp_next);
     }
     private function pie_import($render_temp)
     {
@@ -330,9 +328,9 @@ class PageProvider implements Provider
             // << Syntax >>
             '/\<\<\s(.*)\s\>\>/iXsuUm',
             // @css
-            '/\@(css)\(\'(.*)\'\)[^\n]/i',
+            '/\@(css)\(\'(.*)\'\)[^\n]/iXsuUm',
             // @js
-            '/\@(js)\(\'(.*)\'(\,)?\s?((\'.*\')?|(\[.*\])?|(\".*\")?)?\)[^\n]/i',
+            '/\@(js)\(\'(.*)\'(\,)?\s?((\'.*\')?|(\[.*\])?|(\".*\")?)?\)[^\n]/iXsuUm',
             // @elseif
             '/\@(elseif)\((.*)\)\:/iXsuUm',
             // @loop and @condition
@@ -358,7 +356,7 @@ class PageProvider implements Provider
             // Case
             '/\@(case)(.*)\:/iXsuUm',
             // Default
-            '/\@(default)\:/i',
+            '/\@(default)\:/iXsuUm',
             // Break Case
             '/\@(break)/s',
             '/\@(endswitch)/s',
@@ -369,11 +367,11 @@ class PageProvider implements Provider
             // @flash
             '/\@(flash)\((.*)\)/iXsuUm',
             // Csrf
-            '/\@(csrf)/i',
+            '/\@(csrf)/iXsuUm',
             // @error flash
             '/\@(error)\((.*)\)/iXsuUm',
             // @auth
-            '/\@(auth)/i',
+            '/\@(auth)/iXsuUm',
             '/\@old\((.*)\)/',
         );
         // Replacing Index Regex
