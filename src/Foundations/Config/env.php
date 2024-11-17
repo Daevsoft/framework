@@ -9,7 +9,7 @@ class Env
     public static function get($key, $default = NULL)
     {
         global $CACHE_CONFIG;
-        if ($CACHE_CONFIG == null) {
+        if ($CACHE_CONFIG === null) {
             require_once Dir::$CONFIG_TEMP;
         }
         return $CACHE_CONFIG[$key] ?? $default;

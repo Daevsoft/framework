@@ -13,6 +13,7 @@ use function Ds\Base\App\Config\env;
 class PageProvider implements Provider
 {
     // true for testing pie cache, false for validate cache timing
+    private $slot_var_name = '__slotComponents';
     private $testing_cache = false;
     private static PageProvider $instance;
 
@@ -36,7 +37,7 @@ class PageProvider implements Provider
         return self::$instance;
     }
     public function viewFileName($filename) {}
-    public function __page($__fl = STRING_EMPTY, $__dt = array())
+    public function __page($__fl = STRING_EMPTY, $__dt = array(), $slot = null)
     {
         try {
             $this->collection_temp = $__dt;
@@ -63,6 +64,7 @@ class PageProvider implements Provider
             if (!Str::contains($__fl, '.pie')) {
                 // Extract All Variable
                 extract($__dt);
+                // $__slotComponents = new Slot($slot);
                 require $this->_filenames;
             } else {
                 $this->render_template_alternate();
@@ -76,9 +78,6 @@ class PageProvider implements Provider
     private function render_template_alternate()
     {
         // initial cache file directory
-        // dd($this->_filenames);
-        // $file_gen_enc = sha1($this->_filenames) . '.php';
-        //Dir::$CACHE_VIEW . $file_gen_enc;
         $cache = new CacheView($this->_filenames);
         $dir_cache = Dir::$CACHE_VIEW . $cache->encryptedFile;
         // Checking cache time
@@ -152,12 +151,12 @@ class PageProvider implements Provider
         $content = preg_replace('/\@(slot\(\'.*\'\))/iXsuUm', '', $content);
         return $content;
     }
-
+    // IN EXPERIMENTAL
     private function pie_components($render_temp, $pie_precomponent_temp = null)
     {
         $pie_filter_pattern = '/<x-(\w+[\w.-]*)([^>]*)([^>]*?)>(.*)<\/x-(\1)>/iXsuUm';
         // get all string with @join
-        if ($pie_precomponent_temp == null) {
+        if ($pie_precomponent_temp === null) {
             // get all join text
             preg_match_all($pie_filter_pattern, $render_temp, $pie_precomponent_temp);
         }
@@ -206,6 +205,7 @@ class PageProvider implements Provider
         $slot_list = null;
         preg_match_all('/<x-slot(?:\s+name="([^"]*)")?\s*\/?>/iXsuUm', $html, $slot_list);
         // Create $part to fill the slot
+        $parts = [];
         // if empty, fill slot with resultRender or default innerContent
         if ($slot_list[0]) {
             $slotRaw = $slot_list[0];
@@ -215,8 +215,11 @@ class PageProvider implements Provider
                 $slot = $slotRaw[$i];
                 $slotKey = $slotName[$i];
                 if ($slotKey == '') {
-                    $html = str_ireplace($slot, $resultRender, $html);
+                    $slotKey = 'default';
                 }
+                $slotRender = ('<?= $' . $this->slot_var_name . '->getSlot(\'' . $slotKey . '\') ?>');
+                $html = str_ireplace($slot, $slotRender, $html);
+                $parts[$slotKey] = 'fn() => ()';
             }
         }
         dd($resultRender, $html);
@@ -227,9 +230,9 @@ class PageProvider implements Provider
 
     private function pie_join($render_temp, $pie_join_precompile_temp = null)
     {
-        $pie_filter_pattern = '/\@join\((.*)\)/iXsuUm';
+        $pie_filter_pattern = '/\@join\((.*)\)[^\)]/iXsuUm';
         // get all string with @join
-        if ($pie_join_precompile_temp == null) {
+        if ($pie_join_precompile_temp === null) {
             // get all join text
             preg_match_all($pie_filter_pattern, $render_temp, $pie_join_precompile_temp);
         }
@@ -322,9 +325,9 @@ class PageProvider implements Provider
             // << Syntax >>
             '/\<\<\s(.*)\s\>\>/iXsuUm',
             // @css
-            '/\@(css)\(\'(.*)\'\)[^\n]/i',
+            '/\@(css)\(\'(.*)\'\)[^\n]/iXsuUm',
             // @js
-            '/\@(js)\(\'(.*)\'(\,)?\s?((\'.*\')?|(\[.*\])?|(\".*\")?)?\)[^\n]/i',
+            '/\@js\(\s*\'([^\']*)\'\s*\)/iXsuUm',
             // @elseif
             '/\@(elseif)\((.*)\)\:/iXsuUm',
             // @loop and @condition
@@ -350,7 +353,7 @@ class PageProvider implements Provider
             // Case
             '/\@(case)(.*)\:/iXsuUm',
             // Default
-            '/\@(default)\:/i',
+            '/\@(default)\:/iXsuUm',
             // Break Case
             '/\@(break)/s',
             '/\@(endswitch)/s',
@@ -361,12 +364,12 @@ class PageProvider implements Provider
             // @flash
             '/\@(flash)\((.*)\)/iXsuUm',
             // Csrf
-            '/\@(csrf)/i',
+            '/\@(csrf)/iXsuUm',
             // @error flash
             '/\@(error)\((.*)\)/iXsuUm',
             // @auth
-            '/\@(auth)/i',
-            '/\@old\((.*)\)/'
+            '/\@(auth)/iXsuUm',
+            '/\@old\((.*)\)/',
         );
         // Replacing Index Regex
         $regex_replace = array(
@@ -379,7 +382,7 @@ class PageProvider implements Provider
             // @css
             '<?php css_source(\'\2\') ?>',
             // @js
-            '<?php js_source(\'\2\'\3\4\5) ?>',
+            '<?php js_source(\'\1\') ?>',
             // @elseif
             '<?php }\1(\2){ ?>',
             // @loop and @condition

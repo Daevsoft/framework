@@ -27,7 +27,6 @@ class RouteProvider extends Kernel implements Provider
     }
     public function install()
     {
-        $this->boot();
         $fileRoutes = Dir::$ROUTE . 'web.php';
         require_once $fileRoutes;
         // RouteProvider installed !
@@ -35,7 +34,7 @@ class RouteProvider extends Kernel implements Provider
     public function run()
     {
         // RouteProvider running..
-        $uri = $_SERVER['PATH_INFO'] ?? '/';
+        $uri = $_SERVER['PATH_INFO'] ?? ($_SERVER['REDIRECT_URL'] ?? '/');
         if ($uri == '/') {
             $uri = '/index';
         }

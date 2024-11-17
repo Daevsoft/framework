@@ -1,4 +1,5 @@
 <?php
+
 namespace Ds\Foundations\Network;
 
 use Ds\Helper\Str;
@@ -46,7 +47,7 @@ class Validator
     }
     private function initResult(&$result)
     {
-        if ($result == null) {
+        if ($result === null) {
             $result = [
                 'errors' => [],
                 'message' => '',
@@ -73,7 +74,7 @@ class Validator
     private function validating($value, $condition, &$error)
     {
         if ($condition == 'required') {
-            if ($value == null || empty(trim($value))) {
+            if ($value === null || empty(trim($value))) {
                 $error = self::$errorValidation[$condition];
                 return false;
             }

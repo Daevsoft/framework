@@ -38,15 +38,20 @@ class Validator
     }
     private function saveOldValue($input)
     {
-        set_flash('__old_value_', json_encode($input));
+        $input = json_encode($input);
+        session(['old_value_' => $input]);
+        // $input = flash('old_value_', 'null');
+        // var_dump($input);
+        // die;
     }
     public static $oldInput = null;
     public static function oldValue($key, $defaultValue = null)
     {
+        $input = session('old_value_', 'null');
         if (is_null(self::$oldInput)) {
-            self::$oldInput = json_decode(flash('__old_value_', 'null')) ?? [];
+            self::$oldInput = (array)json_decode($input) ?? [];
+            unsession('old_value_');
         }
-        dd(self::$oldInput);
         return self::$oldInput[$key] ?? $defaultValue;
     }
     private function saveErrorFlash($result)
@@ -84,7 +89,7 @@ class Validator
     }
     private function initResult(&$result)
     {
-        if ($result == null) {
+        if ($result === null) {
             $result = [
                 'errors' => [],
                 'message' => '',

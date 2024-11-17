@@ -2,10 +2,10 @@
 
 use Ds\AppIndex;
 use Ds\Foundations\Config\Env;
+use Ds\Foundations\Validator\Validator;
 use Ds\Foundations\View\PageProvider;
 use Ds\Foundations\View\View;
 use Ds\Foundation\View\Slot;
-use Ds\Foundations\Validator\Validator;
 
 if (!function_exists('asset')) {
     function asset($_fileName)
@@ -13,19 +13,13 @@ if (!function_exists('asset')) {
         return AppIndex::$BASE_ASSETS . $_fileName;
     }
 }
-if (!function_exists('get_slot')) {
-    function get_slot($_fileName)
-    {
-        echo Slot::getSlot($_fileName);
-    }
-}
 
-function view($viewname = 'index', $data = [])
+function view($viewname = 'index', $data = [], $slots = null)
 {
     $viewname = View::filename($viewname);
     if ($viewname != null) {
         $page = PageProvider::init();
-        $page->__page($viewname, $data);
+        $page->__page($viewname, $data, $slots);
     }
 }
 function session($key, $default = null)
@@ -33,7 +27,7 @@ function session($key, $default = null)
     if (is_string($key)) {
         return isset($_SESSION[$key]) ? $_SESSION[$key] : $default;
     } else if (is_array($key)) {
-        $_SESSION = [...$_SESSION, ...$key];
+        $_SESSION = [ ...$_SESSION, ...$key];
     }
 }
 function unsession($key)
@@ -68,4 +62,12 @@ function js_source($src)
     } else {
         echo '<script src="/assets/js/' . $src . '.js"></script>';
     }
+}
+function app_url()
+{
+    return sprintf(
+        "%s://%s",
+        isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http',
+        $_SERVER['SERVER_NAME']
+    );
 }

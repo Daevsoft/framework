@@ -57,7 +57,7 @@ class CacheView
     }
     public function __construct($real_filename)
     {
-        if (self::$arr_times == null) {
+        if (self::$arr_times === null) {
             self::$arr_times = require_once Dir::$CACHE_TIME;
         }
         $isRootUpdated = $this->checkRootUpdated(filename: $real_filename);
