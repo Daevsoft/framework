@@ -34,7 +34,7 @@ class RouteProvider extends Kernel implements Provider
     public function run()
     {
         // RouteProvider running..
-        $uri = $_SERVER['PATH_INFO'] ?? '/';
+        $uri = $_SERVER['PATH_INFO'] ?? ($_SERVER['REDIRECT_URL'] ?? '/');
         if ($uri == '/') {
             $uri = '/index';
         }

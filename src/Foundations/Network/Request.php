@@ -132,7 +132,7 @@ class Request extends RequestAbstract
         }
         return $result;
     }
-    public function file($field, $filename = null)
+    public function file($field, $filename = null): string|null
     {
         if (!isset($_FILES[$field])) {
             return null;
@@ -161,6 +161,7 @@ class Request extends RequestAbstract
         }
         if ($uploadOk == 0) {
             echo "Sorry, your file was not uploaded.";
+            return null;
             // if everything is ok, try to upload file
         } else {
             if (move_uploaded_file($_FILES[$field]["tmp_name"], $target_file . '.' . $fileExt)) {

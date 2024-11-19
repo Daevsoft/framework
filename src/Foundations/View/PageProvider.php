@@ -330,7 +330,7 @@ class PageProvider implements Provider
             // @css
             '/\@(css)\(\'(.*)\'\)[^\n]/iXsuUm',
             // @js
-            '/\@(js)\(\'(.*)\'(\,)?\s?((\'.*\')?|(\[.*\])?|(\".*\")?)?\)[^\n]/iXsuUm',
+            '/\@js\(\s*\'([^\']*)\'\s*\)/iXsuUm',
             // @elseif
             '/\@(elseif)\((.*)\)\:/iXsuUm',
             // @loop and @condition
@@ -385,7 +385,7 @@ class PageProvider implements Provider
             // @css
             '<?php css_source(\'\2\') ?>',
             // @js
-            '<?php js_source(\'\2\'\3\4\5) ?>',
+            '<?php js_source(\'\1\') ?>',
             // @elseif
             '<?php }\1(\2){ ?>',
             // @loop and @condition
