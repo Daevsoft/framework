@@ -327,11 +327,7 @@ class PageProvider implements Provider
             // @css
             '/\@(css)\(\'(.*)\'\)[^\n]/iXsuUm',
             // @js
-<<<<<<< HEAD
             '/\@js\(\s*\'([^\']*)\'\s*\)/iXsuUm',
-=======
-            '/\@(js)\(\'(.*)\'(\,)?\s?((\'.*\')?|(\[.*\])?|(\".*\")?)?\)[^\n]/iXsuUm',
->>>>>>> 6c7a093881f1444863d44b55d2adf770f7167cfd
             // @elseif
             '/\@(elseif)\((.*)\)\:/iXsuUm',
             // @loop and @condition
