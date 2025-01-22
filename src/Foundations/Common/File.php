@@ -21,10 +21,11 @@ class File
         $this->path = $path;
         $this->filename = basename($path);
         $this->mode = $mode;
+		$this->checkDir(dirname($path));
     }
     private function checkDir($dir){
         if(!is_dir($dir)){
-            mkdir($dir);
+            mkdir($dir, 0777, true);
         }
     }
     public function close()

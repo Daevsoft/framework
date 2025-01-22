@@ -20,6 +20,16 @@ class Column extends SqlTexter
             $this->_add(', ');
         }
     }
+    public function modify()
+    {
+        $driver = Env::get('DB_DRIVER');
+        if ($driver == MYSQL) {
+            $this->alterQuery = ' MODIFY COLUMN';
+        }else {
+            $this->alterQuery = ' ALTER COLUMN';
+        }
+        return $this;
+    }
     public function add()
     {
         // $this->separator();
@@ -29,7 +39,7 @@ class Column extends SqlTexter
     public function drop($column)
     {
         $this->separator();
-        $this->_add(' DROP COLUMN ' . $this->WrapQuot($column));
+        $this->_add(' DROP COLUMN IF EXISTS ' . $this->WrapQuot($column));
         $this->alterQuery = STRING_EMPTY;
         return $this;
     }
@@ -54,9 +64,18 @@ class Column extends SqlTexter
         }
         return $this->newColumn($columnName, $integer);
     }
+    public function boolean($columnName)
+    {
+        return $this->newColumn($columnName, 'BOOLEAN');
+    }
     public function string($columnName, $length = 255)
     {
         return $this->newColumn($columnName, 'VARCHAR(' . $length . ')');
+    }
+    public function enum($columnName, $values)
+    {
+        $col = array_map(fn($item) => ('\''.$item.'\''), $values);
+        return $this->newColumn($columnName, 'ENUM(' . implode(',', $col) . ')');
     }
     public function char($columnName)
     {
@@ -94,6 +113,9 @@ class Column extends SqlTexter
     {
         $this->_add(' NOT NULL');
         if ($default != null) {
+            if(is_bool($default)) {
+                $default = $default ? 'TRUE' : 'FALSE';
+            }
             $this->_add(' DEFAULT ' . $default);
         }
         return $this;
