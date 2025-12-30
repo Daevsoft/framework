@@ -1,7 +1,7 @@
 <?php
-
 namespace Ds\Foundations\Exceptions;
 
+use Ds\Core\Ds;
 use Ds\Dir;
 use Ds\Foundations\Commands\Console;
 use Ds\Foundations\Common\File;
@@ -55,16 +55,16 @@ class dsException extends Exception
     public function __construct($_exception, $filename = STRING_EMPTY, $line = -1, $msg = null)
     {
         parent::__construct();
-        if (!empty($filename)) {
+        if (! empty($filename)) {
             $this->filename = $filename;
         }
         if (is_string($_exception)) {
-            $this->message = $_exception;
+            $this->message   = $_exception;
             $this->exception = $this;
-            $this->file = $filename;
+            $this->file      = $filename;
         } else {
             $this->exception = $_exception;
-            if (!empty($filename)) {
+            if (! empty($filename)) {
                 $this->filename = $filename;
             }
         }
@@ -82,10 +82,9 @@ class dsException extends Exception
         if ($this->exception instanceof Exception || is_object($this->exception)) {
             // header_remove('Content-Type');
             // header('Content-Type:text/html');
-            $arrTrace = $this->exception->getTrace();
-            $filename = $this->filename;
+            $arrTrace          = $this->exception->getTrace();
+            $filename          = $this->filename;
             $additionalMessage = $this->additionalMessage ?? '';
-
             if (isset($_SERVER['SERVER_PROTOCOL'])) {
                 include __DIR__ . SLASH . 'view' . SLASH . 'exception.php';
             } else {
@@ -125,7 +124,7 @@ class dsException extends Exception
     public function display_line_error($_arrFile, $_line)
     {
         $start_line = $_line - 1;
-        $end_line = $_line;
+        $end_line   = $_line;
         if ($start_line > 10) {
             $start_line -= 10;
         } else {

@@ -1,5 +1,4 @@
 <?php
-
 namespace Ds\Foundations\Validator;
 
 use Ds\Foundations\Provider;
@@ -14,7 +13,7 @@ class ValidationProvider implements Provider
 
     public static function register(ValidationRule $rule, ...$others)
     {
-        if (!isset(self::$errorValidation[$rule->key])) {
+        if (! isset(self::$errorValidation[$rule->key])) {
             self::$errorValidation[$rule->key] = $rule;
         }
         foreach ($others as $_rule) {
@@ -22,11 +21,13 @@ class ValidationProvider implements Provider
         }
     }
 
-    public function install() {}
-    public function run() {}
+    public function install()
+    {}
+    public function run($param = null)
+    {}
     public static function boot()
     {
-        if (!self::$installed) {
+        if (! self::$installed) {
             self::register(
                 new ValidationRule('required', ' field is required', function ($value, $field, $options, ValidationRule $obj) {
                     if ($value === null || empty(trim($value))) {
@@ -55,7 +56,7 @@ class ValidationProvider implements Provider
             self::$installed = true;
         }
     }
-    public static function validate($field, $value, $key, $params): bool|ValidationResult
+    public static function validate($field, $value, $key, $params): bool | ValidationResult
     {
         return self::$errorValidation[$key]->runValidation($value, $field, $params);
     }

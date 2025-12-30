@@ -30,17 +30,26 @@ abstract class AppIndex
     public static $BASE_URL;
     public static $BASE_ASSETS;
     public static $LINK_FILES;
-
-    static function init()
+    static function init($swooleRequest = null)
     {
         require_once __DIR__ . '/Helper/Function.php';
-        // your web server host (ex:localhost/index.php)
-        self::$HTTP_HOST = $_SERVER['HTTP_HOST'];
-        // Base url
+
+        // Ambil Host dari Swoole Header atau Global $_SERVER
+        if ($swooleRequest) {
+            // Di Swoole, HTTP_HOST ada di dalam array $request->header
+            self::$HTTP_HOST = $swooleRequest->header['host'] ?? 'localhost';
+            
+            // Cek Protokol (http atau https)
+            $isHttps = ($swooleRequest->server['https'] ?? 'off') !== 'off' || ($swooleRequest->header['x-forwarded-proto'] ?? '') === 'https';
+            self::$SERVER_PROTOCOL = $isHttps ? 'https' : 'http';
+        } else {
+            // Fallback untuk PHP-FPM / Apache
+            self::$HTTP_HOST = $_SERVER['HTTP_HOST'] ?? 'localhost';
+            self::$SERVER_PROTOCOL = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        }
+
         self::$BASE_URL = self::$SERVER_PROTOCOL . '://' . self::$HTTP_HOST;
-        // Assets folder
         self::$BASE_ASSETS = self::$BASE_URL . '/assets/';
-        // Asset files url
         self::$LINK_FILES = self::$BASE_URL . '/files/';
     }
 }

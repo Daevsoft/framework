@@ -1,7 +1,8 @@
 <?php
 namespace Ds\Foundations;
 
-interface Provider {
+interface Provider
+{
     function install();
-    function run();
+    function run($param = null);
 }

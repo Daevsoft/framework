@@ -1,13 +1,13 @@
 <?php
 
 use Ds\AppIndex;
+use Ds\Core\Ds;
 use Ds\Foundations\Config\Env;
 use Ds\Foundations\Validator\Validator;
 use Ds\Foundations\View\PageProvider;
 use Ds\Foundations\View\View;
-use Ds\Foundation\View\Slot;
 
-if (!function_exists('asset')) {
+if (! function_exists('asset')) {
     function asset($_fileName)
     {
         return AppIndex::$BASE_ASSETS . $_fileName;
@@ -17,26 +17,42 @@ if (!function_exists('asset')) {
 function view($viewname = 'index', $data = [], $slots = null)
 {
     $viewname = View::filename($viewname);
+    ob_start();
     if ($viewname != null) {
         $page = PageProvider::init();
         $page->__page($viewname, $data, $slots);
     }
+    $contents = ob_get_contents();
+    ob_end_clean();
+    if (Ds::$appEngine == 'swoole') {
+        // Swoole handle exception
+        return $contents;
+    }
+
+    if (Ds::$appEngine != 'swoole') {
+        echo $contents;
+        return;
+    }
+    return $contents;
 }
 function session($key, $default = null)
 {
+    $sm = \Ds\Foundations\Session\SessionManager::init();
     if (is_string($key)) {
-        return isset($_SESSION[$key]) ? $_SESSION[$key] : $default;
+        return $sm->get($key, $default);
     } else if (is_array($key)) {
-        $_SESSION = [ ...$_SESSION, ...$key];
+        foreach ($key as $k => $v) {
+            $sm->put($k, $v);
+        }
     }
 }
 function unsession($key)
 {
-    unset($_SESSION[$key]);
+    \Ds\Foundations\Session\SessionManager::init()->delete($key);
 }
 function flash($key, $defaultValue = null)
 {
-    $key = 'flash__' . $key;
+    $key   = 'flash__' . $key;
     $flash = session($key) ?? $defaultValue;
     unsession($key);
     return $flash;

@@ -1,17 +1,15 @@
 <?php
-
 namespace Ds\Foundations\Controller;
 
-use Ds\Foundations\Common\Func;
 use Ds\Foundations\Provider;
 
 class Controller implements Provider
 {
-    function install()
+    public function install()
     {
         //Func::check('Controller installed !');
     }
-    function run()
+    public function run($param = null)
     {
         //Func::check('Controller running..');
     }

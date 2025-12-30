@@ -1,14 +1,14 @@
 <?php
-
 namespace Ds\Foundations\View;
 
+use Ds\Core\Ds;
 use Ds\Dir;
 use Ds\Foundations\Config\Env;
 use Ds\Foundations\Exceptions\dsException;
+use Ds\Foundations\Network\Response;
 use Ds\Foundations\Provider;
 use Ds\Helper\Str;
 use Exception;
-use function Ds\Base\App\Config\env;
 
 class PageProvider implements Provider
 {
@@ -31,37 +31,39 @@ class PageProvider implements Provider
     {
         self::$instance = $this;
     }
-    public function run() {}
+    public function run($param = null)
+    {}
     public static function init()
     {
         return self::$instance;
     }
-    public function viewFileName($filename) {}
-    public function __page($__fl = STRING_EMPTY, $__dt = array(), $slot = null)
+    public function viewFileName($filename)
+    {}
+    public function __page($__fl = STRING_EMPTY, $__dt = [], $slot = null)
     {
         try {
             $this->collection_temp = $__dt;
-            $this->_filenames = Dir::$VIEWS . $__fl . '.php';
-            $_filename_pie = Dir::$VIEWS . $__fl . '.pie' . '.php';
-            $file_exist = true;
+            $this->_filenames      = Dir::$VIEWS . $__fl . '.php';
+            $_filename_pie         = Dir::$VIEWS . $__fl . '.pie' . '.php';
+            $file_exist            = true;
 
-            if (!file_exists($this->_filenames)) {
+            if (! file_exists($this->_filenames)) {
                 $file_exist = false;
             }
-            if (!$file_exist) {
-                if (!file_exists($_filename_pie)) {
+            if (! $file_exist) {
+                if (! file_exists($_filename_pie)) {
                     $file_exist = false;
                 } else {
-                    $__fl = $_filename_pie;
+                    $__fl             = $_filename_pie;
                     $this->_filenames = $__fl;
-                    $file_exist = true;
+                    $file_exist       = true;
                 }
             }
-            if (!$file_exist) {
+            if (! $file_exist) {
                 throw new Exception('File view <b>' . $this->_filenames . '</b> not found!');
             }
             // Check is Using template or not
-            if (!Str::contains($__fl, '.pie')) {
+            if (! Str::contains($__fl, '.pie')) {
                 // Extract All Variable
                 extract($__dt);
                 // $__slotComponents = new Slot($slot);
@@ -72,17 +74,17 @@ class PageProvider implements Provider
         } catch (Exception $ex) {
             $ds = new dsException($ex);
             $ds->show_exception(true);
-            die();
+            return;
         }
     }
     private function render_template_alternate()
     {
         // initial cache file directory
-        $cache = new CacheView($this->_filenames);
+        $cache     = new CacheView($this->_filenames);
         $dir_cache = Dir::$CACHE_VIEW . $cache->encryptedFile;
         // Checking cache time
         if (
-            !$cache->exists()
+            ! $cache->exists()
             || ($cache->is_modified()
                 // || env('status') == Key::DEVELOPMENT
             ) || $this->testing_cache
@@ -98,58 +100,19 @@ class PageProvider implements Provider
     }
     private function renderContents(string $html)
     {
-        $html = $this->slot_initialize($html);
-        $initialize_pie = $this->pie_initialize($html);
-        $initialize_pie = ' ' . $initialize_pie;
+        $html              = $this->slot_initialize($html);
+        $initialize_pie    = $this->pie_initialize($html);
+        $initialize_pie    = ' ' . $initialize_pie;
         $initialize_syntax = $this->php_initialize($initialize_pie);
         return $initialize_syntax;
     }
     private function render_page(&$dir_cache)
     {
-        $html = file_get_contents($this->_filenames);
+        $html         = file_get_contents($this->_filenames);
         $resultRender = $this->renderContents($html);
-        $php_cache = fopen($dir_cache, 'w');
+        $php_cache    = fopen($dir_cache, 'w');
         fwrite($php_cache, $resultRender);
         fclose($php_cache);
-    }
-    private function renderUsePie($content)
-    {
-        $matchesUse = [];
-        preg_match_all('/\@(use\(\'(.*)\'\))/iXsuUm', $content, $matchesUse);
-        $usesFilename = $matchesUse[2]; // filename
-        $usesTarget = $matchesUse[0]; // @use(...)
-        foreach ($usesTarget as $i => $value) {
-            $fileContent = file_get_contents(Dir::$VIEWS . '/' . $usesFilename[$i] . '.pie.php');
-            $content = Str::replace($content, $value, $fileContent);
-        }
-        if (strstr($content, '@use(')) {
-            return $this->renderUsePie($content);
-        }
-        return $content;
-    }
-    private function slot_initialize(&$content)
-    {
-        $content = $this->renderUsePie($content);
-        $rgx_source_compiled = [];
-        preg_match_all(
-            '/\@part\(\'(.*)\'\)(.*)(?<=\@endpart)/iXsuUm',
-            $content,
-            $rgx_source_compiled
-        );
-        $slotCount = count($rgx_source_compiled[0]);
-        if ($slotCount > 0) {
-            for ($i = 0; $i < $slotCount; $i++) {
-                $rgx_content = $rgx_source_compiled[0][$i];
-                $rgx_key = $rgx_source_compiled[1][$i];
-                $rgx_body = $rgx_source_compiled[2][$i];
-                $rgx_body = Str::replace($rgx_body, '@endpart', '');
-
-                $content = preg_replace('/\@(slot\(\'' . $rgx_key . '\'\))/iXsuUm', $rgx_body, $content);
-                $content = Str::replace($content, $rgx_content, '');
-            }
-        }
-        $content = preg_replace('/\@(slot\(\'.*\'\))/iXsuUm', '', $content);
-        return $content;
     }
     // IN EXPERIMENTAL
     private function pie_components($render_temp, $pie_precomponent_temp = null)
@@ -163,11 +126,11 @@ class PageProvider implements Provider
 
         $results = [];
         foreach ($pie_precomponent_temp[0] as $index => $match) {
-            $raw = $pie_precomponent_temp[0][$index]; // Tag name
-            $tagName = $pie_precomponent_temp[1][$index]; // Tag name
+            $raw              = $pie_precomponent_temp[0][$index];       // Tag name
+            $tagName          = $pie_precomponent_temp[1][$index];       // Tag name
             $attributesString = trim($pie_precomponent_temp[3][$index]); // Attributes string
-            $innerContent = trim($pie_precomponent_temp[4][$index]); // Inner content
-            // Parse attributes into an associative array
+            $innerContent     = trim($pie_precomponent_temp[4][$index]); // Inner content
+                                                                         // Parse attributes into an associative array
             $attributes = [];
             preg_match_all('/(\w+)\s*=\s*"([^"]*)"/iXsuUm', $attributesString, $attrMatches);
 
@@ -182,9 +145,81 @@ class PageProvider implements Provider
         preg_match_all($pie_filter_pattern, $render_temp, $pie_precomponent_temp_next);
 
         return (count($pie_precomponent_temp_next[0]) == 0) ?
-            $render_temp : $this->pie_join($render_temp, $pie_precomponent_temp_next);
+        $render_temp : $this->pie_join($render_temp, $pie_precomponent_temp_next);
     }
 
+    private function renderUsePie($content)
+    {
+        $matchesUse = [];
+        preg_match_all('/\@(use\(\'(.*)\'\))/iXsuUm', $content, $matchesUse);
+        $usesFilename = $matchesUse[2]; // filename
+        $usesTarget   = $matchesUse[0]; // @use(...)
+        foreach ($usesTarget as $i => $value) {
+            $fileContent = file_get_contents(Dir::$VIEWS . '/' . $usesFilename[$i] . '.pie.php');
+            $content     = Str::replace($content, $value, $fileContent);
+        }
+        if (strstr($content, '@use(')) {
+            return $this->renderUsePie($content);
+        }
+        return $content;
+    }
+    private function slot_initialize(&$content)
+    {
+        $content = $this->renderUsePie($content);
+
+        preg_match_all(
+            '/@part\(\s*[\'"]([^\'"]+)[\'"]\s*\)(.*?)@endpart/si',
+            $content,
+            $matches,
+            PREG_SET_ORDER
+        );
+
+        foreach ($matches as $match) {
+            $full = $match[0]; // seluruh blok @part ... @endpart
+            $key  = $match[1]; // alias
+            $body = $match[2]; // isi
+
+            // replace slot
+            $content = preg_replace(
+                '/@slot\(\s*[\'"]' . preg_quote($key, '/') . '[\'"]\s*\)/i',
+                $body,
+                $content
+            );
+
+            // hapus part
+            $content = str_replace($full, '', $content);
+        }
+
+        // hapus slot yang tidak terisi
+        $content = preg_replace('/@slot\(\s*[\'"].*?[\'"]\s*\)/i', '', $content);
+
+        return $content;
+    }
+
+    // private function slot_initialize(&$content)
+    // {
+    //     $content = $this->renderUsePie($content);
+    //     $rgx_source_compiled = [];
+    //     preg_match_all(
+    //         '/\@part\(\'(.*)\'\)(.*)(?<=\@endpart)/iXsuUm',
+    //         $content,
+    //         $rgx_source_compiled
+    //     );
+    //     $slotCount = count($rgx_source_compiled[0]);
+    //     if ($slotCount > 0) {
+    //         for ($i = 0; $i < $slotCount; $i++) {
+    //             $rgx_content = $rgx_source_compiled[0][$i];
+    //             $rgx_key = $rgx_source_compiled[1][$i];
+    //             $rgx_body = $rgx_source_compiled[2][$i];
+    //             $rgx_body = Str::replace($rgx_body, '@endpart', '');
+
+    //             $content = preg_replace('/\@(slot\(\'' . $rgx_key . '\'\))/iXsuUm', $rgx_body, $content);
+    //             $content = Str::replace($content, $rgx_content, '');
+    //         }
+    //     }
+    //     $content = preg_replace('/\@(slot\(\'.*\'\))/iXsuUm', '', $content);
+    //     return $content;
+    // }
     private function renderComponent($raw, $tagName, $attributes, $innerContent)
     {
         $attrResult = [];
@@ -201,30 +236,30 @@ class PageProvider implements Provider
 
         $resultRender = $this->renderContents($innerContent);
 
-        $html = file_get_contents(Dir::$VIEWS . View::filename($tagName) . '.pie.php');
+        $html      = file_get_contents(Dir::$VIEWS . View::filename($tagName) . '.pie.php');
         $slot_list = null;
         preg_match_all('/<x-slot(?:\s+name="([^"]*)")?\s*\/?>/iXsuUm', $html, $slot_list);
         // Create $part to fill the slot
         $parts = [];
         // if empty, fill slot with resultRender or default innerContent
         if ($slot_list[0]) {
-            $slotRaw = $slot_list[0];
+            $slotRaw  = $slot_list[0];
             $slotName = $slot_list[1];
-            $lenSlot = count($slotRaw);
+            $lenSlot  = count($slotRaw);
             for ($i = 0; $i < $lenSlot; $i++) {
-                $slot = $slotRaw[$i];
+                $slot    = $slotRaw[$i];
                 $slotKey = $slotName[$i];
                 if ($slotKey == '') {
                     $slotKey = 'default';
                 }
-                $slotRender = ('<?= $' . $this->slot_var_name . '->getSlot(\'' . $slotKey . '\') ?>');
-                $html = str_ireplace($slot, $slotRender, $html);
+                $slotRender      = ('<?= $' . $this->slot_var_name . '->getSlot(\'' . $slotKey . '\') ?>');
+                $html            = str_ireplace($slot, $slotRender, $html);
                 $parts[$slotKey] = 'fn() => ()';
             }
         }
         dd($resultRender, $html);
 
-        dd('<?php view(\'' . $tagName . '\', ' . $attr . ') ?>');
+        dd('<?php echo view(\'' . $tagName . '\', ' . $attr . ') ?>');
         dd($raw, $tagName, $attrResult, $innerContent);
     }
 
@@ -247,19 +282,19 @@ class PageProvider implements Provider
                 substr($_params_precompile, 0, $last_char);
             }
 
-            $render_temp = str_replace($pie_join_precompile_temp[0][$i], '<?php view(' . $pie_join_precompile_temp[1][$i] . '); ?>', $render_temp);
+            $render_temp = str_replace($pie_join_precompile_temp[0][$i], '<?php echo view(' . $pie_join_precompile_temp[1][$i] . '); ?>', $render_temp);
         }
         $pie_join_precompile_temp_next = [];
         preg_match_all($pie_filter_pattern, $render_temp, $pie_join_precompile_temp_next);
 
         return (count($pie_join_precompile_temp_next[0]) == 0) ?
-            $render_temp : $this->pie_join($render_temp, $pie_join_precompile_temp_next);
+        $render_temp : $this->pie_join($render_temp, $pie_join_precompile_temp_next);
     }
     private function pie_import($render_temp)
     {
         // get all string with @import
         $pie_import_precompile_temp = [];
-        $pie_filter_pattern = '/\@import\(\'(.*)\'\s?,\s?\'(.*)\'\)/iXsuUm';
+        $pie_filter_pattern         = '/\@import\(\'(.*)\'\s?,\s?\'(.*)\'\)/iXsuUm';
         // get all import text
         preg_match_all($pie_filter_pattern, $render_temp, $pie_import_precompile_temp);
         // count string has pie
@@ -274,7 +309,7 @@ class PageProvider implements Provider
         }
         for ($i = 0; $i < $tab_next_pie; $i++) {
             // fill pie part by regex ex:@comp('message')
-            $rgx_pie = '/\@' . $pie_import_precompile_temp[2][$i] . '\(\'(.*)\'\)/iXsuUm';
+            $rgx_pie       = '/\@' . $pie_import_precompile_temp[2][$i] . '\(\'(.*)\'\)/iXsuUm';
             $rgx_pie_match = [];
             preg_match_all($rgx_pie, $render_temp, $rgx_pie_match);
             $rgx_pie_count = count($rgx_pie_match[0]);
@@ -283,7 +318,7 @@ class PageProvider implements Provider
                     $rgx_pie_compile = '/\@' . $pie_import_precompile_temp[2][$i] . '\(\'' .
                         $rgx_pie_match[1][$j] . '\'\)/i';
                     // pie source for slicing
-                    $rgx_pie_source = $this->pie_source[$pie_import_precompile_temp[2][$i]];
+                    $rgx_pie_source      = $this->pie_source[$pie_import_precompile_temp[2][$i]];
                     $rgx_source_compiled = [];
                     preg_match_all(
                         '/(?s)(?<=\@pie\(\'' . $rgx_pie_match[1][$j] . '\'\))(.*?)(?=\@endpie)/i',
@@ -307,127 +342,184 @@ class PageProvider implements Provider
     {
         $rgx_pie_compile = '/\@content\(\'(.*)\'\)/iXsuUm';
         // pie source for slicing
-        $rgx_pie_source = $render_temp;
+        $rgx_pie_source      = $render_temp;
         $rgx_source_compiled = [];
-        $r = '/(?s)(?<=\@view\(\'(.*)\'\)\n(.*?)(?=\@endview)/i';
+        $r                   = '/(?s)(?<=\@view\(\'(.*)\'\)\n(.*?)(?=\@endview)/i';
         preg_match($r, $rgx_pie_source, $rgx_source_compiled);
         $render_temp = preg_replace($rgx_pie_compile, $rgx_source_compiled[0], $render_temp);
     }
 
     private function php_initialize($_sources)
     {
+        $COND = '((?:[^()]|\([^()]*\))*)';
+
         // Definition Index Regex
-        $regex_pattern = array(
-            // {{  Text }}
+        $regex_pattern = [
+            // {{ Text }}
             '/(.*[^\@])\{\{(.*)\}\}/iXsuUm',
+
             // {! Text !}
             '/\{\!\s(.*)\s\!\}/iXsuUm',
+
             // << Syntax >>
             '/\<\<\s(.*)\s\>\>/iXsuUm',
+
             // @css
             '/\@(css)\(\'(.*)\'\)[^\n]/iXsuUm',
+
             // @js
             '/\@js\(\s*\'([^\']*)\'\s*\)/iXsuUm',
+
             // @elseif
-            '/\@(elseif)\((.*)\)\:/iXsuUm',
+            "/\@(elseif)\($COND\)/i",
+
             // @loop and @condition
-            '/\@(foreach|for|if|elseif|while)\((.*)\)\:/iXsuUm',
+            "/\@(foreach|for|if|while)\($COND\)/i",
+
             // @isset
-            '/\@(isset)\((.*)\)\:/iXsuUm',
+            "/\@(isset)\($COND\)/i",
+
             // @notset
-            '/\@(notset)\((.*)\)\:/iXsuUm',
+            "/\@(notset)\($COND\)/i",
+
             // @empty
-            '/\@(empty)\((.*)\)\:/iXsuUm',
+            "/\@(empty)\($COND\)/i",
+
             // @notempty
-            '/\@(notempty)\((.*)\)\:/iXsuUm',
+            "/\@(notempty)\($COND\)/i",
+
             // @isnull
-            '/\@(isnull)\((.*)\)\:/iXsuUm',
+            "/\@(isnull)\($COND\)/i",
+
             // @notnull
-            '/\@(notnull)\((.*)\)\:/iXsuUm',
+            "/\@(notnull)\($COND\)/i",
+
             // Else
-            '/\@(else)/i',
-            // @end loop and condition, break, endswitch
-            '/\@(endforeach|endfor|endif|endwhile|endisset|endisflash|endauth|endnotset|endisnull|endnotnull|endempty|endnotempty)/iXsuUm',
+            '/\@(else)\b/i',
+
+            // @end loop & condition
+            '/\@(endforeach|endfor|endif|endwhile|endisset|endnotset|endisnull|endnotnull|endempty|endnotempty|endauth|endisflash)/i',
+
             // Switch
-            '/\@(switch)\((.*)\)\:/iXsuUm',
+            "/\@(switch)\($COND\)/i",
+
             // Case
-            '/\@(case)(.*)\:/iXsuUm',
+            "/\@(case)\s*($COND)/i",
+
             // Default
-            '/\@(default)\:/iXsuUm',
-            // Break Case
-            '/\@(break)/s',
-            '/\@(endswitch)/s',
+            '/\@(default)\b/i',
+
+            // Break
+            '/\@(break)\b/i',
+
+            // Endswitch
+            '/\@(endswitch)\b/i',
+
             // Continue
-            '/\@(continue)/s',
+            '/\@(continue)\b/i',
+
             // @isflash
-            '/\@(isflash)\((.*)\)\:/iXsuUm',
+            "/\@(isflash)\($COND\)/i",
+
             // @flash
-            '/\@(flash)\((.*)\)/iXsuUm',
+            "/\@(flash)\($COND\)/i",
+
             // Csrf
-            '/\@(csrf)/iXsuUm',
-            // @error flash
-            '/\@(error)\((.*)\)/iXsuUm',
+            '/\@(csrf)\b/i',
+
+            // @error
+            "/\@(error)\($COND\)/i",
+
             // @auth
-            '/\@(auth)/iXsuUm',
-            '/\@old\((.*)\)/',
-        );
+            '/\@(auth)\b/i',
+
+            // @old
+            "/\@old\($COND\)/i",
+        ];
+
         // Replacing Index Regex
-        $regex_replace = array(
+        $regex_replace = [
             // {{ Text }}
             '\1<?php echo(\2) ?>',
-            // (! Text !)
+
+            // {! Text !}
             '<?php echo(htmlspecialchars("\1")); ?>',
+
             // << Syntax >>
             '<?php \1 ?>',
+
             // @css
             '<?php css_source(\'\2\') ?>',
+
             // @js
             '<?php js_source(\'\1\') ?>',
+
             // @elseif
-            '<?php }\1(\2){ ?>',
+            '<?php } elseif(\2){ ?>',
+
             // @loop and @condition
             '<?php \1(\2){ ?>',
+
             // @isset
-            '<?php if(\1(\2)){ ?>',
+            '<?php if(isset(\2)){ ?>',
+
             // @notset
             '<?php if(!isset(\2)){ ?>',
-            // @isempty
+
+            // @empty
             '<?php if(empty(\2)){ ?>',
+
             // @notempty
             '<?php if(!empty(\2)){ ?>',
+
             // @isnull
             '<?php if(\2 === NULL){ ?>',
-            // @!isnull
-            '<?php if( \2 !== NULL){ ?>',
+
+            // @notnull
+            '<?php if(\2 !== NULL){ ?>',
+
             // Else
-            '<?php }\1{ ?>',
-            // @end of loop and condition, break, endswitch
+            '<?php } else { ?>',
+
+            // @end loop & condition
             '<?php } ?>',
+
             // Switch
-            '<?php \1(\2) : case null:; ?>\3',
+            '<?php switch(\2){ ?>',
+
             // Case
-            '<?php break;\1\2 : ?> \3 ',
+            '<?php case \2: ?>',
+
             // Default
-            '<?php break;\1: ?>',
-            // Break Case
-            '<? \1; ?>',
-            // Endswitch Case
-            '<?php \1; ?>',
+            '<?php default: ?>',
+
+            // Break
+            '<?php break; ?>',
+
+            // Endswitch
+            '<?php } ?>',
+
             // Continue
-            '<? \1; ?>',
+            '<?php continue; ?>',
+
             // @isflash
             '<?php if(is_flash(\2)){ ?>',
-            // Flash
+
+            // @flash
             '<?= \1(\2) ?>',
+
             // CSRF
             '<input type="hidden" name="csrf_token" value="<?= Ds\Foundations\Security\Csrf::token() ?>">',
+
             // Error Flash
             '<?= flash(\'error_\'.\2) ?>',
+
             // Auth
             '<?php if(session(\'user\', false)){ ?>',
-            // Flash
+
+            // Old input
             '<?= old(\1) ?>',
-        );
+        ];
         // Replacing with regex
         $render_temp = preg_replace($regex_pattern, $regex_replace, $_sources);
         // Ignore {{  }}
@@ -448,6 +540,7 @@ class PageProvider implements Provider
     }
     public static function page_not_found()
     {
-        die('404 Page Not Found');
+        Response::header('Content-Type: text/html; charset=utf-8', true, 404);
+        return '404 Page Not Found';
     }
 }

@@ -7,10 +7,7 @@ class View
 {
     public static function contents($viewName, $data = null)
     {
-        ob_start();
-        view($viewName, $data);
-        $contents = ob_get_contents();
-        ob_end_clean();
+        $contents = view($viewName, $data);
         return $contents;
     }
     public static function filename($viewName)

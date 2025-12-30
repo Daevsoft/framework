@@ -1,5 +1,4 @@
 <?php
-
 namespace Ds\Core;
 
 use Ds\AppIndex;
@@ -9,6 +8,7 @@ use Ds\Foundations\Connection\DatabaseProvider;
 use Ds\Foundations\Controller\Controller;
 use Ds\Foundations\Debugger\Debug;
 use Ds\Foundations\Exceptions\dsException;
+use Ds\Foundations\Provider;
 use Ds\Foundations\Routing\RouteProvider;
 use Ds\Foundations\Session\SessionProvider;
 use Ds\Foundations\Validator\ValidationProvider;
@@ -16,20 +16,24 @@ use Ds\Foundations\View\PageProvider;
 
 class Ds
 {
+    private bool $autoRunProviders = true;
     private array $providers;
-
     private $debugbarRenderer;
-    private $isDebug = null;
+    private $isDebug         = null;
+    public static $appEngine = null; // null is default appEngine for PHP-FPM or CLI
 
-    public function __construct()
+    public function __construct($autoRunProviders = true)
     {
         Dir::init();
         include_once Dir::$CONFIG_TEMP;
         dsException::init();
         $this->initDebugger();
+        self::$appEngine = Env::get('APP_ENGINE');
 
         AppIndex::init();
-        $this->providers = [
+
+        $this->autoRunProviders = $autoRunProviders;
+        $this->providers        = [
             new SessionProvider(),
             new DatabaseProvider(),
             new PageProvider(),
@@ -55,8 +59,24 @@ class Ds
     public function connect()
     {
         foreach ($this->providers as $provider) {
-            $provider->run();
+            if ($this->autoRunProviders) {
+                $provider->run();
+            }
+
         }
         Debug::writeLog();
+    }
+    public function getProvider($providerName): ?Provider
+    {
+        foreach ($this->providers as $provider) {
+            if ($provider instanceof $providerName) {
+                return $provider;
+            }
+        }
+        return null;
+    }
+    public function isDebug()
+    {
+        return $this->isDebug;
     }
 }

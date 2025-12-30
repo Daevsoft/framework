@@ -1,10 +1,8 @@
 <?php
-
 namespace Ds\Foundations\Routing;
 
 use App\Middlewares\Kernel;
 use Closure;
-use Ds\Foundations\Common\Func;
 use Ds\Foundations\Routing\Attributes\Delete;
 use Ds\Foundations\Routing\Attributes\Get;
 use Ds\Foundations\Routing\Attributes\Post;
@@ -13,11 +11,11 @@ use ReflectionClass;
 
 abstract class Route extends Kernel
 {
-    const GET = 'GET';
-    const POST = 'POST';
-    const PUT = 'PUT';
-    const DELETE = 'DELETE';
-    const ROUTE_TYPE = [Get::class, Post::class, Delete::class, Put::class];
+    const GET               = 'GET';
+    const POST              = 'POST';
+    const PUT               = 'PUT';
+    const DELETE            = 'DELETE';
+    const ROUTE_TYPE        = [Get::class, Post::class, Delete::class, Put::class];
     const ROUTE_TYPE_LENGTH = 4;
 
     private static array|null $middlewares;
@@ -31,7 +29,7 @@ abstract class Route extends Kernel
         return self::$EMPTY_ROUTE;
     }
 
-    private static function registerRoute($url, Closure|array $target)
+    private static function registerRoute($url, Closure | array $target, string $method)
     {
         if ($url == '/') {
             $url = '/index';
@@ -40,7 +38,7 @@ abstract class Route extends Kernel
             $url = self::$groupName . $url;
         }
         $route = new RouteData(
-            $_SERVER['REQUEST_METHOD'],
+            $method,
             $url,
             self::$middlewares ?? null,
             $target
@@ -49,48 +47,32 @@ abstract class Route extends Kernel
         return $route;
     }
 
-    public static function get($url, Closure|array $target): BaseRoute
+    public static function get($url, Closure | array $target): BaseRoute
     {
-        if ($_SERVER['REQUEST_METHOD'] == self::GET) {
-            return self::registerRoute($url, $target);
-        } else {
-            return self::emptyRoute();
-        }
+        return self::registerRoute($url, $target, self::GET);
     }
-    public static function post($url, Closure|array $target): BaseRoute
+    public static function post($url, Closure | array $target): BaseRoute
     {
-        if ($_SERVER['REQUEST_METHOD'] == self::POST) {
-            return self::registerRoute($url, $target);
-        } else {
-            return self::emptyRoute();
-        }
+        return self::registerRoute($url, $target, self::POST);
     }
-    public static function put($url, Closure|array $target): BaseRoute
+    public static function put($url, Closure | array $target): BaseRoute
     {
-        if ($_SERVER['REQUEST_METHOD'] == self::PUT) {
-            return self::registerRoute($url, $target);
-        } else {
-            return self::emptyRoute();
-        }
+        return self::registerRoute($url, $target, self::PUT);
     }
-    public static function delete($url, Closure|array $target): BaseRoute
+    public static function delete($url, Closure | array $target): BaseRoute
     {
-        if ($_SERVER['REQUEST_METHOD'] == self::DELETE) {
-            return self::registerRoute($url, $target);
-        } else {
-            return self::emptyRoute();
-        }
+        return self::registerRoute($url, $target, self::DELETE);
     }
-    public static function middleware(array|string $middlewares, Closure $routes)
+    public static function middleware(array | string $middlewares, Closure $routes)
     {
         self::$middlewares = is_string($middlewares) ? [$middlewares] : $middlewares;
         $routes();
         self::$middlewares = null;
     }
-    public static function group(String $name, Closure|string $routes)
+    public static function group(String $name, Closure | string $routes)
     {
         self::$groupName .= '/' . trim($name, " \n\r\t\v\0/");
-        if (!is_string($routes)) {
+        if (! is_string($routes)) {
             $routes();
         } else {
             self::registerRouteByClass($routes);
@@ -104,19 +86,19 @@ abstract class Route extends Kernel
     }
     private static function registerRouteByClass(string $controllerName)
     {
-        $controller = new $controllerName();
+        $controller           = new $controllerName();
         $reflectionController = new ReflectionClass($controller);
-        $methods = $reflectionController->getMethods();
-        $lenMethods = count($methods);
+        $methods              = $reflectionController->getMethods();
+        $lenMethods           = count($methods);
         for ($i = 0; $i < $lenMethods; $i++) {
             $method = $methods[$i];
             for ($rTypeIndex = 0; $rTypeIndex < self::ROUTE_TYPE_LENGTH; $rTypeIndex++) {
-                $rType = self::ROUTE_TYPE[$rTypeIndex];
+                $rType      = self::ROUTE_TYPE[$rTypeIndex];
                 $attributes = $method->getAttributes($rType);
                 if (isset($attributes[0])) {
                     $lenAttributes = count($attributes);
                     for ($j = 0; $j < $lenAttributes; $j++) {
-                        $attribute = $attributes[$j];
+                        $attribute  = $attributes[$j];
                         $methodName = $method->getName();
                         // RouteRequestAttr
                         $attrRoute = $attribute->newInstance();

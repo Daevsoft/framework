@@ -1,14 +1,14 @@
 <?php
-
 namespace Ds\Foundations\Session;
 
 use Ds\Foundations\Provider;
 
 class SessionProvider implements Provider
 {
-    public function run() {}
+    public function run($param = null)
+    {}
     public function install()
     {
-        session_start();
+        SessionManager::init();
     }
 }
