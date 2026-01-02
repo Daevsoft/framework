@@ -92,6 +92,7 @@ class Scheme extends SqlTexter
     private function saveMigration(array $data)
     {
         $data['batch'] = $this->migration->getBatch($this->migrationFilename);
+        
         MigrationModel::save($data);
     }
     private function isWasExecuted($data): bool

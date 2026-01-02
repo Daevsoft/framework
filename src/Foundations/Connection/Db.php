@@ -60,9 +60,6 @@ class Db
      */
     private $additionalParameters;
     /**
-     * @var Db
-     */
-    /**
      * sql query
      *
      * @var string
@@ -1261,7 +1258,7 @@ class Db
         try {
             $this->getConnection();
             $this->generateQuery();
-            $this->statement = $this->connection->prepare(query: $this->query);
+            $this->statement = $this->connection->prepare($this->query);
             $this->attachParameter();
             $result = $this->statement->execute();
             $this->clear();

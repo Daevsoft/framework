@@ -251,11 +251,14 @@ class SqlModel
 
             $this->dbUtils->addParameter($_value);
         }
+        var_dump('Start execute.......');
         $execute = $this->dbUtils->execute();
+        var_dump([$this->query]);
         if ($this->sqlModelType == Db::INSERT) {
             $execute = $this->dbUtils->getLastId();
         }
         $this->clear();
+        var_dump('Done execute.......');
         return $execute;
     }
 

@@ -18,13 +18,19 @@ class MigrationModel extends DsModel
     }
     public function tableExist()
     {
-        $tables = $this->query('SHOW TABLES')->get_object();
-        foreach ($tables as $key => $value) {
-            $tableName = array_values((array) $value)[0];
-            if ($tableName == $this->table) {
-                return true;
-            }
+        try {
+            $this->query('select 1 from ' . $this->table)->get_object();
+            return true;
+        } catch (\Throwable $th) {
+            return false;
         }
-        return false;
+        // $tables = $this->query('SHOW TABLES')->get_object();
+        // foreach ($tables as $key => $value) {
+        //     $tableName = array_values((array) $value)[0];
+        //     if ($tableName == $this->table) {
+        //         return true;
+        //     }
+        // }
+        // return false;
     }
 }

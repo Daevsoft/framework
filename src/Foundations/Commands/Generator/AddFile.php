@@ -117,7 +117,7 @@ class AddFile extends Runner
         '{MigrationName}' => $file
       ]);
 
-      $_filenames = date('Y_m_d_').'create_table_' . $_filenames;
+      $_filenames = date('Y_m_d_his_') . $_filenames;
 
       $this->createFile($_filenames, Dir::$MIGRATIONS, $source);
     }

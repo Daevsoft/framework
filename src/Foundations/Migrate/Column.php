@@ -106,7 +106,10 @@ class Column extends SqlTexter
     }
     public function id($name = 'id')
     {
-        $this->int($name)->notNull()->autoincrement()->primaryKey();
+        $this->int($name)->primaryKey()->autoincrement();
+        // if( Env::get('DB_DRIVER') != SQLITE) {
+        //     $this->notNull();
+        // }
         return $this;
     }
     public function notNull($default = null)

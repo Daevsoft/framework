@@ -311,8 +311,7 @@ class DsModel extends Collection
      */
     public function like($column, $value)
     {
-        $this->connection = $this->where($column, ' LIKE ', $value);
-        return $this;
+        return $this->where($column, ' LIKE ', $value);
     }
     /**
      * orLike
@@ -323,8 +322,7 @@ class DsModel extends Collection
      */
     public function orLike($column, $value)
     {
-        $this->connection = $this->or($column, ' LIKE ', $value);
-        return $this;
+        return $this->or($column, ' LIKE ', $value);
     }
     // // where x = y
     public function equal($column, $value)

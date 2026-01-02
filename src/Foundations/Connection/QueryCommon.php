@@ -210,13 +210,15 @@ trait QueryCommon
         $this->ssl_verify = Env::get('SSL_VERIFY', false);
 
         try {
-            if (empty($this->database)) {
+            if (empty($this->database) && 
+                $this->driver != SQLITE) {
                 throw new dsException('Database not found!');
             }
             if (
                 $this->driver == MYSQL ||
                 $this->driver == POSTGRE ||
-                $this->driver == SQLSERV
+                $this->driver == SQLSERV || 
+                $this->driver == SQLITE
             ) {
                 $this->setup();
             } else {
@@ -237,6 +239,14 @@ trait QueryCommon
             case SQLSERV:
                 $this->setBehavior('[', ']');
                 break;
+            case POSTGRE:
+                $this->setBehavior('"', '"');
+                break;
+            case SQLITE:
+                $this->setBehavior('"', '"');
+                break;
+            default:
+                throw new dsException('Database provider not supported');
         }
     }
 }

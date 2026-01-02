@@ -8,7 +8,7 @@ return new class implements Migrations
 {
   public function up(Scheme $scheme)
   {
-    $scheme->createTable('{MigrationName}',
+    $scheme->createTable('your_table_name',
       function (Column $column) {
         $column
           ->id()
