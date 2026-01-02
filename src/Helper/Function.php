@@ -24,11 +24,6 @@ function view($viewname = 'index', $data = [], $slots = null)
     }
     $contents = ob_get_contents();
     ob_end_clean();
-    if (Ds::$appEngine == 'swoole') {
-        // Swoole handle exception
-        return $contents;
-    }
-
     if (Ds::$appEngine != 'swoole') {
         echo $contents;
         return;

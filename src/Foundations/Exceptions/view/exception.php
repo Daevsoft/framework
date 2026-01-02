@@ -1,9 +1,7 @@
 <?php
 
-use Ds\Foundations\Common\File;
 use Ds\Foundations\Config\Env;
 
-use function Ds\Base\App\Config\env;
 ?>
 
 <!DOCTYPE html>
@@ -15,10 +13,6 @@ use function Ds\Base\App\Config\env;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exceptions</title>
     <style>
-        <?php
-        echo (new File(__DIR__ . '/src/prism.css'))->getContent();
-        echo (new File(__DIR__ . '/src/error.css'))->getContent();
-        ?>
     </style>
     <style>
     </style>
@@ -42,9 +36,6 @@ use function Ds\Base\App\Config\env;
         }
     </script>
     <script>
-        <?php
-        echo (new File(__DIR__ . '/src/prism.js'))->getContent();
-        ?>
     </script>
 </head>
 
