@@ -1,0 +1,19 @@
+{
+    "name": "dsframework/dsframework4",
+    "description": "PHP DsFramework 4",
+    "type": "framework",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Ds\\": "core/",
+            "App\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Daevsoft"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
