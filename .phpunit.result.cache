@@ -1,0 +1,1 @@
+{"version":2,"defects":{"Tests\\Routing\\AppTest::testAppLifecycle":7},"times":{"Tests\\Routing\\AppTest::testAppLifecycle":0.003,"Tests\\Routing\\RouterTest::testAddAndMatchBasicRoute":0.002,"Tests\\Routing\\RouterTest::testDslRouteRegistration":0.002}}

@@ -1,11 +1,25 @@
 <?php
 
-use Ds\Http\Kernel;
+require __DIR__ . '/../../vendor/autoload.php';
 
-$kernel = $app->make(Kernel::class);
+use Ds\Http\Request;
+use App\Http\Kernel as AppKernel;
+use App\Support\RouteRegistry;
+use Ds\Routing\Router;
+
+// Load routes first so the DSL populates the registry
+require __DIR__ . '/../routes/web.php';
+
+$router = RouteRegistry::getRouter();
+if ($router === null) {
+    $router = new Router();
+    RouteRegistry::setRouter($router);
+}
+
+$kernel = new AppKernel($router);
 
 $response = $kernel->handle(
-    Ds\Http\Request::capture()
+    Request::capture()
 );
 
 $response->send();

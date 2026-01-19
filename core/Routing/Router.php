@@ -17,6 +17,18 @@ class Router
     {
         return (new RouteMatcher())->match($method, $path, $this->routes);
     }
+
+    // Convenience helpers
+    public function get(string $path, mixed $handler): void {
+        $this->add('GET', $path, $handler);
+    }
+    public function post(string $path, mixed $handler): void {
+        $this->add('POST', $path, $handler);
+    }
+    public function put(string $path, mixed $handler): void {
+        $this->add('PUT', $path, $handler);
+    }
+    public function delete(string $path, mixed $handler): void {
+        $this->add('DELETE', $path, $handler);
+    }
 }
-
-

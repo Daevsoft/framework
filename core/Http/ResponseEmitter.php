@@ -8,8 +8,12 @@ class ResponseEmitter
 {
     public function emit(Response $response): void
     {
-        // Emit HTTP response ke client (header + body).
+        http_response_code($response->status());
+        foreach ($response->headers() as $name => $value) {
+            header("{$name}: {$value}");
+        }
+        echo $response->body();
     }
-}
 
+}
 

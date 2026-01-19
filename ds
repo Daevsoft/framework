@@ -1,0 +1,10 @@
+<?php
+require __DIR__ . '/vendor/autoload.php';
+$cmd = $argv[1] ?? '';
+if ($cmd === 'serve') {
+    $host = ($_ENV['APP_HOST'] ?? '127.0.0.1');
+    $port = ($_ENV['APP_PORT'] ?? '8000');
+    echo "Serving on http://$host:$port (FPM-mode) ...\n";
+    // Use PHP built-in server for now
+    system("php -S $host:$port -t public");
+}
