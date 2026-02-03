@@ -76,4 +76,13 @@ class Container
         }
         return $object;
     }
+
+    public function has(string $abstract): bool
+    {
+        return $this->bindings->has($abstract);
+    }
+    public function get(string $abstract): mixed
+    {
+        return $this->bindings->get($abstract);
+    }
 }

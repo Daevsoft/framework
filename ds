@@ -1,10 +1,26 @@
+#!/usr/bin/env php
 <?php
+
+declare(strict_types=1);
+
 require __DIR__ . '/vendor/autoload.php';
-$cmd = $argv[1] ?? '';
-if ($cmd === 'serve') {
-    $host = ($_ENV['APP_HOST'] ?? '127.0.0.1');
-    $port = ($_ENV['APP_PORT'] ?? '8000');
-    echo "Serving on http://$host:$port (FPM-mode) ...\n";
-    // Use PHP built-in server for now
-    system("php -S $host:$port -t public");
+
+// Load environment variables
+$env = __DIR__ . '/.env';
+if (file_exists($env)) {
+    $lines = file($env, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '#') === 0) continue;
+        if (strpos($line, '=') === false) continue;
+        
+        list($key, $value) = explode('=', $line, 2);
+        $_ENV[trim($key)] = trim($value);
+    }
 }
+
+// Load helper functions
+require __DIR__ . '/app/support/helpers.php';
+
+// Create kernel and handle console input
+$kernel = new \App\Console\Kernel();
+exit($kernel->handle($argv));

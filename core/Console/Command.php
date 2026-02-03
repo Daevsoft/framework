@@ -7,6 +7,10 @@ namespace Ds\Console;
 abstract class Command
 {
     /**
+     * Command parameters
+     */
+    protected array $parameters = [];
+    /**
      * Command name
      */
     protected string $name = '';
@@ -22,12 +26,20 @@ abstract class Command
     abstract public function handle(): int;
 
     /**
+     * Set command parameters
+     */
+    public function setParameters(array $parameters): void{
+        $this->parameters = $parameters;
+    }
+
+    /**
      * Ask for user input
      */
-    protected function ask(string $question): string
+    protected function ask(string $question, string $default = ''): string
     {
         echo $question . ' ';
-        return trim(fgets(STDIN) ?: '');
+        $input = trim(fgets(STDIN) ?: '');
+        return $input !== '' ? $input : $default;
     }
 
     /**
@@ -44,6 +56,14 @@ abstract class Command
     protected function error(string $message): void
     {
         echo "\033[31m" . $message . "\033[0m\n";
+    }
+
+    /**
+     * Get command parameters
+     */
+    public function getParameters(): array
+    {
+        return $this->parameters;
     }
 
     /**

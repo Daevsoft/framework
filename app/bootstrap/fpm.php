@@ -5,10 +5,14 @@ require __DIR__ . '/../../vendor/autoload.php';
 use Ds\Http\Request;
 use App\Http\Kernel as AppKernel;
 use App\Support\RouteRegistry;
+use Ds\Container\Container;
 use Ds\Routing\Router;
 
 // Load routes first so the DSL populates the registry
 require __DIR__ . '/../routes/web.php';
+
+
+$container = new Container();
 
 $router = RouteRegistry::getRouter();
 if ($router === null) {
@@ -16,7 +20,7 @@ if ($router === null) {
     RouteRegistry::setRouter($router);
 }
 
-$kernel = new AppKernel($router);
+$kernel = new AppKernel($router, $container);
 
 $response = $kernel->handle(
     Request::capture()

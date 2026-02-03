@@ -17,6 +17,10 @@ class Bindings
     {
         return $this->bindings[$abstract] ?? null;
     }
+    public function has(string $abstract): bool
+    {
+        return isset($this->bindings[$abstract]);
+    }
 }
 
 

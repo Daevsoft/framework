@@ -6,6 +6,7 @@ namespace App\Console;
 
 use Ds\Console\ConsoleKernel as BaseKernel;
 use App\Console\Commands\MakeDomain;
+use App\Console\Commands\Quotes;
 
 class Kernel extends BaseKernel
 {
@@ -13,7 +14,7 @@ class Kernel extends BaseKernel
      * @var array List of command classes
      */
     protected array $commands = [
-        MakeDomain::class,
+        Quotes::class,
     ];
 
     /**
