@@ -1,5 +1,5 @@
 <?php
-namespace App\\Http\\Attributes;
+namespace App\Http\Attributes;
 
 use Attribute;
 
