@@ -24,8 +24,14 @@ final class AddTest extends GeneratorCommand
             foreach ($names as $name) {
                 $segments = $this->segments($name);
                 $class = $this->className($segments, 'Test');
-                $relative = 'tests/' . ($unit ? 'Unit/' : 'Feature/') . implode('/', array_slice($segments, 0, -1)) . ($segments === [] ? '' : '/') . $class . '.php';
-                $content = "<?php\n\ndeclare(strict_types=1);\n\nnamespace Tests\\" . ($unit ? 'Unit' : 'Feature') . ";\n\nuse PHPUnit\\Framework\\TestCase;\n\nfinal class {$class} extends TestCase\n{\n    public function testExample(): void\n    {\n        self::assertTrue(true);\n    }\n}\n";
+                $subdirectories = array_slice($segments, 0, -1);
+                $folder = $unit ? 'Unit' : 'Feature';
+                $relative = 'tests/' . $folder . '/'
+                    . ($subdirectories === [] ? '' : implode('/', $subdirectories) . '/')
+                    . $class . '.php';
+                $namespace = 'Tests\\' . $folder
+                    . ($subdirectories === [] ? '' : '\\' . implode('\\', $subdirectories));
+                $content = "<?php\n\ndeclare(strict_types=1);\n\nnamespace {$namespace};\n\nuse PHPUnit\\Framework\\TestCase;\n\nfinal class {$class} extends TestCase\n{\n    public function testExample(): void\n    {\n        self::assertTrue(true);\n    }\n}\n";
                 $this->write($relative, $content);
             }
 
