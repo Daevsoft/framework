@@ -55,6 +55,7 @@ final class PieCompiler
     public function compileSource(string $source, string $origin = '<string>'): string
     {
         $source = $this->expandLayouts($source, $origin, 0);
+        $source = $this->applySlots($source);
         $source = $this->compileEchoStatements($source);
         $source = $this->compileDirectives($source);
 
@@ -68,7 +69,7 @@ final class PieCompiler
         }
 
         if (preg_match_all('/@use\(\s*[\'"]([^\'"]+)[\'"]\s*\)/', $source, $matches) === 0) {
-            return $this->applySlots($source);
+            return $source;
         }
 
         foreach ($matches[0] as $index => $directive) {
@@ -82,7 +83,7 @@ final class PieCompiler
             $source = str_replace($directive, $layoutSource, $source);
         }
 
-        return $this->applySlots($source);
+        return $source;
     }
 
     private function applySlots(string $source): string
