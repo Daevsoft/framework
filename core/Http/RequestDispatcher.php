@@ -37,7 +37,6 @@ final class RequestDispatcher
         try {
             $destination = fn (Request $current): Response => $this->dispatchHandler($route, $current);
 
-            // Avoid building a middleware pipeline for the common no-middleware route.
             if ($route->middlewares === []) {
                 return $destination($request);
             }
@@ -62,7 +61,7 @@ final class RequestDispatcher
     private function dispatchHandler(Route $route, Request $request): Response
     {
         $handler = $route->handler;
-        $routeParams = array_values($route->params);
+        $routeParams = $route->params;
 
         if (is_array($handler) && count($handler) === 2 && is_string($handler[0])) {
             $controller = $this->resolveController($handler[0]);
@@ -100,12 +99,7 @@ final class RequestDispatcher
         $key = $controller::class . '::' . $method;
         $reflection = $this->methodReflectionCache[$key] ??= new ReflectionMethod($controller, $method);
 
-        $first = $reflection->getParameters()[0] ?? null;
-        $type = $first?->getType();
-        $expectsRequest = ($type instanceof ReflectionNamedType && ($type->getName() === Request::class || is_a($type->getName(), Request::class, true)))
-            || ($first !== null && in_array(strtolower($first->getName()), ['request', 'req'], true));
-
-        return $controller->{$method}(...$this->buildArguments($reflection, $request, $params, $expectsRequest));
+        return $controller->{$method}(...$this->buildArguments($reflection, $request, $params));
     }
 
     protected function invokeCallable(callable $handler, Request $request, array $params): mixed
@@ -122,41 +116,51 @@ final class RequestDispatcher
             $reflection = $this->closureReflectionCache[$id] ??= new ReflectionFunction($closure);
         }
 
-        $first = $reflection->getParameters()[0] ?? null;
-        $type = $first?->getType();
-        $expectsRequest = ($type instanceof ReflectionNamedType && ($type->getName() === Request::class || is_a($type->getName(), Request::class, true)))
-            || ($first !== null && in_array(strtolower($first->getName()), ['request', 'req'], true));
-
-        return $handler(...$this->buildArguments($reflection, $request, $params, $expectsRequest));
+        return $handler(...$this->buildArguments($reflection, $request, $params));
     }
 
+    /**
+     * Bind route values by parameter name first, then by declaration order.
+     * Request injection is type-based and may appear before or after route values.
+     *
+     * @param array<string|int, mixed> $params
+     */
     protected function buildArguments(
         ReflectionMethod|ReflectionFunction $reflection,
         Request $request,
-        array $params,
-        bool $prependRequest
+        array $params
     ): array {
-        $arguments = $prependRequest ? [$request] : [];
-        $parameters = $reflection->getParameters();
-        $offset = $prependRequest ? 1 : 0;
+        $arguments = [];
+        $positional = array_values($params);
+        $routeIndex = 0;
 
-        foreach (array_slice($parameters, $offset) as $index => $parameter) {
-            if (array_key_exists($index, $params)) {
-                $value = $params[$index];
-                $type = $parameter->getType();
-                if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
-                    $value = ($type->getName() === Request::class || is_a($type->getName(), Request::class, true)) ? $request : $value;
-                } elseif ($type instanceof ReflectionNamedType && $type->isBuiltin()) {
-                    $value = match ($type->getName()) {
-                        'int' => (int) $value,
-                        'float' => (float) $value,
-                        'bool' => filter_var($value, FILTER_VALIDATE_BOOL),
-                        'string' => (string) $value,
-                        default => $value,
-                    };
-                }
-                $arguments[] = $value;
-            } elseif ($parameter->isDefaultValueAvailable()) {
+        foreach ($reflection->getParameters() as $index => $parameter) {
+            $type = $parameter->getType();
+            $typeName = $type instanceof ReflectionNamedType ? $type->getName() : null;
+            $isRequest = $typeName !== null
+                && !$type->isBuiltin()
+                && ($typeName === Request::class || is_a($typeName, Request::class, true));
+
+            // Preserve the conventional untyped $request / $req first argument.
+            if ($isRequest || ($index === 0 && in_array(strtolower($parameter->getName()), ['request', 'req'], true))) {
+                $arguments[] = $request;
+                continue;
+            }
+
+            if (array_key_exists($parameter->getName(), $params)) {
+                $value = $params[$parameter->getName()];
+                $routeIndex++;
+                $arguments[] = $this->castRouteValue($value, $type);
+                continue;
+            }
+
+            if (array_key_exists($routeIndex, $positional)) {
+                $value = $positional[$routeIndex++];
+                $arguments[] = $this->castRouteValue($value, $type);
+                continue;
+            }
+
+            if ($parameter->isDefaultValueAvailable()) {
                 $arguments[] = $parameter->getDefaultValue();
             } elseif ($parameter->allowsNull()) {
                 $arguments[] = null;
@@ -164,6 +168,21 @@ final class RequestDispatcher
         }
 
         return $arguments;
+    }
+
+    private function castRouteValue(mixed $value, mixed $type): mixed
+    {
+        if (!$type instanceof ReflectionNamedType || !$type->isBuiltin()) {
+            return $value;
+        }
+
+        return match ($type->getName()) {
+            'int' => (int) $value,
+            'float' => (float) $value,
+            'bool' => filter_var($value, FILTER_VALIDATE_BOOL),
+            'string' => (string) $value,
+            default => $value,
+        };
     }
 
     protected function toResponse(mixed $result): Response
