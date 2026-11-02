@@ -96,6 +96,7 @@ SERVER_PORT=8000
 SWOOLE_WORKERS=4
 SWOOLE_TASK_WORKERS=0
 SWOOLE_MAX_REQUEST=10000
+SWOOLE_MAX_PACKAGE_SIZE=2097152
 ```
 
 Process-manager environment variables take precedence over `.env`.
