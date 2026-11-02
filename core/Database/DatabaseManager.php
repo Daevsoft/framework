@@ -98,6 +98,9 @@ final class DatabaseManager
     public function shutdown(): void
     {
         $this->localConnection = null;
+        if (self::$defaultManager === $this) {
+            self::$defaultManager = null;
+        }
         foreach (self::$channels as $channel) {
             if (is_object($channel) && method_exists($channel, 'close')) {
                 $channel->close();
