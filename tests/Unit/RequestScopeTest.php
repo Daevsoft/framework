@@ -42,7 +42,7 @@ final class RequestScopeTest extends TestCase
                 $first = $container->make(RequestScopedTestService::class);
                 \Swoole\Coroutine::sleep(0.01);
                 $second = $container->make(RequestScopedTestService::class);
-                $results['a'] = spl_object_id($first) === spl_object_id($second);
+                $results['a'] = [$first, $second];
                 $container->endRequest();
             });
 
@@ -51,13 +51,14 @@ final class RequestScopeTest extends TestCase
                 $first = $container->make(RequestScopedTestService::class);
                 \Swoole\Coroutine::sleep(0.01);
                 $second = $container->make(RequestScopedTestService::class);
-                $results['b'] = spl_object_id($first) === spl_object_id($second);
+                $results['b'] = [$first, $second];
                 $container->endRequest();
             });
         });
 
-        self::assertTrue($results['a'] ?? false);
-        self::assertTrue($results['b'] ?? false);
+        self::assertSame($results['a'][0] ?? null, $results['a'][1] ?? null);
+        self::assertSame($results['b'][0] ?? null, $results['b'][1] ?? null);
+        self::assertNotSame($results['a'][0] ?? null, $results['b'][0] ?? null);
     }
 }
 
