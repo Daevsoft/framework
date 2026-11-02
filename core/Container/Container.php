@@ -115,6 +115,10 @@ final class Container
         if ($scope === 'singleton') {
             $this->instances[$abstract] = $object;
         } elseif ($scope === 'request') {
+            // A nested dependency may have populated this cache while the
+            // current object was being constructed. Merge into the latest
+            // coroutine-local cache instead of overwriting those entries.
+            $requestCache = $this->requestContext()->get('container.request_instances', []);
             $requestCache[$abstract] = $object;
             $this->requestContext()->set('container.request_instances', $requestCache);
         }
