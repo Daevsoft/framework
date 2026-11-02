@@ -129,6 +129,10 @@ SWOOLE_MAX_CONN=1024
 
 Tune worker counts against CPU, memory, and workload. Use `SWOOLE_MAX_REQUEST` as a safety valve for worker recycling, not as a substitute for fixing leaks.
 
+## Middleware
+
+Register global middleware once during bootstrap through the container-managed stack. Middleware can be a class implementing `Ds\Middleware\MiddlewareInterface` or a callable. The built-in CORS middleware uses immutable response headers. The authentication middleware is a fail-closed placeholder (HTTP 501), not a production authentication system.
+
 ## Dependency lifetimes
 
 The container supports transient, singleton, and request-scoped services:
