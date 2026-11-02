@@ -56,6 +56,7 @@ final class PieCompiler
     {
         $source = $this->expandLayouts($source, $origin, 0);
         $source = $this->applySlots($source);
+        $source = $this->expandImports($source, $origin, 0);
         $source = $this->compileEchoStatements($source);
         return $this->compileDirectives($source);
     }
@@ -102,6 +103,64 @@ final class PieCompiler
         }
 
         return preg_replace('/@slot\(\s*[\'"][^\'"]+[\'"]\s*\)/', '', $source) ?? $source;
+    }
+
+    private function expandImports(string $source, string $origin, int $depth): string
+    {
+        if ($depth > 16) {
+            throw new RuntimeException("PieTemplate import nesting exceeded 16 levels in {$origin}.");
+        }
+
+        if (preg_match_all(
+            '/@import\(\s*([\'"])([^\'"]+)\1\s*,\s*([\'"])([A-Za-z_][A-Za-z0-9_]*)\3\s*\)/',
+            $source,
+            $imports,
+            PREG_SET_ORDER
+        ) === false) {
+            return $source;
+        }
+
+        foreach ($imports as $import) {
+            $filename = $this->resolveView($import[2]);
+            $componentSource = file_get_contents($filename);
+            if ($componentSource === false) {
+                throw new RuntimeException("Unable to read PieTemplate import: {$filename}");
+            }
+
+            if (preg_match_all(
+                '/@pie\(\s*([\'"])(.*?)\1\s*\)(.*?)@endpie/s',
+                $componentSource,
+                $definitions,
+                PREG_SET_ORDER
+            ) === false) {
+                throw new RuntimeException("Unable to parse PieTemplate import: {$filename}");
+            }
+
+            $components = [];
+            foreach ($definitions as $definition) {
+                $components[$definition[2]] = $definition[3];
+            }
+
+            $alias = $import[4];
+            $pattern = '/@' . preg_quote($alias, '/') . '\(\s*([\'"])(.*?)\1\s*\)/s';
+            $source = preg_replace_callback(
+                $pattern,
+                static function (array $match) use ($components, $alias, $filename): string {
+                    if (!array_key_exists($match[2], $components)) {
+                        throw new RuntimeException(
+                            "PieTemplate component [{$alias}({$match[2]})] was not found in {$filename}."
+                        );
+                    }
+
+                    return $components[$match[2]];
+                },
+                $source
+            ) ?? $source;
+
+            $source = str_replace($import[0], '', $source);
+        }
+
+        return $source;
     }
 
     private function compileEchoStatements(string $source): string
