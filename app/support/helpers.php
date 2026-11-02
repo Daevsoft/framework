@@ -96,6 +96,79 @@ if (!function_exists('public_path')) {
 
 
 
+
+if (!function_exists('session')) {
+    function session(string|array|null $key = null, mixed $default = null): mixed
+    {
+        $manager = \\Ds\\Context\\Context::default()->get('session');
+        if ($manager === null) {
+            throw new \\RuntimeException('Session access requires SessionMiddleware.');
+        }
+
+        if (is_array($key)) {
+            foreach ($key as $name => $value) {
+                $manager->put((string) $name, $value);
+            }
+            return null;
+        }
+
+        return $key === null ? $manager->all() : $manager->get($key, $default);
+    }
+}
+
+if (!function_exists('unsession')) {
+    function unsession(string $key): void
+    {
+        $manager = \\Ds\\Context\\Context::default()->get('session');
+        if ($manager === null) {
+            throw new \\RuntimeException('Session access requires SessionMiddleware.');
+        }
+        $manager->forget($key);
+    }
+}
+
+if (!function_exists('set_flash')) {
+    function set_flash(string $key, mixed $value): void
+    {
+        $manager = \\Ds\\Context\\Context::default()->get('session');
+        if ($manager === null) {
+            throw new \\RuntimeException('Flash data requires SessionMiddleware.');
+        }
+        $manager->flash($key, $value);
+    }
+}
+
+if (!function_exists('flash')) {
+    function flash(string $key, mixed $default = null): mixed
+    {
+        $manager = \\Ds\\Context\\Context::default()->get('session');
+        return $manager?->getFlash($key, $default) ?? $default;
+    }
+}
+
+if (!function_exists('is_flash')) {
+    function is_flash(string $key): bool
+    {
+        $manager = \\Ds\\Context\\Context::default()->get('session');
+        return $manager?->hasFlash($key) ?? false;
+    }
+}
+
+if (!function_exists('old')) {
+    function old(string $key, mixed $default = null): mixed
+    {
+        $manager = \\Ds\\Context\\Context::default()->get('session');
+        return $manager?->old($key, $default) ?? $default;
+    }
+}
+
+if (!function_exists('csrf_token')) {
+    function csrf_token(): string
+    {
+        return \\Ds\\Security\\Csrf::token();
+    }
+}
+
 if (!function_exists('db')) {
     function db(): \Ds\Database\DatabaseManager
     {
