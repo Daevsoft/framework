@@ -255,7 +255,7 @@ final class PieCompiler
         ) ?? $source;
 
         $simple = [
-            '/@else:?(?![A-Za-z_])/' => '<?php else: ?>',
+            '/@else(?![A-Za-z_]):?/' => '<?php else: ?>',
             '/@endif\b/' => '<?php endif; ?>',
             '/@endforeach\b/' => '<?php endforeach; ?>',
             '/@endfor\b/' => '<?php endfor; ?>',
@@ -263,7 +263,7 @@ final class PieCompiler
             '/@endisset\b|@endnotset\b|@endempty\b|@endnotempty\b|@endisnull\b|@endnotnull\b|@endisflash\b|@endauth\b/' => '<?php endif; ?>',
             '/@auth\b/' => '<?php if (session("user", false)): ?>',
             '/@csrf\b/' => '<input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8") ?>">',
-            '/@default:?(?![A-Za-z_])/' => '<?php default: ?>',
+            '/@default(?![A-Za-z_]):?/' => '<?php default: ?>',
             '/@break\b/' => '<?php break; ?>',
             '/@continue\b/' => '<?php continue; ?>',
             '/@endswitch\b/' => '<?php endswitch; ?>',
