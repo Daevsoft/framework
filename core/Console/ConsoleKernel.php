@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ds\Console;
 
 use Ds\Console\Commands\FpmServe;
+use Ds\Console\Commands\SwooleServe;
 use Ds\Console\Commands\MakeDomain;
 
 class ConsoleKernel
@@ -16,6 +17,7 @@ class ConsoleKernel
     ];
 
     protected array $baseCommands = [
+        SwooleServe::class,
         FpmServe::class,
         MakeDomain::class,
     ];
