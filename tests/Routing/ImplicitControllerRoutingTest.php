@@ -9,6 +9,8 @@ use App\Support\RouteRegistry;
 use Ds\Http\Request;
 use Ds\Http\RequestDispatcher;
 use Ds\Http\Response;
+use Ds\Middleware\MiddlewareInterface;
+use Ds\Middleware\MiddlewareRegistry;
 use Ds\Routing\Attributes\Get;
 use Ds\Routing\Attributes\Post;
 use Ds\Routing\Router;
