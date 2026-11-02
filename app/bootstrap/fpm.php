@@ -19,5 +19,13 @@ require dirname(__DIR__) . '/routes/api.php';
 $container = new Container();
 $container->singleton(Context::class);
 $kernel = new AppKernel($router, $container);
-$response = $kernel->handle(Request::capture());
-$response->send();
+$context = $container->make(Context::class);
+$request = Request::capture();
+$context->set('request', $request);
+
+try {
+    $response = $kernel->handle($request);
+    $response->send();
+} finally {
+    $context->clear();
+}
