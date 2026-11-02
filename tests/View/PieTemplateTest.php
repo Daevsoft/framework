@@ -82,6 +82,42 @@ final class PieTemplateTest extends TestCase
         );
     }
 
+    public function testCompilesNestedExpressionsAndElseIf(): void
+    {
+        file_put_contents(
+            $this->views . '/nested.pie.php',
+            '@if(is_array($value) && count($value) > 0):' .
+            '{{ $value[0] }}@elseif(($fallback ?? null) !== null):{{ $fallback }}@else:empty@endif'
+        );
+
+        $renderer = new ViewRenderer($this->views, $this->cache);
+        self::assertSame('first', $renderer->render('nested', [
+            'value' => ['first'],
+            'fallback' => 'backup',
+        ]));
+        self::assertSame('backup', $renderer->render('nested', [
+            'value' => [],
+            'fallback' => 'backup',
+        ]));
+        self::assertSame('empty', $renderer->render('nested', [
+            'value' => [],
+            'fallback' => null,
+        ]));
+    }
+
+    public function testCompilesSwitchCaseAndDefaultDirectives(): void
+    {
+        file_put_contents(
+            $this->views . '/switch.pie.php',
+            "@switch(\$status)@case('ready')Ready@break@case('pending')Pending@break@defaultUnknown@endswitch"
+        );
+
+        $renderer = new ViewRenderer($this->views, $this->cache);
+        self::assertSame('Ready', $renderer->render('switch', ['status' => 'ready']));
+        self::assertSame('Pending', $renderer->render('switch', ['status' => 'pending']));
+        self::assertSame('Unknown', $renderer->render('switch', ['status' => 'other']));
+    }
+
     private function removeDirectory(string $directory): void
     {
         if (!is_dir($directory)) {
