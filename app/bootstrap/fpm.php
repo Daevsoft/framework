@@ -9,6 +9,7 @@ use App\Support\RouteRegistry;
 use Ds\Container\Container;
 use Ds\Context\Context;
 use Ds\Http\Request;
+use Ds\Lifecycle\LifecycleManager;
 use Ds\Routing\Router;
 
 $router = new Router();
@@ -36,7 +37,7 @@ try {
 } finally {
     try {
         $lifecycle->emit('request.handled', ['request' => $request ?? null]);
-    } catch (\\Throwable $exception) {
+    } catch (\Throwable $exception) {
         error_log((string) $exception);
     } finally {
         $container->endRequest();
