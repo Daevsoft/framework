@@ -43,6 +43,24 @@ final class Router
         return $route;
     }
 
+    /** @return list<Route> */
+    public function all(): array
+    {
+        $routes = [];
+        foreach ($this->staticRoutes as $methodRoutes) {
+            foreach ($methodRoutes as $route) {
+                $routes[] = $route;
+            }
+        }
+        foreach ($this->dynamicRoutes as $methodRoutes) {
+            foreach ($methodRoutes as $compiled) {
+                $routes[] = $compiled['route'];
+            }
+        }
+
+        return $routes;
+    }
+
     public function match(string $method, string $path): ?Route
     {
         $method = strtoupper($method);
