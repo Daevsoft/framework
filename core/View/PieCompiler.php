@@ -8,7 +8,7 @@ use RuntimeException;
 
 final class PieCompiler
 {
-    private const VERSION = '4';
+    private const VERSION = '5';
 
     public function __construct(
         private readonly string $viewRoot,
@@ -61,6 +61,7 @@ final class PieCompiler
         $source = $this->expandLayouts($source, $origin, 0);
         $source = $this->applySlots($source);
         $source = $this->expandImports($source, $origin, 0);
+        $source = $this->expandComponents($source, $origin, 0);
         $source = $this->compileEchoStatements($source);
         return $this->compileDirectives($source);
     }
@@ -170,6 +171,243 @@ final class PieCompiler
         }
 
         return $source;
+    }
+
+    /**
+     * Expand <x-name> component nodes into isolated PHP rendering scopes.
+     * Slots are closures so their expressions execute with the caller's data,
+     * while component attributes are extracted only inside the component scope.
+     */
+    private function expandComponents(string $source, string $origin, int $depth): string
+    {
+        if ($depth > 32) {
+            throw new RuntimeException("PieTemplate component nesting exceeded 32 levels in {$origin}.");
+        }
+
+        $pattern = '/<\/?x-[A-Za-z0-9_.-]+\b[^>]*>/s';
+        $offset = 0;
+
+        while (preg_match($pattern, $source, $match, PREG_OFFSET_CAPTURE, $offset) === 1) {
+            $tagText = $match[0][0];
+            $start = $match[0][1];
+            $end = $start + strlen($tagText);
+            if (preg_match('/^<\/x-([A-Za-z0-9_.-]+)\s*>$/i', $tagText) === 1) {
+                throw new RuntimeException("Unexpected closing PieTemplate component tag in {$origin}: {$tagText}");
+            }
+
+            if (preg_match('/^<x-([A-Za-z0-9_.-]+)\b(.*?)>$/is', $tagText, $opening) !== 1) {
+                $offset = $end;
+                continue;
+            }
+
+            $tagName = $opening[1];
+            $attributesText = $opening[2];
+            $selfClosing = preg_match('/\/\s*>$/', $tagText) === 1;
+            if ($selfClosing) {
+                $inner = '';
+                $nodeEnd = $end;
+            } else {
+                $closing = $this->findComponentClosingTag($source, $tagName, $end);
+                if ($closing === null) {
+                    throw new RuntimeException("Unclosed PieTemplate component <x-{$tagName}> in {$origin}.");
+                }
+                $inner = substr($source, $end, $closing[0] - $end);
+                $nodeEnd = $closing[1];
+            }
+
+            if (strtolower($tagName) === 'slot') {
+                // x-slot nodes are meaningful only inside a component template.
+                $offset = $nodeEnd;
+                continue;
+            }
+
+            $inner = $this->expandComponents($inner, $origin, $depth + 1);
+            [$defaultSlot, $namedSlots] = $this->extractComponentSlots($inner, $origin);
+            $viewName = 'components.' . str_replace('/', '.', $tagName);
+            $filename = $this->resolveView($viewName);
+            $componentSource = file_get_contents($filename);
+            if ($componentSource === false) {
+                throw new RuntimeException("Unable to read PieTemplate component: {$filename}");
+            }
+
+            $componentSource = $this->expandLayouts($componentSource, $filename, 0);
+            $componentSource = $this->applySlots($componentSource);
+            $componentSource = $this->expandImports($componentSource, $filename, 0);
+            $componentSource = $this->replaceComponentSlots($componentSource, $filename);
+            $componentSource = $this->expandComponents($componentSource, $filename, $depth + 1);
+
+            $attributes = $this->parseComponentAttributes($attributesText);
+            $contextVariable = '$__pie_context_' . substr(hash('sha256', $origin . ':' . $start . ':' . $tagName), 0, 10);
+            $attributeCode = [];
+            foreach ($attributes as $name => $value) {
+                $attributeCode[] = var_export($name, true) . ' => ' . $value;
+            }
+
+            $slotCode = [
+                "'default' => " . $this->slotClosure($defaultSlot, $contextVariable),
+            ];
+            foreach ($namedSlots as $name => $content) {
+                $slotCode[] = var_export($name, true) . ' => ' . $this->slotClosure($content, $contextVariable);
+            }
+
+            $replacement = '<?php ' . $contextVariable . ' = get_defined_vars(); '
+                . '(static function (array $__pie_parent, array $__pie_attrs, array $__pie_slots): void { '
+                . 'extract($__pie_parent, EXTR_SKIP); extract($__pie_attrs, EXTR_OVERWRITE); ?>'
+                . $componentSource
+                . '<?php })( ' . $contextVariable . ', [' . implode(', ', $attributeCode) . '], ['
+                . implode(', ', $slotCode) . ']); unset(' . $contextVariable . '); ?>';
+
+            $source = substr_replace($source, $replacement, $start, $nodeEnd - $start);
+            $offset = $start + strlen($replacement);
+        }
+
+        return $source;
+    }
+
+    /**
+     * Find a balanced closing component tag, accounting for nested tags with
+     * the same name. Returns [closing-tag start, closing-tag end].
+     */
+    private function findComponentClosingTag(string $source, string $tagName, int $offset): ?array
+    {
+        $pattern = '/<\/?x-' . preg_quote($tagName, '/') . '\b[^>]*>/is';
+        $depth = 1;
+        while (preg_match($pattern, $source, $match, PREG_OFFSET_CAPTURE, $offset) === 1) {
+            $text = $match[0][0];
+            $start = $match[0][1];
+            $offset = $start + strlen($text);
+            if (preg_match('/^<\/x-/i', $text) === 1) {
+                if (--$depth === 0) {
+                    return [$start, $offset];
+                }
+            } elseif (preg_match('/\/\s*>$/', $text) !== 1) {
+                $depth++;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Parse named x-slot children. Remaining markup becomes the default slot.
+     *
+     * @return array{0:string,1:array<string,string>}
+     */
+    private function extractComponentSlots(string $content, string $origin): array
+    {
+        $slots = [];
+        $pattern = '/<x-slot\b([^>]*)>/is';
+        $offset = 0;
+        while (preg_match($pattern, $content, $match, PREG_OFFSET_CAPTURE, $offset) === 1) {
+            $tag = $match[0][0];
+            $start = $match[0][1];
+            $tagEnd = $start + strlen($tag);
+            $attrs = $this->parseComponentAttributes($match[1][0]);
+            $nameValue = $attrs['name'] ?? "'default'";
+            if (!is_string($nameValue) || !str_starts_with($nameValue, "'")) {
+                throw new RuntimeException("PieTemplate x-slot name must be a static string in {$origin}.");
+            }
+            $name = stripcslashes(substr($nameValue, 1, -1));
+            $selfClosing = preg_match('/\/\s*>$/', $tag) === 1;
+            if ($selfClosing) {
+                $body = '';
+                $nodeEnd = $tagEnd;
+            } else {
+                $closing = $this->findComponentClosingTag($content, 'slot', $tagEnd);
+                if ($closing === null) {
+                    throw new RuntimeException("Unclosed x-slot element in {$origin}.");
+                }
+                $body = substr($content, $tagEnd, $closing[0] - $tagEnd);
+                $nodeEnd = $closing[1];
+            }
+
+            if (array_key_exists($name, $slots)) {
+                throw new RuntimeException("Duplicate PieTemplate slot [{$name}] in {$origin}.");
+            }
+            $slots[$name] = $body;
+            $content = substr_replace($content, '', $start, $nodeEnd - $start);
+            $offset = $start;
+        }
+
+        return [$content, $slots];
+    }
+
+    /**
+     * Replace x-slot placeholders inside component templates. Fallback content
+     * is retained and rendered when the caller did not provide that slot.
+     */
+    private function replaceComponentSlots(string $source, string $origin): string
+    {
+        $pattern = '/<x-slot\b([^>]*)>/is';
+        $offset = 0;
+        while (preg_match($pattern, $source, $match, PREG_OFFSET_CAPTURE, $offset) === 1) {
+            $tag = $match[0][0];
+            $start = $match[0][1];
+            $tagEnd = $start + strlen($tag);
+            $attrs = $this->parseComponentAttributes($match[1][0]);
+            $nameExpression = $attrs['name'] ?? "'default'";
+            if (!is_string($nameExpression) || !str_starts_with($nameExpression, "'")) {
+                throw new RuntimeException("PieTemplate x-slot name must be a static string in {$origin}.");
+            }
+            $name = stripcslashes(substr($nameExpression, 1, -1));
+            $selfClosing = preg_match('/\/\s*>$/', $tag) === 1;
+            if ($selfClosing) {
+                $fallback = '';
+                $nodeEnd = $tagEnd;
+            } else {
+                $closing = $this->findComponentClosingTag($source, 'slot', $tagEnd);
+                if ($closing === null) {
+                    throw new RuntimeException("Unclosed x-slot placeholder in {$origin}.");
+                }
+                $fallback = substr($source, $tagEnd, $closing[0] - $tagEnd);
+                $nodeEnd = $closing[1];
+            }
+
+            $key = var_export($name, true);
+            $replacement = '<?php if (isset($__pie_slots[' . $key . '])) { echo $__pie_slots[' . $key . '](); } else { ?>'
+                . $fallback . '<?php } ?>';
+            $source = substr_replace($source, $replacement, $start, $nodeEnd - $start);
+            $offset = $start + strlen($replacement);
+        }
+
+        return $source;
+    }
+
+    /**
+     * Return PHP expressions keyed by component attribute name.
+     * :foo="$value" is evaluated as PHP; ordinary attributes are strings.
+     */
+    private function parseComponentAttributes(string $source): array
+    {
+        $attributes = [];
+        $pattern = '/(:?[A-Za-z_][A-Za-z0-9_.:-]*)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+)))?/';
+        if (preg_match_all($pattern, trim($source), $matches, PREG_SET_ORDER) === false) {
+            return $attributes;
+        }
+
+        foreach ($matches as $match) {
+            $name = $match[1];
+            $hasValue = isset($match[2]) || isset($match[3]) || isset($match[4]);
+            $value = $match[2] ?? $match[3] ?? $match[4] ?? null;
+            if (str_starts_with($name, ':')) {
+                if (!$hasValue || trim((string) $value) === '') {
+                    throw new RuntimeException("Dynamic PieTemplate attribute [{$name}] requires a PHP expression.");
+                }
+                $attributes[substr($name, 1)] = '(' . $value . ')';
+            } else {
+                $attributes[$name] = var_export($hasValue ? $value : true, true);
+            }
+        }
+
+        return $attributes;
+    }
+
+    private function slotClosure(string $content, string $contextVariable): string
+    {
+        return 'static function () use (' . $contextVariable . ') { '
+            . 'extract(' . $contextVariable . ', EXTR_SKIP); ob_start(); ?>'
+            . $content
+            . '<?php return (string) ob_get_clean(); }';
     }
 
     private function compileEchoStatements(string $source): string
