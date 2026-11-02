@@ -21,9 +21,11 @@ final class MiddlewarePipeline
             array_reverse($this->stack->all()),
             static function (callable $next, callable|MiddlewareInterface $middleware): callable {
                 return static function (Request $current) use ($middleware, $next): Response {
-                    return $middleware instanceof MiddlewareInterface
+                    $response = $middleware instanceof MiddlewareInterface
                         ? $middleware->handle($current, $next)
                         : $middleware($current, $next);
+
+                    return $response ?? Response::text('Forbidden', 403);
                 };
             },
             $destination
