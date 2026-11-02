@@ -12,7 +12,8 @@
             "App\\Console\\": "app/console/",
             "App\\Plugins\\": "app/plugins/",
             "App\\Broadcasting\\": "app/broadcasting/",
-            "App\\": "app/"
+            "App\\": "app/",
+            "App\\Models\\": "app/models/"
         }
     },
     "authors": [
