@@ -36,6 +36,8 @@ try {
 } finally {
     try {
         $lifecycle->emit('request.handled', ['request' => $request ?? null]);
+    } catch (\\Throwable $exception) {
+        error_log((string) $exception);
     } finally {
         $container->endRequest();
     }
