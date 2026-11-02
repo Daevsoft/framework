@@ -10,6 +10,7 @@ use Ds\Middleware\MiddlewareStack;
 use Ds\Pool\PoolManager;
 use Ds\Routing\Router;
 use Ds\Server\SwooleServer;
+use Ds\Tasks\Scheduler;
 
 $router = new Router();
 RouteRegistry::setRouter($router);
@@ -22,6 +23,7 @@ $container = new Container();
 $container->instance(LifecycleManager::class, new LifecycleManager());
 $container->instance(MiddlewareStack::class, new MiddlewareStack());
 $container->singleton(PoolManager::class);
+$container->singleton(Scheduler::class);
 $kernel = new AppKernel($router, $container);
 
 $host = (string) env('SERVER_HOST', '127.0.0.1');
