@@ -84,7 +84,8 @@ abstract class Model
             return $this->table;
         }
 
-        $class = (new \ReflectionClass($this))->getShortName();
+        $parts = explode('\\', static::class);
+        $class = end($parts);
         $class = preg_replace('/Model$/', '', $class) ?? $class;
         $snake = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $class));
 
