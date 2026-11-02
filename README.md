@@ -164,6 +164,8 @@ return response()->html(view('pages.home', [
 - `@use('layout')`, `@slot('name')`, and `@part('name')...@endpart` compose layouts.
 - `@if`, `@elseif`, `@else`, `@endif`, `@foreach`, `@endforeach`, `@for`, `@endfor`, `@while`, `@endwhile`, and switch directives provide control flow.
 - `@join('partials.card')` renders a partial view.
+- `@import('components.buttons', 'button')` imports named `@pie('primary')...@endpie` snippets and exposes them as `@button('primary')`; imported paths are constrained to the view directory.
+- Legacy helpers remain available: `@auth...@endauth`, `@isflash('notice')...@endisflash`, `@flash(...)`, `@error(...)`, `@old(...)`, `@csrf`, `@css(...)`, and `@js(...)`.
 
 PieTemplate files are trusted PHP templates, not a sandbox. Use escaped output for user-controlled content. The old v3 experimental `<x-...>` component parser contained debugging exits and is not copied; a proper component system will be added separately.
 
