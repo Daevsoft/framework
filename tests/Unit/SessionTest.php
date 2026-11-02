@@ -7,6 +7,8 @@ namespace Tests\Unit;
 use Ds\Context\Context;
 use Ds\Http\Request;
 use Ds\Http\Response;
+use Ds\Middleware\CsrfMiddleware;
+use Ds\Middleware\SessionMiddleware;
 use Ds\Security\Csrf;
 use Ds\Session\SessionManager;
 use PHPUnit\Framework\TestCase;
@@ -83,6 +85,56 @@ final class SessionTest extends TestCase
         $token = Csrf::token();
         self::assertTrue(Csrf::verify($token));
         self::assertFalse(Csrf::verify('invalid-token'));
+    }
+
+    public function testSessionMiddlewarePersistsDataAndAddsCookie(): void
+    {
+        $middleware = new SessionMiddleware($this->directory);
+        $first = $middleware->handle(
+            new Request([], [], 'GET', '/'),
+            static function (): Response {
+                session(['user_id' => 77]);
+                return Response::text('created');
+            }
+        );
+
+        $cookie = $first->headers()['Set-Cookie'];
+        self::assertStringContainsString('DSF_SESSID=', $cookie);
+
+        $second = $middleware->handle(
+            new Request([], ['cookie' => $cookie], 'GET', '/'),
+            static fn (): Response => Response::text((string) session('user_id'))
+        );
+
+        self::assertSame('77', $second->body());
+    }
+
+    public function testCsrfMiddlewareRejectsUnsafeRequestsWithoutValidToken(): void
+    {
+        $_ENV['APP_KEY'] = str_repeat('s', 32);
+        $session = SessionManager::start(new Request(), $this->directory);
+        Context::default()->set('session', $session);
+        $middleware = new CsrfMiddleware();
+        $called = false;
+
+        $rejected = $middleware->handle(
+            new Request([], [], 'POST', '/submit'),
+            static function () use (&$called): Response {
+                $called = true;
+                return Response::ok();
+            }
+        );
+
+        self::assertSame(419, $rejected->status());
+        self::assertFalse($called);
+
+        $token = Csrf::token();
+        $accepted = $middleware->handle(
+            new Request([], ['x-csrf-token' => $token], 'POST', '/submit'),
+            static fn (): Response => Response::ok()
+        );
+
+        self::assertSame(200, $accepted->status());
     }
 
     public function testDestroyExpiresTheSessionCookie(): void
