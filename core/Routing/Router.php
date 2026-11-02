@@ -6,59 +6,63 @@ namespace Ds\Routing;
 
 final class Router
 {
-    /** @var list<Route> */
-    protected array $routes = [];
-
     /** @var array<string, array<string, Route>> */
     protected array $staticRoutes = [];
+
+    /** @var array<string, list<array{route:Route, pattern:string, names:array<int,string>}>> */
+    protected array $dynamicRoutes = [];
 
     public function add(string $method, string $path, mixed $handler): void
     {
         $method = strtoupper($method);
         $path = self::normalizePath($path);
         $route = new Route($method, $path, $handler);
-        $this->routes[] = $route;
 
-        // Cache exact routes for the common, parameter-free fast path.
         if (!str_contains($path, '{')) {
             $this->staticRoutes[$method][$path] = $route;
+            return;
         }
+
+        $names = [];
+        $quoted = preg_quote($path, '~');
+        $pattern = preg_replace_callback(
+            '~\\\\\\{([A-Za-z_][A-Za-z0-9_]*)\\\\\\}~',
+            static function (array $matches) use (&$names): string {
+                $names[] = $matches[1];
+                return '([^/]+)';
+            },
+            $quoted
+        );
+
+        $this->dynamicRoutes[$method][] = [
+            'route' => $route,
+            'pattern' => '~^' . $pattern . '$~D',
+            'names' => $names,
+        ];
     }
 
     public function match(string $method, string $path): ?Route
     {
         $method = strtoupper($method);
-        $path = self::normalizePath($path);
+        $path = self::normalizePath(parse_url($path, PHP_URL_PATH) ?: '/');
 
         if (isset($this->staticRoutes[$method][$path])) {
             return $this->staticRoutes[$method][$path];
         }
 
-        foreach ($this->routes as $route) {
-            if ($route->method !== $method || !str_contains($route->path, '{')) {
+        foreach ($this->dynamicRoutes[$method] ?? [] as $compiled) {
+            if (preg_match($compiled['pattern'], $path, $matches) !== 1) {
                 continue;
             }
 
-            $names = [];
-            $quoted = preg_quote($route->path, '~');
-            $pattern = preg_replace_callback(
-                '~\\\\\{([A-Za-z_][A-Za-z0-9_]*)\\\\\}~',
-                static function (array $matches) use (&$names): string {
-                    $names[] = $matches[1];
-                    return '([^/]+)';
-                },
-                $quoted
-            );
-
-            if ($pattern !== null && preg_match('~^' . $pattern . '$~D', $path, $matches) === 1) {
-                array_shift($matches);
-                $params = [];
-                foreach ($names as $index => $name) {
-                    $params[$name] = rawurldecode($matches[$index]);
-                }
-
-                return new Route($route->method, $route->path, $route->handler, $params);
+            array_shift($matches);
+            $params = [];
+            foreach ($compiled['names'] as $index => $name) {
+                $params[$name] = rawurldecode($matches[$index]);
             }
+
+            $route = $compiled['route'];
+            return new Route($route->method, $route->path, $route->handler, $params);
         }
 
         return null;
