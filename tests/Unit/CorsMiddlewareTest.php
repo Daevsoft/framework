@@ -11,6 +11,22 @@ use PHPUnit\Framework\TestCase;
 
 final class CorsMiddlewareTest extends TestCase
 {
+    public function testShortCircuitsPreflightRequests(): void
+    {
+        $called = false;
+        $response = (new CorsMiddleware())->handle(
+            new Request([], [], 'OPTIONS', '/users'),
+            static function () use (&$called): Response {
+                $called = true;
+                return Response::text('should not run');
+            }
+        );
+
+        self::assertSame(204, $response->status());
+        self::assertFalse($called);
+        self::assertSame('600', $response->headers()['Access-Control-Max-Age']);
+    }
+
     public function testAddsCorsHeadersWithoutMutatingTheOriginalResponse(): void
     {
         $middleware = new CorsMiddleware();
