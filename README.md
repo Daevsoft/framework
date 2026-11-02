@@ -300,6 +300,8 @@ Register global middleware once during bootstrap through the container-managed s
 Validation is explicit and returns structured errors; it never writes headers, echoes JSON, redirects, or terminates the worker:
 
 ```php
+use Ds\Validation\Validator;
+
 $validator = Validator::make($request->all(), [
     'name' => 'required|string|min:3|max:80',
     'email' => 'required|email',
