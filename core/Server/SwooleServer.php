@@ -9,6 +9,7 @@ use Ds\Context\Context;
 use Ds\Http\Request;
 use Ds\Lifecycle\LifecycleManager;
 use Ds\Pool\PoolManager;
+use Ds\Tasks\Scheduler;
 use RuntimeException;
 use Throwable;
 
@@ -65,6 +66,7 @@ final class SwooleServer
             }
 
             try {
+                $container->make(Scheduler::class)->clear();
                 $container->make(PoolManager::class)->clear();
             } catch (Throwable $exception) {
                 error_log((string) $exception);
