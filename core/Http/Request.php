@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ds\Http;
 
+use Ds\Validation\Validator;
 /**
  * Immutable-per-request HTTP data. Never reads PHP superglobals from a
  * Swoole request; all request state is copied from the server request object.
@@ -110,6 +111,11 @@ final class Request
     public function except(array $keys): array
     {
         return array_diff_key($this->data, array_flip($keys));
+    }
+
+    public function validate(array $rules, array $messages = []): array
+    {
+        return Validator::make($this->data, $rules, $messages)->validate();
     }
 
     public function __get(string $name): mixed { return $this->data[$name] ?? null; }
