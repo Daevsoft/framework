@@ -182,16 +182,27 @@ final class DatabaseManager
             default => throw new RuntimeException("Unsupported database driver [{$driver}]."),
         };
 
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::ATTR_PERSISTENT => false,
+        ];
+
+        $sslCertificate = (string) ($this->config['ssl_cert'] ?? '');
+        if ($driver === 'mysql' && $sslCertificate !== '' && defined('PDO::MYSQL_ATTR_SSL_CA')) {
+            $options[constant('PDO::MYSQL_ATTR_SSL_CA')] = $sslCertificate;
+            if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
+                $options[constant('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')] =
+                    (bool) ($this->config['ssl_verify'] ?? true);
+            }
+        }
+
         $pdo = new PDO(
             $dsn,
             (string) ($this->config['username'] ?? ''),
             (string) ($this->config['password'] ?? ''),
-            [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-                PDO::ATTR_PERSISTENT => false,
-            ]
+            $options
         );
 
         return $pdo;
