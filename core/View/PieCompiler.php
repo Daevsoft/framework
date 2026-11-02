@@ -8,7 +8,7 @@ use RuntimeException;
 
 final class PieCompiler
 {
-    private const VERSION = '3';
+    private const VERSION = '4';
 
     public function __construct(
         private readonly string $viewRoot,
