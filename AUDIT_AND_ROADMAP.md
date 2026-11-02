@@ -38,7 +38,9 @@ The framework should optimize for two goals at once:
 - Implemented controller, callable, and `Class@method` dispatch, route parameter coercion, and response normalization.
 - Added backward-compatible response construction, status-aware JSON/text/HTML responses, redirects, and a functioning response factory.
 - Improved container autowiring, singleton behavior, circular dependency detection, and cached constructor metadata.
-- Added regression tests for dynamic routing, dispatcher behavior, Swoole request parsing, and container resolution.
+- Added coroutine-local request context storage and clear it in a `finally` block for both Swoole and FPM request lifecycles.
+- Added explicit PSR-4 mappings for the repository's lowercase application directories so class loading works on case-sensitive Linux filesystems.
+- Added regression tests for dynamic routing, dispatcher behavior, Swoole request parsing, container resolution, and coroutine context isolation.
 - Reworked README and setup documentation around Swoole-first operation.
 - Added ignore rules for local environment files and runtime-generated data, and removed the tracked `.env` file from the branch.
 
@@ -48,7 +50,7 @@ The framework should optimize for two goals at once:
 
 - Add a dedicated request scope and reset it after every request, including exception paths.
 - Define process, worker, and request lifetimes for services; prevent request-bound services from becoming process singletons.
-- Add coroutine-context storage for request metadata and authenticated identity.
+- Integrate request context with a formal request-scoped dependency lifecycle so request-bound services are isolated across concurrent coroutines.
 - Add middleware exception handling and a configurable error renderer.
 - Implement graceful shutdown, worker start/stop hooks, and deterministic resource cleanup.
 - Verify Swoole version compatibility and server settings against supported extension versions.
@@ -76,7 +78,7 @@ The framework should optimize for two goals at once:
 - Profile route dispatch, container resolution, middleware, and serialization under realistic concurrency.
 - Add security tests for path normalization, header handling, request-size limits, CORS, authentication, and error disclosure.
 - Audit all process-wide static state, event listeners, caches, and resource pools for long-running worker leaks.
-- Add CI for supported PHP versions and PHPUnit.
+- Expand CI into a supported-PHP matrix and add sustained concurrency/memory regression tests.
 
 ## Performance and API design rules
 
@@ -91,7 +93,7 @@ The framework should optimize for two goals at once:
 
 ## Verification status
 
-The regression test files have been added, but the GitHub connector used for this work cannot execute PHP or PHPUnit in the repository environment. Therefore, **test execution and Swoole runtime smoke tests are still pending**. Do not treat this branch as production-verified until CI and a real Swoole server test pass.
+GitHub Actions successfully completed the PHP syntax check and all **13 PHPUnit tests** on PHP 8.3 with the Swoole extension installed. The Swoole HTTP smoke test also passed: `/health` returned a valid JSON health response and `/users/42` exercised parameterized routing through a live Swoole server. Sustained load, concurrent request isolation under realistic traffic, worker memory growth, and production deployment validation are still pending; this is not yet a production certification.
 
 ## Branch status
 
