@@ -19,7 +19,7 @@ if (is_file($envFile) && is_readable($envFile)) {
         [$key, $value] = explode('=', $line, 2);
         $key = trim($key);
         $value = trim($value);
-        if ($key === '' || array_key_exists($key, $_ENV) || getenv($key) !== false) {
+        if ($key === '' || array_key_exists($key, $_ENV) || array_key_exists($key, $_SERVER) || getenv($key) !== false) {
             continue;
         }
 
