@@ -95,6 +95,14 @@ if (!function_exists('public_path')) {
 }
 
 
+
+if (!function_exists('db')) {
+    function db(): \\Ds\\Database\\DatabaseManager
+    {
+        return \\Ds\\Database\\DatabaseManager::default();
+    }
+}
+
 if (!function_exists('view')) {
     /**
      * Render a PHP or PieTemplate view to a string.
