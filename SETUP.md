@@ -50,7 +50,7 @@ Environment variables already supplied by the process manager take precedence ov
 ## Start Swoole
 
 ```bash
-php app/bootstrap/app.php
+php ds serve
 ```
 
 The bootstrap loads Composer autoloading, helper functions, environment configuration, route definitions, the dependency container, and the HTTP kernel before starting the server.
@@ -64,6 +64,9 @@ Set `APP_RUNTIME=fpm` in the environment or `.env`, then configure Nginx/Apache 
 For local development with PHP's built-in server:
 
 ```bash
+php ds fpm:serve
+
+# Or explicitly run PHP's built-in server with the FPM adapter
 APP_RUNTIME=fpm php -S 127.0.0.1:8000 -t public/
 ```
 
