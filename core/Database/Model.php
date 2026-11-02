@@ -21,6 +21,16 @@ abstract class Model
         return static::query()->get();
     }
 
+    public static function where(string $column, mixed $value): QueryBuilder
+    {
+        return static::query()->where($column, $value);
+    }
+
+    public static function count(): int
+    {
+        return static::query()->count();
+    }
+
     public static function find(int|string $id): ?array
     {
         $model = new static();
