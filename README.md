@@ -12,7 +12,7 @@ A lightweight PHP application framework designed around **Swoole-first execution
 
 ## Requirements
 
-- PHP 8.1+
+- PHP 8.1+ for the runtime; PHP 8.3+ for development and PHPUnit 12.5 tests.
 - Composer 2
 - Swoole PHP extension (required for the primary runtime)
 - Redis is optional and only needed by Redis-backed features
@@ -20,7 +20,8 @@ A lightweight PHP application framework designed around **Swoole-first execution
 ## Quick start
 
 ```bash
-composer install
+composer install # PHP 8.3+ (includes PHPUnit development dependencies)
+# On PHP 8.1/8.2 production hosts: composer install --no-dev
 cp .env.example .env
 pecl install swoole
 php app/bootstrap/app.php
