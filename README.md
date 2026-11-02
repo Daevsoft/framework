@@ -167,7 +167,7 @@ return response()->html(view('pages.home', [
 - `@import('components.buttons', 'button')` imports named `@pie('primary')...@endpie` snippets and exposes them as `@button('primary')`; imported paths are constrained to the view directory.
 - Legacy helpers remain available: `@auth...@endauth`, `@isflash('notice')...@endisflash`, `@flash(...)`, `@error(...)`, `@old(...)`, `@csrf`, `@css(...)`, and `@js(...)`.
 
-PieTemplate files are trusted PHP templates, not a sandbox. Use escaped output for user-controlled content. The old v3 experimental `<x-...>` component parser contained debugging exits and is not copied; a proper component system will be added separately.
+PieTemplate files are trusted PHP templates, not a sandbox. Use escaped output for user-controlled content. PieTemplate components use files under `app/views/components`. For example, `<x-alert type="success" :message="$message">Saved</x-alert>` renders `components/alert.pie.php`. Static attributes are strings, while attributes prefixed with `:` evaluate a PHP expression. Component templates can use `<x-slot />` for the default slot and `<x-slot name="title">Fallback</x-slot>` for named slots with fallback content. Nested components are supported. Each component receives an isolated variable scope; slot content executes with the caller's variables. Component files are trusted PHP templates, not a sandbox.
 
 
 ## Database and migrations
