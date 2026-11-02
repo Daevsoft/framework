@@ -46,7 +46,10 @@ final class RequestDispatcher
             foreach (array_reverse($route->middlewares) as $middlewareName) {
                 $middleware = MiddlewareRegistry::resolve($middlewareName, $this->container);
                 $downstream = $next;
-                $next = static fn (Request $current): Response => $middleware->handle($current, $downstream);
+                $next = static function (Request $current) use ($middleware, $downstream): Response {
+                    return $middleware->handle($current, $downstream)
+                        ?? Response::text('Forbidden', 403);
+                };
             }
 
             return $next($request);
