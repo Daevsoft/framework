@@ -104,7 +104,7 @@ if (!function_exists('view')) {
      */
     function view(string $name, array $data = []): string
     {
-        return \\Ds\\View\\ViewRenderer::default()->render($name, $data);
+        return \Ds\View\ViewRenderer::default()->render($name, $data);
     }
 }
 
