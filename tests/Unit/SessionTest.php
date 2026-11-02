@@ -11,6 +11,8 @@ use Ds\Middleware\CsrfMiddleware;
 use Ds\Middleware\SessionMiddleware;
 use Ds\Security\Csrf;
 use Ds\Session\SessionManager;
+use Ds\Foundations\Session\SessionManager as LegacySessionManager;
+use Ds\Foundations\Security\Csrf as LegacyCsrf;
 use PHPUnit\Framework\TestCase;
 
 final class SessionTest extends TestCase
@@ -135,6 +137,19 @@ final class SessionTest extends TestCase
         );
 
         self::assertSame(200, $accepted->status());
+    }
+
+    public function testV3SessionAndCsrfFacadesUseTheCurrentRequestSession(): void
+    {
+        $_ENV['APP_KEY'] = str_repeat('v', 32);
+        $session = SessionManager::start(new Request(), $this->directory);
+        Context::default()->set('session', $session);
+
+        $legacy = LegacySessionManager::init();
+        $legacy->put('user', ['id' => 5]);
+
+        self::assertSame(['id' => 5], $legacy->get('user'));
+        self::assertTrue(LegacyCsrf::verify(LegacyCsrf::generate()));
     }
 
     public function testDestroyExpiresTheSessionCookie(): void
