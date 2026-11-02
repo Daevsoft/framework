@@ -3,118 +3,112 @@
 declare(strict_types=1);
 
 if (!function_exists('env')) {
-    /**
-     * Get environment variable
-     */
-    function env(string $key, $default = null) {
-        $value = $_ENV[$key] ?? $_SERVER[$key] ?? null;
-        
-        if ($value === null) {
+    function env(string $key, mixed $default = null): mixed
+    {
+        $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+        if ($value === false || $value === null) {
             return $default;
         }
 
-        return match (strtolower($value)) {
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        return match (strtolower(trim($value))) {
             'true', '(true)' => true,
             'false', '(false)' => false,
             'empty', '(empty)' => '',
             'null', '(null)' => null,
-            default => $value,
+            default => trim($value, " \"'")
         };
     }
 }
 
-if (!function_exists('response')){
+if (!function_exists('response')) {
     /**
-     * Create a response instance
+     * response() returns the response factory; response($body, ...) creates
+     * a concrete response. Both fluent and direct usage remain lightweight.
      */
-    function response($content = '', int $status = 200, array $headers = []): \Ds\Http\Response {
-        return new \Ds\Http\Response($status, $headers, $content);
+    function response(
+        mixed $content = null,
+        int $status = 200,
+        array $headers = []
+    ): \Ds\Http\Response|\Ds\Support\ResponseFactory {
+        if (func_num_args() === 0) {
+            return new \Ds\Support\ResponseFactory();
+        }
+
+        return new \Ds\Http\Response($status, $headers, (string) $content);
     }
 }
 
 if (!function_exists('config')) {
-    /**
-     * Get configuration value
-     */
-    function config(string $key, $default = null) {
+    function config(string $key, mixed $default = null): mixed
+    {
         static $configs = [];
-        
+
         $parts = explode('.', $key);
         $file = array_shift($parts);
-        
+
         if (!isset($configs[$file])) {
             $configPath = dirname(__DIR__) . "/config/{$file}.php";
-            if (!file_exists($configPath)) {
+            if (!is_file($configPath)) {
                 return $default;
             }
             $configs[$file] = require $configPath;
         }
-        
+
         $value = $configs[$file];
         foreach ($parts as $part) {
-            if (!isset($value[$part])) {
+            if (!is_array($value) || !array_key_exists($part, $value)) {
                 return $default;
             }
             $value = $value[$part];
         }
-        
+
         return $value;
     }
 }
 
 if (!function_exists('app_path')) {
-    /**
-     * Get application path
-     */
-    function app_path(string $path = ''): string {
+    function app_path(string $path = ''): string
+    {
         $base = dirname(__DIR__);
-        return $path ? $base . '/' . ltrim($path, '/') : $base;
+        return $path === '' ? $base : $base . '/' . ltrim($path, '/');
     }
 }
 
 if (!function_exists('base_path')) {
-    /**
-     * Get base path
-     */
-    function base_path(string $path = ''): string {
+    function base_path(string $path = ''): string
+    {
         $base = dirname(__DIR__, 2);
-        return $path ? $base . '/' . ltrim($path, '/') : $base;
+        return $path === '' ? $base : $base . '/' . ltrim($path, '/');
     }
 }
 
 if (!function_exists('public_path')) {
-    /**
-     * Get public path
-     */
-    function public_path(string $path = ''): string {
+    function public_path(string $path = ''): string
+    {
         $base = dirname(__DIR__, 2) . '/public';
-        return $path ? $base . '/' . ltrim($path, '/') : $base;
+        return $path === '' ? $base : $base . '/' . ltrim($path, '/');
     }
 }
 
 if (!function_exists('dd')) {
-    /**
-     * Dump and die
-     */
-    function dd(...$args): never {
+    function dd(mixed ...$args): never
+    {
         foreach ($args as $arg) {
             var_dump($arg);
         }
-        die();
+        exit(1);
     }
 }
 
 if (!function_exists('dump')) {
-    /**
-     * Dump
-     */
-    function dump(...$args) {
+    function dump(mixed ...$args): void
+    {
         foreach ($args as $arg) {
             var_dump($arg);
         }
     }
 }
-
-// Global helper functions.
-
-
