@@ -264,6 +264,53 @@ Tune worker counts against CPU, memory, and workload. Use `SWOOLE_MAX_REQUEST` a
 
 Register global middleware once during bootstrap through the container-managed stack. Middleware can be a class implementing `Ds\Middleware\MiddlewareInterface` or a callable. The built-in CORS middleware uses immutable response headers. The authentication middleware is a fail-closed placeholder (HTTP 501), not a production authentication system.
 
+
+## Validation
+
+Validation is explicit and returns structured errors; it never writes headers, echoes JSON, redirects, or terminates the worker:
+
+```php
+$validator = Validator::make($request->all(), [
+    'name' => 'required|string|min:3|max:80',
+    'email' => 'required|email',
+]);
+
+if ($validator->fails()) {
+    return response()->json(['errors' => $validator->errors()], 422);
+}
+
+$validated = $validator->validated();
+// Or use $request->validate($rules), which throws ValidationException on failure.
+```
+
+Built-in rules include `required`, `nullable`, `string`, `integer`, `numeric`, `boolean`, `email`, `url`, `alpha`, `alpha_num`, `min`, `max`, `in`, `confirmed`, and `regex`. Custom messages use keys such as `email.email`.
+
+## Sessions and CSRF
+
+Sessions are opt-in middleware and are isolated per request/coroutine. Register session middleware before CSRF middleware:
+
+```php
+use Ds\Middleware\SessionMiddleware;
+use Ds\Middleware\CsrfMiddleware;
+use Ds\Middleware\MiddlewareStack;
+
+$stack = $container->make(MiddlewareStack::class);
+$stack->push(new SessionMiddleware());
+$stack->push(new CsrfMiddleware());
+
+session(['user_id' => 42]);
+$userId = session('user_id');
+set_flash('notice', 'Saved');
+$message = flash('notice');
+$token = csrf_token();
+```
+
+The `session` and `csrf` route middleware aliases are also available. CSRF tokens are HMAC-signed with `APP_KEY` and compared using `hash_equals`. Configure a unique random `APP_KEY` of at least 32 characters. The built-in session adapter stores JSON-compatible values in per-session files; for high-concurrency production deployments, use a coroutine-aware external session store rather than blocking local storage.
+
+## Collections and cache
+
+`Ds\Support\Collection` provides dependency-free map/filter/pluck/groupBy/iteration helpers. `Ds\Support\FileCache` provides JSON-serializable values, TTL, atomic replacement, `remember()`, and explicit invalidation. Both are opt-in; no collection or cache object is created per request unless your application uses it.
+
 ## Dependency lifetimes
 
 The container supports transient, singleton, and request-scoped services:
