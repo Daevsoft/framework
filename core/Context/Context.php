@@ -33,7 +33,7 @@ final class Context
             ? ($coroutine[self::COROUTINE_KEY] ?? [])
             : $this->fallbackStore;
 
-        return $store[$key] ?? $default;
+        return array_key_exists($key, $store) ? $store[$key] : $default;
     }
 
     public function has(string $key): bool
