@@ -4,26 +4,28 @@ declare(strict_types=1);
 
 namespace Ds\Middleware;
 
+use InvalidArgumentException;
+
 final class MiddlewareStack
 {
-    /** @var list<callable> */
+    /** @var list<callable|MiddlewareInterface> */
     protected array $stack = [];
 
-    public function push(callable $middleware): void
+    public function push(callable|MiddlewareInterface $middleware): void
     {
         $this->stack[] = $middleware;
     }
 
-    public function prepend(callable $middleware): void
+    public function prepend(callable|MiddlewareInterface $middleware): void
     {
         array_unshift($this->stack, $middleware);
     }
 
-    public function remove(callable $middleware): void
+    public function remove(callable|MiddlewareInterface $middleware): void
     {
         $this->stack = array_values(array_filter(
             $this->stack,
-            static fn (callable $registered): bool => $registered !== $middleware
+            static fn (callable|MiddlewareInterface $registered): bool => $registered !== $middleware
         ));
     }
 
