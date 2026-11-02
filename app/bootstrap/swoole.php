@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Kernel as AppKernel;
 use App\Support\RouteRegistry;
 use Ds\Container\Container;
+use Ds\Database\DatabaseManager;
 use Ds\Lifecycle\LifecycleManager;
 use Ds\Middleware\MiddlewareStack;
 use Ds\Pool\PoolManager;
