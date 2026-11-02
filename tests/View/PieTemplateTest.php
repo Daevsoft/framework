@@ -158,6 +158,51 @@ final class PieTemplateTest extends TestCase
         self::assertStringContainsString('js_source("app")', $compiled);
     }
 
+    public function testInvalidatesCompiledViewWhenLayoutChanges(): void
+    {
+        file_put_contents(
+            $this->views . '/layouts/cacheable.pie.php',
+            '<main>@slot("content")</main>'
+        );
+        file_put_contents(
+            $this->views . '/pages/cacheable.pie.php',
+            "@use('layouts.cacheable')@part('content')First@endpart"
+        );
+
+        $renderer = new ViewRenderer($this->views, $this->cache);
+        self::assertSame('<main>First</main>', $renderer->render('pages.cacheable'));
+
+        file_put_contents(
+            $this->views . '/layouts/cacheable.pie.php',
+            '<section>@slot("content")</section>'
+        );
+
+        self::assertSame('<section>First</section>', $renderer->render('pages.cacheable'));
+    }
+
+    public function testInvalidatesCompiledViewWhenImportedComponentChanges(): void
+    {
+        mkdir($this->views . '/components', 0777, true);
+        file_put_contents(
+            $this->views . '/components/cacheable.pie.php',
+            "@pie('label')<b>Old</b>@endpie"
+        );
+        file_put_contents(
+            $this->views . '/component-cache.pie.php',
+            "@import('components.cacheable', 'ui')@ui('label')"
+        );
+
+        $renderer = new ViewRenderer($this->views, $this->cache);
+        self::assertSame('<b>Old</b>', $renderer->render('component-cache'));
+
+        file_put_contents(
+            $this->views . '/components/cacheable.pie.php',
+            "@pie('label')<strong>New</strong>@endpie"
+        );
+
+        self::assertSame('<strong>New</strong>', $renderer->render('component-cache'));
+    }
+
     private function removeDirectory(string $directory): void
     {
         if (!is_dir($directory)) {
