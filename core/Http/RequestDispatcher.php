@@ -6,28 +6,137 @@ namespace Ds\Http;
 
 use Ds\Container\Container;
 use Ds\Routing\Router;
-use ReflectionClass;
+use ReflectionFunction;
+use ReflectionMethod;
+use ReflectionNamedType;
+use Throwable;
 
-class RequestDispatcher
+final class RequestDispatcher
 {
-    public function __construct(protected Router $router, public ?Container $container)
-    {
+    public function __construct(
+        protected Router $router,
+        protected ?Container $container = null
+    ) {
     }
 
     public function dispatch(Request $request): Response
     {
-        $route = $this->router->match($request->method, $request->path);
-        
-        if (is_array($route->handler)) { $controller = $route->handler[0]; $method = $route->handler[1]; // Ask the container to build the controller 
-        if ($this->container->has($controller)) { $instance = $this->container->get($controller); } elseif (class_exists($controller)) { // Fallback: let container auto-resolve constructor dependencies 
-        $reflector = new ReflectionClass($controller); $constructor = $reflector->getConstructor(); if ($constructor) { $params = []; foreach ($constructor->getParameters() as $param) { $type = $param->getType(); if ($type && !$type->isBuiltin()) { $dependencyClass = $type->getName(); // resolve from container 
-        if ($this->container->has($dependencyClass)) { $params[] = $this->container->get($dependencyClass); } else { // fallback: new instance 
-        $params[] = new $dependencyClass(); } } else { // optional params or scalars 
-        $params[] = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null; } } $instance = $reflector->newInstanceArgs($params); } else { $instance = new $controller(); } } else { return new Response(500, [], "Controller {$controller} not found"); } if (!method_exists($instance, $method)) { return new Response(500, [], "Method {$method} not found in {$controller}"); } $result = $instance->$method($request); }
-   
-        return new Response(404, [], 'Not Found');
+        $route = $this->router->match($request->getMethod(), $request->getPath());
+        if ($route === null) {
+            return new Response(404, ['Content-Type' => 'text/plain; charset=utf-8'], 'Not Found');
+        }
+
+        try {
+            $handler = $route->handler;
+            $routeParams = array_values($route->params);
+
+            if (is_array($handler) && count($handler) === 2 && is_string($handler[0])) {
+                $controller = $this->resolveController($handler[0]);
+                $result = $this->invokeMethod($controller, (string) $handler[1], $request, $routeParams);
+            } elseif (is_string($handler) && str_contains($handler, '@')) {
+                [$class, $method] = explode('@', $handler, 2);
+                $controller = $this->resolveController($class);
+                $result = $this->invokeMethod($controller, $method, $request, $routeParams);
+            } elseif (is_callable($handler)) {
+                $result = $this->invokeCallable($handler, $request, $routeParams);
+            } else {
+                return new Response(500, [], 'Invalid route handler');
+            }
+
+            return $this->toResponse($result);
+        } catch (Throwable $exception) {
+            // Keep internals out of production responses; log through the
+            // configured PHP error logger for operational visibility.
+            error_log((string) $exception);
+            return new Response(500, ['Content-Type' => 'text/plain; charset=utf-8'], 'Internal Server Error');
+        }
+    }
+
+    protected function resolveController(string $class): object
+    {
+        if (!class_exists($class)) {
+            throw new \RuntimeException("Controller {$class} not found");
+        }
+
+        return $this->container !== null
+            ? $this->container->make($class)
+            : new $class();
+    }
+
+    protected function invokeMethod(object $controller, string $method, Request $request, array $params): mixed
+    {
+        if (!method_exists($controller, $method)) {
+            throw new \RuntimeException('Controller method not found: ' . $method);
+        }
+
+        $reflection = new ReflectionMethod($controller, $method);
+        return $controller->{$method}(...$this->buildArguments($reflection, $request, $params, true));
+    }
+
+    protected function invokeCallable(callable $handler, Request $request, array $params): mixed
+    {
+        $reflection = is_array($handler)
+            ? new ReflectionMethod($handler[0], $handler[1])
+            : new ReflectionFunction(\Closure::fromCallable($handler));
+
+        $first = $reflection->getParameters()[0] ?? null;
+        $type = $first?->getType();
+        $expectsRequest = $type instanceof ReflectionNamedType && $type->getName() === Request::class;
+
+        return $handler(...$this->buildArguments($reflection, $request, $params, $expectsRequest));
+    }
+
+    protected function buildArguments(
+        ReflectionMethod|ReflectionFunction $reflection,
+        Request $request,
+        array $params,
+        bool $prependRequest
+    ): array {
+        $arguments = $prependRequest ? [$request] : [];
+        $parameters = $reflection->getParameters();
+        $offset = $prependRequest ? 1 : 0;
+
+        foreach (array_slice($parameters, $offset) as $index => $parameter) {
+            if (array_key_exists($index, $params)) {
+                $value = $params[$index];
+                $type = $parameter->getType();
+                if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+                    $value = $type->getName() === Request::class ? $request : $value;
+                } elseif ($type instanceof ReflectionNamedType && $type->isBuiltin()) {
+                    $value = match ($type->getName()) {
+                        'int' => (int) $value,
+                        'float' => (float) $value,
+                        'bool' => filter_var($value, FILTER_VALIDATE_BOOL),
+                        'string' => (string) $value,
+                        default => $value,
+                    };
+                }
+                $arguments[] = $value;
+            } elseif ($parameter->isDefaultValueAvailable()) {
+                $arguments[] = $parameter->getDefaultValue();
+            } elseif ($parameter->allowsNull()) {
+                $arguments[] = null;
+            }
+        }
+
+        return $arguments;
+    }
+
+    protected function toResponse(mixed $result): Response
+    {
+        if ($result instanceof Response) {
+            return $result;
+        }
+        if (is_array($result) || is_object($result)) {
+            return Response::json($result);
+        }
+        if (is_string($result) || is_numeric($result)) {
+            return Response::text((string) $result);
+        }
+        if ($result === null) {
+            return new Response(204);
+        }
+
+        return new Response(500, [], 'Unsupported route response');
     }
 }
-
-
-
