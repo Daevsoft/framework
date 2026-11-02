@@ -48,6 +48,14 @@ final class SwooleServer
             echo "Ds Framework Swoole server listening on http://{$host}:{$port}\n";
         });
 
+        $server->on('Shutdown', static function () use ($lifecycle): void {
+            try {
+                $lifecycle->emit('server.shutdown');
+            } catch (Throwable $exception) {
+                error_log((string) $exception);
+            }
+        });
+
         $server->on('WorkerStart', static function ($server, int $workerId) use ($lifecycle): void {
             $lifecycle->emit('worker.start', [
                 'server' => $server,
