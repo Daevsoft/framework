@@ -94,6 +94,28 @@ final class Request
         $parsed = json_decode($this->body, true);
         return is_array($parsed) ? $parsed : [];
     }
+
+    /** v3-compatible JSON body accessor; returns an object by default. */
+    public function json(bool $associative = false): mixed
+    {
+        return $this->body === '' ? null : json_decode($this->body, $associative);
+    }
+
+    /** Add request-local attributes for middleware-to-controller data passing. */
+    public function add(string $name, mixed $value): void
+    {
+        $this->data[$name] = $value;
+    }
+
+    public function old(string $key, mixed $default = null): mixed
+    {
+        return old($key, $default);
+    }
+
+    public function setOld(string $key, mixed $value): void
+    {
+        set_flash('_old_' . $key, $value);
+    }
     public function getInput(?string $key = null, mixed $default = null): mixed
     {
         return $key === null ? $this->data : ($this->data[$key] ?? $default);
