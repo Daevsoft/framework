@@ -1,11 +1,20 @@
 {
     "name": "dsframework/dsframework4",
-    "description": "PHP DsFramework 4",
+    "description": "Swoole-first PHP application framework",
     "type": "framework",
     "license": "MIT",
+    "require": {
+        "php": "^8.1"
+    },
     "autoload": {
         "psr-4": {
             "Ds\\": "core/",
+            "App\\Support\\": "app/support/",
+            "App\\Http\\": "app/http/",
+            "App\\Domains\\": "app/domains/",
+            "App\\Console\\": "app/console/",
+            "App\\Plugins\\": "app/plugins/",
+            "App\\Broadcasting\\": "app/broadcasting/",
             "App\\": "app/"
         }
     },
