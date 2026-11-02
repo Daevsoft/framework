@@ -8,20 +8,19 @@ use Ds\Http\Request;
 use Ds\Http\Response;
 use Ds\Middleware\MiddlewareInterface;
 
-class CorsMiddleware implements MiddlewareInterface
+final class CorsMiddleware implements MiddlewareInterface
 {
-    /**
-     * Handle CORS headers
-     */
-    public function handle(Request $request, $next): Response
+    public function handle(Request $request, callable $next): Response
     {
-        $response = $next($request);
+        $response = $request->getMethod() === 'OPTIONS'
+            ? new Response(204)
+            : $next($request);
 
         return $response
             ->withHeader('Access-Control-Allow-Origin', (string) env('CORS_ORIGIN', '*'))
-            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+            ->withHeader('Access-Control-Max-Age', '600')
+            ->withHeader('Vary', 'Origin');
     }
 }
-
-
