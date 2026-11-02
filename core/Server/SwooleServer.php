@@ -8,6 +8,7 @@ use Ds\Container\Container;
 use Ds\Context\Context;
 use Ds\Http\Request;
 use Ds\Lifecycle\LifecycleManager;
+use Ds\Pool\PoolManager;
 use RuntimeException;
 use Throwable;
 
