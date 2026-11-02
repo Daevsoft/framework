@@ -19,6 +19,10 @@ final class SessionManager
         private readonly string $cookieName,
         private readonly int $lifetime
     ) {
+        if (preg_match('/\\A[A-Za-z0-9_-]+\\z/D', $cookieName) !== 1) {
+            throw new \\InvalidArgumentException('Session cookie name contains invalid characters.');
+        }
+
         $this->load();
         $this->ageFlashData();
     }
