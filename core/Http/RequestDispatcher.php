@@ -109,7 +109,7 @@ final class RequestDispatcher
                 ??= new ReflectionMethod($handler[0], $handler[1]);
         } else {
             $closure = \Closure::fromCallable($handler);
-            $closure = $handler instanceof \\Closure ? $handler : $closure;
+            $closure = $handler instanceof \Closure ? $handler : $closure;
             $id = spl_object_id($closure);
             $reflection = $this->closureReflectionCache[$id] ??= new ReflectionFunction($closure);
         }
