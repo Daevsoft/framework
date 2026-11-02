@@ -158,6 +158,30 @@ final class PieTemplateTest extends TestCase
         self::assertStringContainsString('js_source("app")', $compiled);
     }
 
+    public function testSupportsNestedComponentLibraryImports(): void
+    {
+        mkdir($this->views . '/components', 0777, true);
+        file_put_contents(
+            $this->views . '/components/label.pie.php',
+            "@pie('text'){{ \$label }}@endpie"
+        );
+        file_put_contents(
+            $this->views . '/components/button.pie.php',
+            "@import('components.label', 'label')@pie('primary')<button>@label('text')</button>@endpie"
+        );
+        file_put_contents(
+            $this->views . '/nested-component-page.pie.php',
+            "@import('components.button', 'ui')@ui('primary')"
+        );
+
+        $html = (new ViewRenderer($this->views, $this->cache))->render(
+            'nested-component-page',
+            ['label' => 'Submit']
+        );
+
+        self::assertSame('<button>Submit</button>', $html);
+    }
+
     public function testInvalidatesCompiledViewWhenLayoutChanges(): void
     {
         file_put_contents(
