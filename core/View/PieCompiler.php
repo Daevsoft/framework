@@ -152,7 +152,7 @@ final class PieCompiler
         ];
 
         $offset = 0;
-        $directivePattern = '/@(elseif|if|foreach|for|while|isset|notset|empty|notempty|isnull|notnull|switch|case)\s*\(/';
+        $directivePattern = '/@(elseif|if|foreach|for|while|isset|notset|empty|notempty|isnull|notnull|switch|isflash|flash|error|old|css|js|case)\s*\(/';
 
         while (preg_match($directivePattern, $source, $match, PREG_OFFSET_CAPTURE, $offset) === 1) {
             $directive = $match[1][0];
@@ -192,7 +192,9 @@ final class PieCompiler
             '/@endforeach\b/' => '<?php endforeach; ?>',
             '/@endfor\b/' => '<?php endfor; ?>',
             '/@endwhile\b/' => '<?php endwhile; ?>',
-            '/@endisset\b|@endnotset\b|@endempty\b|@endnotempty\b|@endisnull\b|@endnotnull\b/' => '<?php endif; ?>',
+            '/@endisset\b|@endnotset\b|@endempty\b|@endnotempty\b|@endisnull\b|@endnotnull\b|@endisflash\b|@endauth\b/' => '<?php endif; ?>',
+            '/@auth\b/' => '<?php if (session("user", false)): ?>',
+            '/@csrf\b/' => '<input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8") ?>">',
             '/@default\b/' => '<?php default: ?>',
             '/@break\b/' => '<?php break; ?>',
             '/@continue\b/' => '<?php continue; ?>',
