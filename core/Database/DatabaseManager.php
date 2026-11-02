@@ -216,8 +216,10 @@ final class DatabaseManager
             $this->config['port'] ?? null,
             $this->config['database'] ?? null,
             $this->config['username'] ?? null,
+            $this->config['charset'] ?? null,
             $this->config['ssl_cert'] ?? null,
             $this->config['ssl_verify'] ?? true,
+            $this->config['pool']['max'] ?? 10,
         ]));
     }
 }
