@@ -12,6 +12,7 @@ final class DatabaseManager
 {
     private static array $channels = [];
     private static array $created = [];
+    private static ?self $defaultManager = null;
 
     private ?PDO $localConnection = null;
 
@@ -21,11 +22,12 @@ final class DatabaseManager
 
     public static function default(): self
     {
-        static $manager = null;
-        if (!$manager instanceof self) {
-            $manager = new self(config('database', []));
-        }
-        return $manager;
+        return self::$defaultManager ??= new self(config('database', []));
+    }
+
+    public static function setDefault(?self $manager): void
+    {
+        self::$defaultManager = $manager;
     }
 
     public function table(string $table): QueryBuilder
