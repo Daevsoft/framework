@@ -126,14 +126,26 @@ SWOOLE_MAX_CONN=1024
 
 Tune worker counts against CPU, memory, and workload. Use `SWOOLE_MAX_REQUEST` as a safety valve for worker recycling, not as a substitute for fixing leaks.
 
+## Dependency lifetimes
+
+The container supports transient, singleton, and request-scoped services:
+
+```php
+$container->singleton(CacheClient::class); // one per worker process
+$container->scoped(CurrentTenant::class);  // one per request/coroutine
+```
+
+A singleton cannot depend on a request-scoped service. The container rejects that dependency graph instead of allowing user/request state to leak between requests.
+
 ## Long-running worker rules
 
 1. Keep request data inside the `Request` instance or an explicit request scope.
 2. Do not store authenticated users, request headers, tenant IDs, or mutable request data in singletons or static properties.
 3. Do not perform blocking I/O inside coroutine-enabled request handlers unless the library is coroutine-aware.
-4. Close or return database/Redis connections in a `finally` block or managed pool lifecycle.
-5. Register routes and immutable configuration once during bootstrap.
-6. Measure memory per worker over sustained traffic; a successful single-request test is not a memory-safety test.
+4. Close or return database/Redis connections in a `finally` block or managed bounded pool lifecycle.
+5. Register routes, lifecycle listeners, and immutable configuration once during bootstrap.
+6. Use worker lifecycle hooks for process-owned resources and release them when a worker stops.
+7. Measure memory per worker over sustained traffic; a successful single-request test is not a memory-safety test.
 
 ## Testing
 
