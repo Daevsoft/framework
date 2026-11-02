@@ -12,7 +12,7 @@ final class Router
     /** @var array<string, list<array{route:Route, pattern:string, names:array<int,string>}>> */
     protected array $dynamicRoutes = [];
 
-    public function add(string $method, string $path, mixed $handler): void
+    public function add(string $method, string $path, mixed $handler): Route
     {
         $method = strtoupper($method);
         $path = self::normalizePath($path);
