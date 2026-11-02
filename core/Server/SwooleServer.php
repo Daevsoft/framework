@@ -73,7 +73,7 @@ final class SwooleServer
 
                 $httpKernel = is_callable($kernel)
                     ? $kernel()
-                    : ($kernel ?? $container->make(\\App\\Http\\Kernel::class));
+                    : ($kernel ?? $container->make(\App\Http\Kernel::class));
                 $response = $httpKernel->handle($request);
 
                 foreach ($response->headers() as $name => $value) {
