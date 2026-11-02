@@ -1,333 +1,133 @@
-# Quick Start Guide - Ds Framework
+# Quick Start — Ds Framework 4
 
-Get up and running with the Ds Framework in 5 minutes!
+Ds Framework 4 is Swoole-first. Follow this guide to start the persistent HTTP server and build a simple endpoint.
 
-## 1. Start with FPM (Simplest)
+## 1. Install
 
 ```bash
-# Using PHP's built-in server (development only)
-php -S 127.0.0.1:8000 -t public/
-
-# Visit http://127.0.0.1:8000
+composer install
+cp .env.example .env
+pecl install swoole
+php --ri swoole
 ```
 
-## 2. Create Your First Route
+Make sure the Swoole extension is enabled for the same PHP CLI binary used to start the framework.
+
+## 2. Start the server
+
+```bash
+php app/bootstrap/app.php
+```
+
+The default server listens on `http://127.0.0.1:8000`.
+
+## 3. Define a route
 
 Edit `app/routes/web.php`:
 
 ```php
 use App\Support\Route;
 
-Route::get('/hello/{name}', function($name) {
+Route::get('/hello/{name}', function (string $name) {
     return "Hello, {$name}!";
 });
+
+Route::get('/health', fn () => response()->json(['status' => 'ok']));
 ```
 
-Visit: `http://127.0.0.1:8000/hello/World`
+Parameterized route patterns are compiled during bootstrap. Route handlers receive URL parameters in declaration order.
 
-## 3. Create a Controller
+## 4. Create a controller
 
-Create `app/http/Controllers/PostController.php`:
+Create `app/domains/User/Http/Controllers/UserController.php`:
 
 ```php
 <?php
-namespace App\Http\Controllers;
+
+declare(strict_types=1);
+
+namespace App\Domains\User\Http\Controllers;
 
 use Ds\Http\Request;
 use Ds\Http\Response;
 
-class PostController
+final class UserController
 {
-    public function index(Request $request): Response
-    {
-        $posts = [
-            ['id' => 1, 'title' => 'First Post'],
-            ['id' => 2, 'title' => 'Second Post'],
-        ];
-        return new Response(200, json_encode($posts));
-    }
-
     public function show(Request $request, int $id): Response
     {
-        $post = ['id' => $id, 'title' => 'Post ' . $id];
-        return new Response(200, json_encode($post));
+        return response()->json([
+            'id' => $id,
+            'page' => $request->getQuery('page', 1),
+        ]);
     }
 }
 ```
 
-Register routes:
+Register it in `app/routes/web.php`:
 
 ```php
-Route::get('/posts', 'PostController@index');
-Route::get('/posts/{id}', 'PostController@show');
+use App\Domains\User\Http\Controllers\UserController;
+
+Route::get('/users/{id}', [UserController::class, 'show']);
 ```
 
-## 4. Create Middleware
-
-Create `app/http/Middleware/LogRequestMiddleware.php`:
+## 5. Return responses
 
 ```php
-<?php
-namespace App\Http\Middleware;
-
-use Ds\Http\Request;
-use Ds\Http\Response;
-
-class LogRequestMiddleware
-{
-    public function handle(Request $request, $next): Response
-    {
-        $start = microtime(true);
-        $response = $next($request);
-        $duration = microtime(true) - $start;
-        
-        echo "Request: {$request->method} {$request->path} - {$duration}s\n";
-        
-        return $response;
-    }
-}
+return response()->json(['created' => true], 201);
+return response()->html('<h1>Hello</h1>');
+return response()->text('Ready');
+return response()->redirect('/login');
 ```
 
-## 5. Add JSON Response Helper
+You can also return an array or string directly from a route handler.
 
-In your controller:
-
-```php
-use Ds\Http\Response;
-
-public function index(Request $request): Response
-{
-    $data = ['status' => 'ok', 'items' => []];
-    
-    // Create JSON response
-    $response = new Response(200, json_encode($data));
-    $response->header('Content-Type', 'application/json');
-    
-    return $response;
-}
-```
-
-## 6. Use Configuration
-
-In `app/config/app.php`:
-
-```php
-return [
-    'name' => 'My App',
-    'version' => '1.0.0',
-];
-```
-
-In your code:
-
-```php
-$appName = config('app.name');
-$debug = env('APP_DEBUG', false);
-```
-
-## 7. Create a Domain
-
-```bash
-php app/console make:domain Product
-```
-
-This creates:
-
-```
-app/domains/Product/
-├── Http/Controllers/
-├── Http/Routes.php
-├── Services/
-├── Models/
-├── Repositories/
-├── Listeners/
-└── Events/
-```
-
-Add routes in `app/domains/Product/Http/Routes.php`:
-
-```php
-<?php
-use App\Support\Route;
-
-Route::get('/products', 'ProductController@index');
-```
-
-## 8. Switch to Swoole (Production)
+## 6. Configure the runtime
 
 Edit `.env`:
 
 ```ini
 APP_RUNTIME=swoole
+SERVER_HOST=127.0.0.1
 SERVER_PORT=8000
 SWOOLE_WORKERS=4
+SWOOLE_TASK_WORKERS=2
+SWOOLE_MAX_REQUEST=10000
 ```
 
-Start server:
+Process-manager environment variables take precedence over `.env`.
+
+## 7. Use FPM only when required
+
+FPM is an optional compatibility runtime:
 
 ```bash
-php app/bootstrap/swoole.php
+APP_RUNTIME=fpm php -S 127.0.0.1:8000 -t public/
 ```
 
-Access: `http://127.0.0.1:8000`
+For production FPM, configure Nginx or Apache to send PHP requests to `public/index.php`.
 
-## 9. Real-time WebSocket
-
-In `app/routes/websocket.php`:
-
-```php
-use App\Support\Route;
-
-Route::ws('/ws', function($connection) {
-    $connection->on('message', function($message) {
-        // Broadcast to all connections
-        broadcast($message);
-    });
-});
-```
-
-Client-side:
-
-```javascript
-const ws = new WebSocket('ws://127.0.0.1:6001/ws');
-
-ws.onmessage = (event) => {
-    console.log('Message:', event.data);
-};
-
-ws.send('Hello Server!');
-```
-
-## 10. Deployment
-
-### FPM
-```bash
-# Setup with Nginx
-# Point web root to: /path/to/framework/public
-# Configure PHP-FPM
-# Ensure .env has APP_ENV=production
-```
-
-### Swoole
-```bash
-# Use Supervisor to manage process
-# Create /etc/supervisor/conf.d/framework.conf
-
-[program:framework]
-process_name=%(program_name)s_%(process_num)02d
-command=php /path/to/app/bootstrap/swoole.php
-autostart=true
-autorestart=true
-numprocs=1
-stderr_logfile=/var/log/framework.err.log
-stdout_logfile=/var/log/framework.out.log
-
-# Start
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl start framework
-```
-
-## Common Tasks
-
-### List Routes
+## 8. Create a domain
 
 ```bash
-# Coming soon - route listing command
-php app/console route:list
+php app/console make:domain Product
 ```
 
-### Debug
+Domain modules belong under `app/domains/` and should keep business logic out of route declarations and HTTP controllers.
 
-```php
-// Dump and die
-dd($variable);
+## Long-running worker reminder
 
-// Just dump
-dump($variable);
-```
+Swoole keeps PHP workers alive across requests. Do not store request-specific state in static properties or process-wide singletons. Avoid blocking I/O in coroutine-enabled handlers unless the client is coroutine-safe. Release pooled resources on both success and failure paths.
 
-### Logging
+## Current implementation boundaries
 
-```php
-// Coming soon - logging system
-log('info', 'Something happened', ['context' => 'data']);
-```
+- HTTP routing, parameter dispatch, basic request parsing, and response creation are implemented.
+- FPM compatibility uses the shared HTTP kernel.
+- `Route::ws()` is a declaration placeholder; a complete WebSocket server/runtime is still on the roadmap.
+- Database ORM/migrations, route:list, and full middleware registration are not yet complete.
 
-### Database (Coming Soon)
+## Next steps
 
-```php
-// Query builder
-$users = DB::table('users')->where('active', true)->get();
-
-// Eloquent models
-$user = User::find(1);
-```
-
-## File Structure Reference
-
-```
-framework/
-├── app/
-│   ├── bootstrap/        ← Start here (app.php)
-│   ├── config/           ← Configuration
-│   ├── http/
-│   │   ├── Controllers/  ← Add your controllers
-│   │   └── Middleware/   ← Add your middleware
-│   ├── routes/
-│   │   ├── web.php       ← Web routes ← START HERE
-│   │   ├── api.php       ← API routes
-│   │   └── websocket.php ← WebSocket routes
-│   ├── domains/          ← Domain-specific code
-│   └── support/          ← Helpers
-├── core/                 ← Framework core (don't edit)
-├── public/
-│   └── index.php         ← Entry point
-└── .env                  ← Configuration
-```
-
-## Tips
-
-1. **Start simple** - Create routes, then controllers, then add complexity
-2. **Use domains** for larger features (User, Post, Comment, etc.)
-3. **FPM first** - Develop with FPM, deploy with Swoole
-4. **Check examples** - HelloController and User domain show patterns
-5. **Read core** - Framework code is well-commented and organized
-
-## Next Steps
-
-1. ✅ Run the framework
-2. ✅ Create your first route
-3. ✅ Create a controller
-4. ✅ Add middleware
-5. ✅ Create a domain
-6. 📚 Read [SETUP.md](SETUP.md) for detailed documentation
-7. 📚 Read [Framework Flow Process.md](Framework%20Flow%20Process.md) for architecture
-
-## Troubleshooting
-
-**"Route not found"**
-- Verify route is in `app/routes/web.php`
-- Check route path (must start with `/`)
-- Restart PHP server
-
-**"Class not found"**
-- Check namespace matches directory
-- Run `composer dump-autoload`
-- Verify file exists
-
-**"Swoole not working"**
-- Install: `pecl install swoole`
-- Set `APP_RUNTIME=swoole` in `.env`
-- Restart server
-
-## Getting Help
-
-- 📖 Check [SETUP.md](SETUP.md) for detailed docs
-- 🏗️ Check [Framework Flow Process.md](Framework%20Flow%20Process.md) for architecture
-- 💡 Look at `app/http/Controllers/HelloController.php` for examples
-- 👥 Check `app/domains/User/` for domain example
-
----
-
-**You're ready to build!** 🚀
+- Read [SETUP.md](SETUP.md) for deployment and configuration.
+- Read [AUDIT_AND_ROADMAP.md](AUDIT_AND_ROADMAP.md) for current status and priorities.
+- Run `./vendor/bin/phpunit` before deploying.
