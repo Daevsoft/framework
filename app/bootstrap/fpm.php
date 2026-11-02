@@ -17,6 +17,7 @@ require dirname(__DIR__) . '/routes/web.php';
 require dirname(__DIR__) . '/routes/api.php';
 
 $container = new Container();
+$container->singleton(Context::class);
 $kernel = new AppKernel($router, $container);
 $response = $kernel->handle(Request::capture());
 $response->send();
