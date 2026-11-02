@@ -53,11 +53,21 @@ final class SwooleServer
             ]);
         });
 
-        $server->on('WorkerStop', static function ($server, int $workerId) use ($lifecycle): void {
-            $lifecycle->emit('worker.stop', [
-                'server' => $server,
-                'worker_id' => $workerId,
-            ]);
+        $server->on('WorkerStop', static function ($server, int $workerId) use ($container, $lifecycle): void {
+            try {
+                $lifecycle->emit('worker.stop', [
+                    'server' => $server,
+                    'worker_id' => $workerId,
+                ]);
+            } catch (Throwable $exception) {
+                error_log((string) $exception);
+            }
+
+            try {
+                $container->make(PoolManager::class)->clear();
+            } catch (Throwable $exception) {
+                error_log((string) $exception);
+            }
         });
 
         $server->on('Request', static function ($swooleRequest, $swooleResponse) use ($container, $kernel, $lifecycle): void {
