@@ -100,7 +100,7 @@ final class Container
         $resolving[$abstract] = true;
         $lifetime = ($scope === 'singleton' || $consumerLifetime === 'singleton')
             ? 'singleton'
-            : $scope;
+            : (($scope === 'request' || $consumerLifetime === 'request') ? 'request' : 'transient');
 
         if (is_object($concrete) && !$concrete instanceof \Closure) {
             $object = $concrete;
