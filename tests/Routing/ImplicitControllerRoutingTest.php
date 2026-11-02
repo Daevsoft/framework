@@ -41,7 +41,7 @@ final class ImplicitControllerRoutingTest extends TestCase
         );
 
         self::assertSame(200, $response->status());
-        self::assertSame('{\"id\":42}', $response->body());
+        self::assertSame('{"id":42}', $response->body());
     }
 
     protected function tearDown(): void
