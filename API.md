@@ -372,52 +372,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-## WebSocket (Real-time)
+## WebSocket
 
-### Connect
+**Not available in the current v4 runtime yet.** The `Route::ws()` declaration and broadcasting classes are scaffolding only; the HTTP Swoole server does not currently implement a WebSocket upgrade lifecycle or connection manager.
 
-```javascript
-const ws = new WebSocket('ws://localhost:6001/ws');
-
-ws.onopen = () => {
-  console.log('Connected');
-};
-
-ws.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  console.log('Received:', message);
-};
-
-ws.onerror = (error) => {
-  console.error('Error:', error);
-};
-
-ws.onclose = () => {
-  console.log('Disconnected');
-};
-```
-
-### Send Message
-
-```javascript
-ws.send(JSON.stringify({
-  action: 'message',
-  data: 'Hello Server'
-}));
-```
-
-### Broadcast Events
-
-Messages are broadcast to all connected clients:
-
-```javascript
-// Server broadcasts
-// Client receives
-ws.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  console.log('Broadcast:', message);
-};
-```
+A future implementation must include handshake validation, connection lifecycle, heartbeat/timeouts, per-connection state, backpressure, worker-safe broadcasting, and integration tests before this feature is documented as operational.
 
 ---
 
@@ -478,11 +437,11 @@ GET /users?status=active
 
 ## Changelog
 
-### v1.0.0 (Current)
+### v4 (Swoole-first development line)
 - ✅ User management
 - ✅ REST API
-- ✅ WebSocket support
-- ✅ Real-time broadcasting
+- 🔄 Swoole-first HTTP runtime and routing
+- 🔄 WebSocket server and real-time broadcasting remain in development
 
 ### Upcoming
 - 🔄 Authentication (OAuth2)
