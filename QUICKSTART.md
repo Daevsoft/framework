@@ -164,7 +164,7 @@ return response()->redirect('/login');
 
 You can also return an array or string directly from a route handler.
 
-## 6. Configure the runtime
+## 8. Configure the runtime
 
 Edit `.env`:
 
@@ -180,7 +180,7 @@ SWOOLE_MAX_PACKAGE_SIZE=2097152
 
 Process-manager environment variables take precedence over `.env`.
 
-## 7. Use FPM only when required
+## 9. Use FPM only when required
 
 FPM is an optional compatibility runtime:
 
@@ -193,7 +193,7 @@ APP_RUNTIME=fpm php -S 127.0.0.1:8000 -t public/
 
 For production FPM, configure Nginx or Apache to send PHP requests to `public/index.php`.
 
-## 8. Create a domain
+## 10. Create a domain
 
 ```bash
 php app/console make:domain Product
@@ -205,12 +205,41 @@ Domain modules belong under `app/domains/` and should keep business logic out of
 
 Swoole keeps PHP workers alive across requests. Do not store request-specific state in static properties or process-wide singletons. Avoid blocking I/O in coroutine-enabled handlers unless the client is coroutine-safe. Release pooled resources on both success and failure paths.
 
+## 11. Database and migrations
+
+Configure the `DB_*` variables in `.env`, then use the parameterized query builder:
+
+```php
+$users = db()->table('users')
+    ->where('active', 1)
+    ->orderBy('name')
+    ->limit(20)
+    ->get();
+
+db()->table('users')->where('id', 42)->update(['name' => 'Deva']);
+```
+
+Create migration files under `database/migrations` that return an instance of `Ds\Database\Migration`. Run them with:
+
+```bash
+php ds migrate
+php ds migrate --status
+php ds migrate --rollback
+```
+
+The database layer uses prepared statements, a bounded PDO connection pool inside Swoole coroutines, and transaction-backed migrations. The legacy v3 Active Record ORM and schema builder are not yet ported.
+
+## 12. Sessions and CSRF
+
+Add `SessionMiddleware` before `CsrfMiddleware` to the global middleware stack. Then use `session()`, `set_flash()`, `flash()`, and `csrf_token()`. Set a unique random `APP_KEY` in `.env` before enabling CSRF.
+
 ## Current implementation boundaries
 
-- HTTP routing, parameter dispatch, basic request parsing, and response creation are implemented.
-- FPM compatibility uses the shared HTTP kernel.
-- `Route::ws()` is a declaration placeholder; a complete WebSocket server/runtime is still on the roadmap.
-- Database ORM/migrations, route:list, and full middleware registration are not yet complete.
+- HTTP routing, implicit controller attributes, PieTemplate rendering, request validation, route middleware, and response creation are implemented.
+- FPM compatibility uses the shared HTTP kernel; Swoole remains the primary runtime.
+- A PDO query builder, transactions, and migrations are available; the v3 Active Record model API and schema DSL remain unported.
+- Sessions and HMAC-based CSRF are opt-in; the bundled file session store is intended as a simple adapter, not a high-concurrency distributed session backend.
+- `Route::ws()` is a declaration placeholder; a complete WebSocket server/runtime and route:list are still on the roadmap.
 
 ## Next steps
 
