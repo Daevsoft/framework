@@ -45,28 +45,7 @@ if (!function_exists('response')) {
 if (!function_exists('config')) {
     function config(string $key, mixed $default = null): mixed
     {
-        static $configs = [];
-
-        $parts = explode('.', $key);
-        $file = array_shift($parts);
-
-        if (!isset($configs[$file])) {
-            $configPath = dirname(__DIR__) . "/config/{$file}.php";
-            if (!is_file($configPath)) {
-                return $default;
-            }
-            $configs[$file] = require $configPath;
-        }
-
-        $value = $configs[$file];
-        foreach ($parts as $part) {
-            if (!is_array($value) || !array_key_exists($part, $value)) {
-                return $default;
-            }
-            $value = $value[$part];
-        }
-
-        return $value;
+        return \Ds\Config\ConfigRepository::get($key, $default);
     }
 }
 
