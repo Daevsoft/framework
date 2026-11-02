@@ -166,6 +166,49 @@ return response()->html(view('pages.home', [
 
 PieTemplate files are trusted PHP templates, not a sandbox. Use escaped output for user-controlled content. The old v3 experimental `<x-...>` component parser contained debugging exits and is not copied; a proper component system will be added separately.
 
+
+## Database and migrations
+
+Configure `DB_DRIVER`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, and `DB_PASSWORD` in `.env`. Supported PDO drivers are MySQL, PostgreSQL, and SQLite.
+
+```php
+$users = db()->table('users')
+    ->select(['id', 'name', 'email'])
+    ->where('active', 1)
+    ->orderBy('name')
+    ->limit(20)
+    ->get();
+
+$user = db()->table('users')->where('id', 42)->first();
+
+db()->table('users')->where('id', 42)->update(['name' => 'Deva']);
+```
+
+Values are always passed as prepared-statement parameters. Table and column identifiers are validated before being quoted. Do not interpolate user input into raw SQL.
+
+In Swoole coroutines, the manager leases PDO connections from a bounded per-worker coroutine channel and returns each connection after the operation. Outside a Swoole coroutine, it reuses a local connection for the lifetime of the manager. Tune `DB_POOL_MAX` and `DB_POOL_TIMEOUT` for the database server's connection budget.
+
+Create a migration in `database/migrations` that returns a `Ds\Database\Migration` instance:
+
+```php
+use Ds\Database\Migration;
+use PDO;
+
+return new class extends Migration {
+    public function up(PDO $connection): void
+    {
+        $connection->exec('CREATE TABLE notes (id INTEGER PRIMARY KEY, body TEXT NOT NULL)');
+    }
+
+    public function down(PDO $connection): void
+    {
+        $connection->exec('DROP TABLE notes');
+    }
+};
+```
+
+Run migrations with `php ds migrate`, inspect with `php ds migrate --status`, and roll back the latest migration with `php ds migrate --rollback`. Migration methods receive the active PDO connection and run inside a transaction. The query builder currently covers common SELECT/INSERT/UPDATE/DELETE operations; the legacy v3 Active Record ORM and full schema DSL are not yet ported.
+
 ## Responses
 
 ```php
