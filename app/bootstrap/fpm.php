@@ -18,6 +18,10 @@ require dirname(__DIR__) . '/routes/web.php';
 require dirname(__DIR__) . '/routes/api.php';
 
 $container = new Container();
+$lifecycle = new LifecycleManager();
+$container->instance(LifecycleManager::class, $lifecycle);
+$lifecycle->emit('booting');
+$lifecycle->emit('booted');
 $kernel = new AppKernel($router, $container);
 $container->beginRequest();
 
@@ -25,9 +29,14 @@ try {
     $context = $container->make(Context::class);
     $request = Request::capture();
     $context->set('request', $request);
+    $lifecycle->emit('request.received', $request);
 
     $response = $kernel->handle($request);
     $response->send();
 } finally {
-    $container->endRequest();
+    try {
+        $lifecycle->emit('request.handled', ['request' => $request ?? null]);
+    } finally {
+        $container->endRequest();
+    }
 }
