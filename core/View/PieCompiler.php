@@ -131,6 +131,11 @@ final class PieCompiler
                 throw new RuntimeException("Unable to read PieTemplate import: {$filename}");
             }
 
+            // Resolve imports declared by a component file before extracting its
+            // named snippets, so component libraries can be composed from smaller
+            // component libraries without exposing their imports to the page.
+            $componentSource = $this->expandImports($componentSource, $filename, $depth + 1);
+
             if (preg_match_all(
                 '/@pie\(\s*([\'"])(.*?)\1\s*\)(.*?)@endpie/s',
                 $componentSource,
@@ -142,12 +147,7 @@ final class PieCompiler
 
             $components = [];
             foreach ($definitions as $definition) {
-                // Imported snippets may import their own reusable snippets.
-                $components[$definition[2]] = $this->expandImports(
-                    $definition[3],
-                    $filename,
-                    $depth + 1
-                );
+                $components[$definition[2]] = $definition[3];
             }
 
             $alias = $import[4];
