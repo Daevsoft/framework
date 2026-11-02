@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use Ds\Http\Request;
 use Ds\Http\Response;
+use Ds\Middleware\MiddlewareInterface;
 
 class CorsMiddleware implements MiddlewareInterface
 {
