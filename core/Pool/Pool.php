@@ -60,14 +60,14 @@ final class Pool
             return;
         }
 
-        if (!$this->isValid($item)) {
-            $this->dispose($item);
-            return;
-        }
-
         $id = $this->identity($item);
         if ($id !== null && isset($this->pooledIds[$id])) {
             throw new LogicException('The same resource cannot be released into a pool more than once.');
+        }
+
+        if (!$this->isValid($item)) {
+            $this->dispose($item);
+            return;
         }
 
         if (count($this->items) >= $this->maxSize) {
