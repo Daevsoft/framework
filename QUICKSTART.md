@@ -16,6 +16,9 @@ Make sure the Swoole extension is enabled for the same PHP CLI binary used to st
 ## 2. Start the server
 
 ```bash
+php ds serve
+
+# Or start the Swoole bootstrap directly
 php app/bootstrap/app.php
 ```
 
