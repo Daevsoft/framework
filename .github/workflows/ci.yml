@@ -45,6 +45,7 @@ jobs:
           grep -q 'serve' cli-help.txt
           grep -q 'fpm:serve' cli-help.txt
           grep -q 'migrate' cli-help.txt
+          grep -q 'config' cli-help.txt
 
       - name: Swoole HTTP smoke test
         shell: bash
