@@ -23,6 +23,7 @@ require dirname(__DIR__) . '/routes/api.php';
 $container = new Container();
 $lifecycle = new LifecycleManager();
 $container->instance(LifecycleManager::class, $lifecycle);
+$container->instance(DatabaseManager::class, DatabaseManager::default());
 $container->instance(MiddlewareStack::class, new MiddlewareStack());
 $lifecycle->emit('booting');
 $lifecycle->emit('booted');
