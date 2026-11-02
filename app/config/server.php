@@ -12,6 +12,7 @@ return [
         'enable_coroutine' => (bool) env('SWOOLE_COROUTINE', true),
         'max_request' => (int) env('SWOOLE_MAX_REQUEST', 10000),
         'max_conn' => (int) env('SWOOLE_MAX_CONN', 1024),
+        'package_max_length' => (int) env('SWOOLE_MAX_PACKAGE_SIZE', 2097152),
     ],
 
     'websocket' => [
