@@ -220,6 +220,29 @@ return response()->redirect('/login');
 
 Or use `Response::json($data, 201)` directly.
 
+
+## CLI generators and tooling
+
+The v3-style generator commands are available and create files without overwriting existing files:
+
+```bash
+php ds add:controller UserController Admin/PostController
+php ds add:model People
+php ds add:view pages/home
+php ds add:test UserTest
+php ds add:test PriceCalculatorTest --unit
+php ds add:migration create_people_table
+php ds route:list
+php ds test
+php ds test --unit
+php ds config
+php ds config --clear
+```
+
+Generated models extend the compatibility `DsModel` base, which now delegates to the v4 PDO query builder. It supports basic `all()`, `find()`, `save()`, `create()`, `updateById()`, and `deleteById()` operations returning arrays/row counts. The legacy v3 model hydration, relationship system, advanced query chaining, and schema DSL are not yet available.
+
+`php ds config` writes a PHP configuration cache from `app/config/*.php`; run it again after changing environment/config values. Use `php ds config --clear` to remove it.
+
 ## Project structure
 
 ```text
