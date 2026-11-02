@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ds\Console;
 
 use Ds\Console\Commands\FpmServe;
+use Ds\Console\Commands\Config;
 use Ds\Console\Commands\SwooleServe;
 use Ds\Console\Commands\MakeDomain;
 use Ds\Console\Commands\Migrate;
@@ -22,6 +23,7 @@ class ConsoleKernel
         FpmServe::class,
         MakeDomain::class,
         Migrate::class,
+        Config::class,
     ];
 
     /**
