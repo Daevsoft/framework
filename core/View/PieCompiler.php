@@ -198,7 +198,7 @@ final class PieCompiler
     private function compileDirectives(string $source): string
     {
         $replacements = [
-            'elseif' => static fn (string $e): string => '<?php } elseif (' . $e . '): ?>',
+            'elseif' => static fn (string $e): string => '<?php elseif (' . $e . '): ?>',
             'if' => static fn (string $e): string => '<?php if (' . $e . '): ?>',
             'foreach' => static fn (string $e): string => '<?php foreach (' . $e . '): ?>',
             'for' => static fn (string $e): string => '<?php for (' . $e . '): ?>',
@@ -263,7 +263,7 @@ final class PieCompiler
             '/@endisset\b|@endnotset\b|@endempty\b|@endnotempty\b|@endisnull\b|@endnotnull\b|@endisflash\b|@endauth\b/' => '<?php endif; ?>',
             '/@auth\b/' => '<?php if (session("user", false)): ?>',
             '/@csrf\b/' => '<input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8") ?>">',
-            '/@default\b/' => '<?php default: ?>',
+            '/@default:?(?![A-Za-z_])/' => '<?php default: ?>',
             '/@break\b/' => '<?php break; ?>',
             '/@continue\b/' => '<?php continue; ?>',
             '/@endswitch\b/' => '<?php endswitch; ?>',
