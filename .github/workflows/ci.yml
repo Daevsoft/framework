@@ -39,6 +39,12 @@ jobs:
           cat phpunit.log
           exit $result
 
+      - name: Verify CLI commands
+        run: |
+          php ds > cli-help.txt
+          grep -q 'serve' cli-help.txt
+          grep -q 'fpm:serve' cli-help.txt
+
       - name: Swoole HTTP smoke test
         shell: bash
         run: |
@@ -60,6 +66,23 @@ jobs:
           curl --silent --fail http://127.0.0.1:8123/users/42 > user.json
           php -r '$data = json_decode(file_get_contents("user.json"), true); if (($data["id"] ?? null) !== 42) { fwrite(STDERR, "Parameterized route failed\n"); exit(1); }'
 
+      - name: FPM compatibility smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_RUNTIME=fpm php -S 127.0.0.1:8124 -t public/ > fpm.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          for attempt in {1..20}; do
+            if curl --silent --fail http://127.0.0.1:8124/health > fpm-health.json; then
+              break
+            fi
+            sleep 1
+          done
+
+          php -r '$data = json_decode(file_get_contents("fpm-health.json"), true); if (($data["status"] ?? null) !== "ok") { fwrite(STDERR, "Invalid FPM health response\\n"); exit(1); }'
+
       - name: Upload test diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -70,4 +93,7 @@ jobs:
             swoole.log
             health.json
             user.json
+            fpm.log
+            fpm-health.json
+            cli-help.txt
           if-no-files-found: ignore
