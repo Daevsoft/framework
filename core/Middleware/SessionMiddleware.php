@@ -25,12 +25,15 @@ final class SessionMiddleware implements MiddlewareInterface
 
         try {
             $response = $next($request);
-            $session->save();
-
-            $cookie = $session->cookieHeader();
-            return $cookie === null ? $response : $response->withHeader('Set-Cookie', $cookie);
         } finally {
-            $context->remove('session');
+            try {
+                $session->save();
+            } finally {
+                $context->remove('session');
+            }
         }
+
+        $cookie = $session->cookieHeader();
+        return $cookie === null ? $response : $response->withHeader('Set-Cookie', $cookie);
     }
 }
