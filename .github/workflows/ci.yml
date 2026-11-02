@@ -50,6 +50,9 @@ jobs:
           grep -q 'add:model' cli-help.txt
           grep -q 'add:view' cli-help.txt
           grep -q 'add:test' cli-help.txt
+          grep -q 'add:migration' cli-help.txt
+          grep -q 'route:list' cli-help.txt
+          grep -q 'test' cli-help.txt
           php ds route:list > route-list.txt
           grep -q '/health' route-list.txt
           php ds config --clear
