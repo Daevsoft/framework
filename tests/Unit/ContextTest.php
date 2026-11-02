@@ -25,14 +25,31 @@ final class ContextTest extends TestCase
 
     public function testValuesAreIsolatedBetweenSwooleCoroutines(): void
     {
-        if (!class_exists(\Swoole\Coroutine::class) || !method_exists(\Swoole\Coroutine::class, 'run')) {
+        if (!class_exists(\Swoole\Coroutine::class)) {
             self::markTestSkipped('Swoole coroutine runtime is unavailable.');
         }
+
+        $hasRun = method_exists(\Swoole\Coroutine::class, 'run');
+        $hasScheduler = class_exists(\Swoole\Coroutine\Scheduler::class);
+        if (!$hasRun && !$hasScheduler) {
+            self::markTestSkipped('No supported Swoole coroutine scheduler is available.');
+        }
+
+        $runner = static function (callable $callback) use ($hasRun): void {
+            if ($hasRun) {
+                \Swoole\Coroutine::run($callback);
+                return;
+            }
+
+            $scheduler = new \Swoole\Coroutine\Scheduler();
+            $scheduler->add($callback);
+            $scheduler->start();
+        };
 
         $context = new Context();
         $results = [];
 
-        \Swoole\Coroutine::run(static function () use ($context, &$results): void {
+        $runner(static function () use ($context, &$results): void {
             \Swoole\Coroutine::create(static function () use ($context, &$results): void {
                 $context->set('request_id', 'coroutine-a');
                 \Swoole\Coroutine::sleep(0.01);
