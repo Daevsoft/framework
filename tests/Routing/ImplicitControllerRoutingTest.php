@@ -9,6 +9,7 @@ use App\Support\RouteRegistry;
 use Ds\Http\Request;
 use Ds\Http\RequestDispatcher;
 use Ds\Http\Response;
+use Ds\Foundations\Routing\Attributes\Get as LegacyGet;
 use Ds\Middleware\MiddlewareInterface;
 use Ds\Middleware\MiddlewareRegistry;
 use Ds\Routing\Attributes\Get;
@@ -63,6 +64,15 @@ final class ImplicitControllerRoutingTest extends TestCase
         self::assertSame('yes', $response->headers()['X-Test-Middleware']);
     }
 
+    public function testLegacyV3AttributeNamespaceRemainsCompatible(): void
+    {
+        RouteDsl::group('/members', ImplicitMemberController::class);
+        $route = RouteRegistry::getRouter()?->match('GET', '/members/legacy');
+
+        self::assertNotNull($route);
+        self::assertSame([ImplicitMemberController::class, 'legacy'], $route->handler);
+    }
+
     public function testControllerMethodsCanReceiveRouteArgumentsWithoutRequest(): void
     {
         RouteDsl::group('/members', ImplicitMemberController::class);
@@ -104,6 +114,12 @@ final class ImplicitMemberController
     public function show(Request $request, int $id): Response
     {
         return Response::json(['id' => $id]);
+    }
+
+    #[LegacyGet('/legacy')]
+    public function legacy(): Response
+    {
+        return Response::text('legacy');
     }
 
     #[Get('/slug/{name}')]
