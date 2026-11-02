@@ -8,7 +8,7 @@ abstract class Model
 {
     protected $table = null;
     protected $primaryKey = 'id';
-    protected $fillable = [];
+    protected $fillable = null;
 
     public static function query(): QueryBuilder
     {
@@ -89,13 +89,25 @@ abstract class Model
         $class = preg_replace('/Model$/', '', $class) ?? $class;
         $snake = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $class));
 
+        if (in_array($snake, ['people', 'children', 'data'], true)) {
+            return $snake;
+        }
+
+        if (preg_match('/[^aeiou]y$/', $snake) === 1) {
+            return substr($snake, 0, -1) . 'ies';
+        }
+
         return $snake . 's';
     }
 
     private function filterFillable(array $attributes): array
     {
-        if (!is_array($this->fillable) || $this->fillable === []) {
+        if ($this->fillable === null) {
             return $attributes;
+        }
+
+        if (!is_array($this->fillable) || $this->fillable === []) {
+            return [];
         }
 
         return array_intersect_key($attributes, array_fill_keys($this->fillable, true));
