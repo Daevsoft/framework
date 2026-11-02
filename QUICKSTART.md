@@ -74,7 +74,86 @@ use App\Domains\User\Http\Controllers\UserController;
 Route::get('/users/{id}', [UserController::class, 'show']);
 ```
 
-## 5. Return responses
+
+## 5. Use implicit controller routing
+
+You can group routes by controller, as in v3. Attributes are scanned once when routes are registered:
+
+```php
+use App\Support\Route;
+use Ds\Http\Request;
+use Ds\Http\Response;
+use Ds\Routing\Attributes\Get;
+use Ds\Routing\Attributes\Post;
+
+Route::group('/users', UserController::class);
+
+final class UserController
+{
+    #[Get('/all')]
+    public function index(Request $request): Response
+    {
+        return Response::json([]);
+    }
+
+    #[Get('/detail/{userId}')]
+    public function show(Request $request, int $userId): Response
+    {
+        return Response::json(['id' => $userId]);
+    }
+
+    #[Post('/save')]
+    public function save(Request $request): Response
+    {
+        return Response::json($request->all(), 201);
+    }
+}
+```
+
+This registers `GET /users/all`, `GET /users/detail/{userId}`, and `POST /users/save`. You can also use the generic `#[RouteAttribute('GET', '/path')]` from `App\Http\Attributes`.
+
+## 6. Render PieTemplate views
+
+Create `app/views/layouts/app.pie.php`:
+
+```html
+<html>
+<head><title>@slot('title')</title></head>
+<body>@slot('content')</body>
+</html>
+```
+
+Create `app/views/pages/home.pie.php`:
+
+```html
+@use('layouts.app')
+@part('title'){{ $title }}@endpart
+@part('content')
+<h1>{! $heading !}</h1>
+@if($users)
+    @foreach($users as $user)
+        <p>{{ $user['name'] }}</p>
+    @endforeach
+@else
+    <p>No users found.</p>
+@endif
+@endpart
+```
+
+Return it from a controller:
+
+```php
+return response()->html(view('pages.home', [
+    'title' => 'Home',
+    'heading' => '<Welcome>',
+    'users' => [],
+]));
+```
+
+`{{ ... }}` emits an expression as-is; `{! ... !}` escapes HTML. Compiled templates are cached and rebuilt when their source changes. PieTemplate files are trusted PHP templates, so never put untrusted PHP code in a view.
+
+## 7. Return responses
+
 
 ```php
 return response()->json(['created' => true], 201);
