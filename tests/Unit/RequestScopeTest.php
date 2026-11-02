@@ -26,6 +26,38 @@ final class RequestScopeTest extends TestCase
         $container->endRequest();
     }
 
+    public function testSingletonCannotCaptureRequestScopedDependency(): void
+    {
+        $container = new Container();
+        $container->scoped(RequestScopedTestService::class);
+        $container->singleton(SingletonWithRequestScopedDependency::class);
+        $container->beginRequest();
+
+        $this->expectException(\\RuntimeException::class);
+        $this->expectExceptionMessage('cannot depend on request-scoped service');
+
+        try {
+            $container->make(SingletonWithRequestScopedDependency::class);
+        } finally {
+            $container->endRequest();
+        }
+    }
+
+    public function testRequestScopedLifetimeFlowsThroughTransientDependencies(): void
+    {
+        $container = new Container();
+        $container->scoped(RequestScopedTestService::class);
+        $container->scoped(RequestScopedConsumer::class);
+        $container->beginRequest();
+
+        $first = $container->make(RequestScopedConsumer::class);
+        $second = $container->make(RequestScopedConsumer::class);
+
+        self::assertSame($first, $second);
+        self::assertSame($first->wrapper->service, $container->make(RequestScopedTestService::class));
+        $container->endRequest();
+    }
+
     public function testRequestScopedInstancesAreIsolatedAcrossCoroutines(): void
     {
         if (!class_exists(\Swoole\Coroutine::class) || !method_exists(\Swoole\Coroutine::class, 'run')) {
@@ -64,4 +96,25 @@ final class RequestScopeTest extends TestCase
 
 final class RequestScopedTestService
 {
+}
+
+final class RequestScopedTransientWrapper
+{
+    public function __construct(public RequestScopedTestService $service)
+    {
+    }
+}
+
+final class RequestScopedConsumer
+{
+    public function __construct(public RequestScopedTransientWrapper $wrapper)
+    {
+    }
+}
+
+final class SingletonWithRequestScopedDependency
+{
+    public function __construct(RequestScopedTestService $service)
+    {
+    }
 }
