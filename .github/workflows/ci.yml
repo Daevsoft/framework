@@ -46,6 +46,15 @@ jobs:
           grep -q 'fpm:serve' cli-help.txt
           grep -q 'migrate' cli-help.txt
           grep -q 'config' cli-help.txt
+          grep -q 'add:controller' cli-help.txt
+          grep -q 'add:model' cli-help.txt
+          grep -q 'add:view' cli-help.txt
+          grep -q 'add:test' cli-help.txt
+          php ds route:list > route-list.txt
+          grep -q '/health' route-list.txt
+          php ds config --clear
+          php ds config
+          test -f app/storage/cache/config.php
 
       - name: Swoole HTTP smoke test
         shell: bash
@@ -98,4 +107,5 @@ jobs:
             fpm.log
             fpm-health.json
             cli-help.txt
+            route-list.txt
           if-no-files-found: ignore
