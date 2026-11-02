@@ -7,7 +7,7 @@ namespace App\Http\Middleware;
 use Ds\Http\Request;
 use Ds\Http\Response;
 
-class CorsMiddleware
+class CorsMiddleware implements MiddlewareInterface
 {
     /**
      * Handle CORS headers
@@ -16,11 +16,10 @@ class CorsMiddleware
     {
         $response = $next($request);
 
-        $response->header('Access-Control-Allow-Origin', env('CORS_ORIGIN', '*'));
-        $response->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        $response->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-        return $response;
+        return $response
+            ->withHeader('Access-Control-Allow-Origin', (string) env('CORS_ORIGIN', '*'))
+            ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            ->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
 }
 
