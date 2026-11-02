@@ -10,6 +10,13 @@ namespace Ds\Context;
  */
 final class Context
 {
+    private static ?self $default = null;
+
+    public static function default(): self
+    {
+        return self::$default ??= new self();
+    }
+
     private const COROUTINE_KEY = 'ds.framework.context';
     protected array $fallbackStore = [];
 
