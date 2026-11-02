@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-namespace Ds\\Foundations\\Routing\\Attributes;
+namespace Ds\Foundations\Routing\Attributes;
 
-class_alias('Ds\\\\Routing\\\\Attributes\\\\Put', __NAMESPACE__ . '\\\\Put');
+class_alias('Ds\\Routing\\Attributes\\Put', __NAMESPACE__ . '\\Put');
