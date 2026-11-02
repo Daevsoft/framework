@@ -8,7 +8,7 @@ use Ds\Http\Request;
 use Ds\Http\Response;
 use UnexpectedValueException;
 
-class MiddlewarePipeline
+final class MiddlewarePipeline
 {
     public function __construct(
         protected MiddlewareStack $stack = new MiddlewareStack()
@@ -19,7 +19,13 @@ class MiddlewarePipeline
     {
         $runner = array_reduce(
             array_reverse($this->stack->all()),
-            fn ($next, $middleware) => fn ($req) => $middleware($req, $next),
+            static function (callable $next, callable|MiddlewareInterface $middleware): callable {
+                return static function (Request $current) use ($middleware, $next): Response {
+                    return $middleware instanceof MiddlewareInterface
+                        ? $middleware->handle($current, $next)
+                        : $middleware($current, $next);
+                };
+            },
             $destination
         );
 
@@ -31,5 +37,3 @@ class MiddlewarePipeline
         return $result;
     }
 }
-
-
