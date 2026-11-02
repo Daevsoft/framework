@@ -12,6 +12,9 @@ use Ds\Http\Response;
 use Ds\Foundations\Routing\Attributes\Get as LegacyGet;
 use Ds\Middleware\MiddlewareInterface;
 use Ds\Middleware\MiddlewareRegistry;
+use Ds\Foundations\Network\Middleware as LegacyMiddleware;
+use Ds\Foundations\Network\Request as LegacyRequest;
+use Ds\Foundations\Network\Response as LegacyResponse;
 use Ds\Routing\Attributes\Get;
 use Ds\Routing\Attributes\Post;
 use Ds\Routing\Router;
@@ -64,6 +67,19 @@ final class ImplicitControllerRoutingTest extends TestCase
         self::assertSame('yes', $response->headers()['X-Test-Middleware']);
     }
 
+    public function testLegacyMiddlewareCanShortCircuitWithNull(): void
+    {
+        MiddlewareRegistry::alias('legacy-deny', LegacyDenyMiddleware::class);
+        RouteDsl::get('/legacy-denied', static fn (): Response => Response::text('allowed'))
+            ->middleware('legacy-deny');
+
+        $response = (new RequestDispatcher(RouteRegistry::getRouter()))->dispatch(
+            new Request([], [], 'GET', '/legacy-denied')
+        );
+
+        self::assertSame(403, $response->status());
+    }
+
     public function testLegacyV3AttributeNamespaceRemainsCompatible(): void
     {
         RouteDsl::group('/members', ImplicitMemberController::class);
@@ -94,6 +110,14 @@ final class ImplicitControllerRoutingTest extends TestCase
     }
 }
 
+final class LegacyDenyMiddleware extends LegacyMiddleware
+{
+    public function handle(LegacyRequest $request, callable $next): ?LegacyResponse
+    {
+        return null;
+    }
+}
+
 final class ImplicitHeaderMiddleware implements MiddlewareInterface
 {
     public function handle(Request $request, callable $next): Response
@@ -114,6 +138,12 @@ final class ImplicitMemberController
     public function show(Request $request, int $id): Response
     {
         return Response::json(['id' => $id]);
+    }
+
+    #[LegacyGet('/legacy-request')]
+    public function legacyRequest(LegacyRequest $request): LegacyResponse
+    {
+        return LegacyResponse::text('legacy-request:' . $request->getMethod());
     }
 
     #[LegacyGet('/legacy')]
