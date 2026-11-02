@@ -42,6 +42,25 @@ final class ImplicitControllerRoutingTest extends TestCase
         self::assertSame('{\"id\":42}', $response->body());
     }
 
+    protected function tearDown(): void
+    {
+        MiddlewareRegistry::clear();
+    }
+
+    public function testExecutesRouteMiddlewareAliases(): void
+    {
+        MiddlewareRegistry::alias('test-header', ImplicitHeaderMiddleware::class);
+        RouteDsl::get('/protected', static fn (): Response => Response::text('ok'))
+            ->middleware('test-header');
+
+        $response = (new RequestDispatcher(RouteRegistry::getRouter()))->dispatch(
+            new Request([], [], 'GET', '/protected')
+        );
+
+        self::assertSame('ok', $response->body());
+        self::assertSame('yes', $response->headers()['X-Test-Middleware']);
+    }
+
     public function testRegistersMultipleHttpMethodsAndAttributeMiddleware(): void
     {
         RouteDsl::group('/members', ImplicitMemberController::class);
@@ -49,6 +68,14 @@ final class ImplicitControllerRoutingTest extends TestCase
         $route = RouteRegistry::getRouter()?->match('POST', '/members');
         self::assertNotNull($route);
         self::assertSame(['auth'], $route->middlewares);
+    }
+}
+
+final class ImplicitHeaderMiddleware implements MiddlewareInterface
+{
+    public function handle(Request $request, callable $next): Response
+    {
+        return $next($request)->withHeader('X-Test-Middleware', 'yes');
     }
 }
 
