@@ -44,6 +44,12 @@ The framework should optimize for two goals at once:
 - Prevented singleton dependency graphs from capturing request-scoped services and added request-scope propagation through transient dependencies.
 - Added coroutine-local request context storage and clear it in a `finally` block for both Swoole and FPM request lifecycles.
 - Added bounded resource pools with validation, duplicate-release protection, disposal callbacks, and worker-stop cleanup.
+- Added a bounded Swoole timer scheduler for one-shot and recurring tasks; worker-stop lifecycle clears timers and pools.
+- Wired lifecycle events for application boot, request handling, worker start/stop, and server shutdown.
+- Added a container-managed middleware stack supporting closures and middleware classes, with immutable CORS responses and OPTIONS preflight handling.
+- Changed the unimplemented authentication middleware to fail closed with HTTP 501 rather than silently allowing requests.
+- Added `php ds serve` as the primary Swoole command and `php ds fpm:serve` as the explicit compatibility development server; host/port validation and shell escaping prevent command injection.
+- Added Swoole request package size limits and disabled unused task workers by default to reduce idle memory use.
 - Added explicit PSR-4 mappings for the repository's lowercase application directories so class loading works on case-sensitive Linux filesystems.
 - Added regression tests for dynamic routing, dispatcher behavior, Swoole request parsing, container resolution, and coroutine context isolation.
 - Reworked README and setup documentation around Swoole-first operation.
@@ -53,20 +59,18 @@ The framework should optimize for two goals at once:
 
 ### P0 — Runtime correctness and request isolation
 
-- Add a dedicated request scope and reset it after every request, including exception paths.
-- Define process, worker, and request lifetimes for services; prevent request-bound services from becoming process singletons.
-- Integrate request context with a formal request-scoped dependency lifecycle so request-bound services are isolated across concurrent coroutines.
-- Add middleware exception handling and a configurable error renderer.
-- Add graceful shutdown/signal handling and deterministic cleanup for all worker-owned services; worker start/stop lifecycle hooks and pool cleanup are now wired.
+- Add a configurable error renderer and structured error responses; adapters currently return a safe generic 500 response.
+- Add graceful drain/signal policy and deterministic cleanup for all worker-owned singleton services; worker start/stop and shutdown hooks, timer cleanup, and pool cleanup are now wired.
+- Verify Swoole version compatibility and server settings across a supported extension-version matrix.
 - Verify Swoole version compatibility and server settings against supported extension versions.
 
 ### P1 — Core framework completeness
 
 - Implement WebSocket server lifecycle and route registration; current `Route::ws()` is only a route declaration and is not a complete WebSocket runtime.
-- Complete middleware registration and route-level middleware.
+- Add route/group-level middleware, aliases, and per-route middleware metadata; the global middleware stack is now operational.
 - Add named routes, URL generation, route constraints, method-not-allowed handling, and HEAD support.
 - Add robust request validation, uploaded-file handling, cookies, and content negotiation.
-- Complete event/broadcast adapters and document which drivers are actually operational.
+- Complete event/broadcast adapters and implement queued task-worker execution; current scheduled tasks use bounded Swoole timers.
 - Add pool acquisition timeouts/factories and coroutine-safe pool checkout semantics; current pools are bounded and disposable but intentionally remain simple LIFO pools.
 
 ### P2 — Developer experience
