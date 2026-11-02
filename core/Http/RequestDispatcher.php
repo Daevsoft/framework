@@ -131,8 +131,24 @@ final class RequestDispatcher
         array $params
     ): array {
         $arguments = [];
-        $positional = array_values($params);
-        $routeIndex = 0;
+        $remaining = $params;
+        $reservedNames = [];
+
+        // Reserve exact-name matches before positional fallback so an earlier
+        // unmatched parameter cannot consume a route value needed by a later one.
+        foreach ($reflection->getParameters() as $index => $parameter) {
+            $type = $parameter->getType();
+            $typeName = $type instanceof ReflectionNamedType ? $type->getName() : null;
+            $isRequest = $typeName !== null
+                && !$type->isBuiltin()
+                && ($typeName === Request::class || is_a($typeName, Request::class, true));
+            if ($isRequest || ($index === 0 && in_array(strtolower($parameter->getName()), ['request', 'req'], true))) {
+                continue;
+            }
+            if (array_key_exists($parameter->getName(), $params)) {
+                $reservedNames[$parameter->getName()] = true;
+            }
+        }
 
         foreach ($reflection->getParameters() as $index => $parameter) {
             $type = $parameter->getType();
@@ -141,21 +157,31 @@ final class RequestDispatcher
                 && !$type->isBuiltin()
                 && ($typeName === Request::class || is_a($typeName, Request::class, true));
 
-            // Preserve the conventional untyped $request / $req first argument.
             if ($isRequest || ($index === 0 && in_array(strtolower($parameter->getName()), ['request', 'req'], true))) {
                 $arguments[] = $request;
                 continue;
             }
 
-            if (array_key_exists($parameter->getName(), $params)) {
-                $value = $params[$parameter->getName()];
-                $routeIndex++;
+            $parameterName = $parameter->getName();
+            if (array_key_exists($parameterName, $remaining)) {
+                $value = $remaining[$parameterName];
+                unset($remaining[$parameterName], $reservedNames[$parameterName]);
                 $arguments[] = $this->castRouteValue($value, $type);
                 continue;
             }
 
-            if (array_key_exists($routeIndex, $positional)) {
-                $value = $positional[$routeIndex++];
+            $matchedKey = null;
+            foreach ($remaining as $key => $value) {
+                if (is_string($key) && isset($reservedNames[$key])) {
+                    continue;
+                }
+                $matchedKey = $key;
+                break;
+            }
+
+            if ($matchedKey !== null) {
+                $value = $remaining[$matchedKey];
+                unset($remaining[$matchedKey]);
                 $arguments[] = $this->castRouteValue($value, $type);
                 continue;
             }
@@ -164,6 +190,10 @@ final class RequestDispatcher
                 $arguments[] = $parameter->getDefaultValue();
             } elseif ($parameter->allowsNull()) {
                 $arguments[] = null;
+            } else {
+                throw new \\RuntimeException(
+                    "Unable to resolve required route parameter [{$parameterName}] for handler."
+                );
             }
         }
 

@@ -309,6 +309,21 @@ final class PieTemplateTest extends TestCase
         self::assertSame('<strong>New</strong>', $renderer->render('component-cache'));
     }
 
+    public function testInvalidatesCompiledViewWhenNestedComponentChanges(): void
+    {
+        mkdir($this->views . '/components', 0777, true);
+        file_put_contents($this->views . '/components/badge.pie.php', '<b>Old badge</b>');
+        file_put_contents($this->views . '/components/card.pie.php', '<article><x-badge /></article>');
+        file_put_contents($this->views . '/nested-component-cache.pie.php', '<x-card />');
+
+        $renderer = new ViewRenderer($this->views, $this->cache);
+        self::assertSame('<article><b>Old badge</b></article>', $renderer->render('nested-component-cache'));
+
+        file_put_contents($this->views . '/components/badge.pie.php', '<strong>New badge</strong>');
+
+        self::assertSame('<article><strong>New badge</strong></article>', $renderer->render('nested-component-cache'));
+    }
+
     private function removeDirectory(string $directory): void
     {
         if (!is_dir($directory)) {

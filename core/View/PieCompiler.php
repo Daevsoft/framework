@@ -8,7 +8,7 @@ use RuntimeException;
 
 final class PieCompiler
 {
-    private const VERSION = '5';
+    private const VERSION = '6';
 
     public function __construct(
         private readonly string $viewRoot,
@@ -569,13 +569,24 @@ final class PieCompiler
 
         $references = [];
         if (preg_match_all(
-            '/@(?:use|import)\(\s*([\'"])([^\'"]+)\1/',
+            '/@(?:use|import)\\(\\s*([\'"])([^\'"]+)\\1/',
             $source,
             $matches
         ) !== false) {
-            $references = array_values(array_unique($matches[2]));
+            $references = $matches[2];
         }
 
+        // Component files affect the compiled output just like layouts and
+        // imported macro libraries. Include nested component dependencies.
+        if (preg_match_all('/<x-([A-Za-z0-9_.-]+)\\b/i', $source, $componentMatches) !== false) {
+            foreach ($componentMatches[1] as $componentName) {
+                if (strtolower($componentName) !== 'slot') {
+                    $references[] = 'components.' . str_replace('/', '.', $componentName);
+                }
+            }
+        }
+
+        $references = array_values(array_unique($references));
         sort($references);
         foreach ($references as $reference) {
             $filename = $this->resolveView($reference);

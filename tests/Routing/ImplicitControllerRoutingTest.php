@@ -122,6 +122,17 @@ final class ImplicitControllerRoutingTest extends TestCase
         self::assertSame('73:GET', $response->body());
     }
 
+    public function testNamedRouteBindingIsReservedBeforePositionalFallback(): void
+    {
+        RouteDsl::group('/members', ImplicitMemberController::class);
+
+        $response = (new RequestDispatcher(RouteRegistry::getRouter()))->dispatch(
+            new Request([], [], 'GET', '/members/mixed/73/developer')
+        );
+
+        self::assertSame('developer:73', $response->body());
+    }
+
     public function testRegistersMultipleHttpMethodsAndAttributeMiddleware(): void
     {
         RouteDsl::group('/members', ImplicitMemberController::class);
@@ -190,6 +201,12 @@ final class ImplicitMemberController
     public function requestAfter(int $id, Request $request): Response
     {
         return Response::text($id . ':' . $request->getMethod());
+    }
+
+    #[Get('/mixed/{id}/{slug}')]
+    public function mixed(string $label, int $id): Response
+    {
+        return Response::text($label . ':' . $id);
     }
 
     #[Post('/', ['auth'])]
