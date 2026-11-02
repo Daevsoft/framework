@@ -81,7 +81,8 @@ final class RequestDispatcher
 
         $first = $reflection->getParameters()[0] ?? null;
         $type = $first?->getType();
-        $expectsRequest = $type instanceof ReflectionNamedType && $type->getName() === Request::class;
+        $expectsRequest = ($type instanceof ReflectionNamedType && $type->getName() === Request::class)
+            || ($first !== null && in_array(strtolower($first->getName()), ['request', 'req'], true));
 
         return $handler(...$this->buildArguments($reflection, $request, $params, $expectsRequest));
     }
