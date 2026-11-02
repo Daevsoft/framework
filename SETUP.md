@@ -119,6 +119,20 @@ $container->scoped(CurrentTenant::class);
 
 A singleton cannot capture a request-scoped dependency; the container rejects that dependency graph to prevent state leaking between users. Request scope is stored in Swoole coroutine-local context and is reset in a `finally` block.
 
+## Middleware
+
+The application kernel uses the container-managed global middleware stack. Register middleware once during bootstrap:
+
+```php
+use App\Http\Middleware\CorsMiddleware;
+use Ds\Middleware\MiddlewareStack;
+
+$middleware = $container->make(MiddlewareStack::class);
+$middleware->push(new CorsMiddleware());
+```
+
+Middleware classes implement `Ds\Middleware\MiddlewareInterface`; closures with the signature `function (Request $request, callable $next): Response` are also supported. The built-in `AuthMiddleware` is intentionally fail-closed with HTTP 501 because authentication is not implemented yet. Do not use it as a production authenticator.
+
 ## Request and response lifecycle
 
 1. Swoole receives the network request.
