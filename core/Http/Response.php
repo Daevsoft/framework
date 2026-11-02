@@ -7,21 +7,29 @@ namespace Ds\Http;
 final class Response
 {
     private int $status;
-    private array $headers = [];
-    private string $body = '';
+    private array $headers;
+    private string $body;
 
-    public function __construct(int $status = 200, array $headers = [], string $body = '')
+    /**
+     * The second argument accepts either headers or a body string for
+     * compatibility with the original new Response($status, $body) examples.
+     */
+    public function __construct(int $status = 200, array|string $headers = [], string $body = '')
     {
         $this->status = $status;
-        $this->headers = $headers;
-        $this->body = $body;
+        if (is_string($headers)) {
+            $this->headers = [];
+            $this->body = $headers;
+        } else {
+            $this->headers = $headers;
+            $this->body = $body;
+        }
     }
 
     public function status(): int { return $this->status; }
     public function headers(): array { return $this->headers; }
     public function body(): string { return $this->body; }
 
-    // Immutability helpers
     public function withStatus(int $status): self
     {
         $new = clone $this;
@@ -43,16 +51,25 @@ final class Response
         return $new;
     }
 
-    // Helpers
-    public static function text(string $text): self
+    public static function text(string $text, int $status = 200): self
     {
-        return new self(200, ['Content-Type' => 'text/plain'], $text);
+        return new self($status, ['Content-Type' => 'text/plain; charset=utf-8'], $text);
     }
 
-    public static function json(mixed $data): self
+    public static function html(string $html, int $status = 200): self
+    {
+        return new self($status, ['Content-Type' => 'text/html; charset=utf-8'], $html);
+    }
+
+    public static function json(mixed $data, int $status = 200): self
     {
         $encoded = json_encode($data, JSON_THROW_ON_ERROR);
-        return new self(200, ['Content-Type' => 'application/json'], $encoded);
+        return new self($status, ['Content-Type' => 'application/json; charset=utf-8'], $encoded);
+    }
+
+    public static function redirect(string $location, int $status = 302): self
+    {
+        return new self($status, ['Location' => $location]);
     }
 
     public static function ok(): self
@@ -62,8 +79,6 @@ final class Response
 
     public function send(): void
     {
-        $emitter = new ResponseEmitter();
-        $emitter->emit($this);
+        (new ResponseEmitter())->emit($this);
     }
 }
-
