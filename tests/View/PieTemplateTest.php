@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\View;
 
+use Ds\View\PieCompiler;
 use Ds\View\ViewRenderer;
 use PHPUnit\Framework\TestCase;
 
@@ -116,6 +117,26 @@ final class PieTemplateTest extends TestCase
         self::assertSame('Ready', $renderer->render('switch', ['status' => 'ready']));
         self::assertSame('Pending', $renderer->render('switch', ['status' => 'pending']));
         self::assertSame('Unknown', $renderer->render('switch', ['status' => 'other']));
+    }
+
+    public function testCompilesLegacyAuthFlashCsrfAndAssetDirectives(): void
+    {
+        $compiler = new PieCompiler($this->views, $this->cache);
+        $compiled = $compiler->compileSource(
+            '@auth signed-in @endauth' .
+            '@isflash("notice")notice@endisflash' .
+            '@csrf @flash("notice") @error("email") @old("email")' .
+            '@css("app") @js("app")'
+        );
+
+        self::assertStringContainsString('session("user", false)', $compiled);
+        self::assertStringContainsString('is_flash("notice")', $compiled);
+        self::assertStringContainsString('csrf_token()', $compiled);
+        self::assertStringContainsString('flash("notice")', $compiled);
+        self::assertStringContainsString('error_', $compiled);
+        self::assertStringContainsString('old("email")', $compiled);
+        self::assertStringContainsString('css_source("app")', $compiled);
+        self::assertStringContainsString('js_source("app")', $compiled);
     }
 
     private function removeDirectory(string $directory): void
