@@ -19,7 +19,7 @@ Make sure the Swoole extension is enabled for the same PHP CLI binary used to st
 php ds serve
 
 # Or start the Swoole bootstrap directly
-php app/bootstrap/app.php
+php ds serve
 ```
 
 The default server listens on `http://127.0.0.1:8000`.
@@ -105,6 +105,9 @@ Process-manager environment variables take precedence over `.env`.
 FPM is an optional compatibility runtime:
 
 ```bash
+php ds fpm:serve
+
+# Or explicitly run PHP's built-in server with the FPM adapter
 APP_RUNTIME=fpm php -S 127.0.0.1:8000 -t public/
 ```
 
