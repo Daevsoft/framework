@@ -1,349 +1,156 @@
-# Ds Framework - Robust PHP Framework
+# Ds Framework 4
 
-A modern, production-ready PHP framework with support for **PHP-FPM**, **Swoole**, and **WebSocket** real-time features.
+A lightweight PHP application framework designed around **Swoole-first execution**. FPM remains available as an explicit compatibility runtime, while the primary architecture targets persistent workers, predictable request isolation, and low per-request overhead.
 
-## ✨ Features
+## Design priorities
 
-- 🚀 **Multiple Runtimes** - FPM and Swoole support
-- 🌐 **WebSocket** - Real-time communication
-- 🏛️ **Domain-Driven Design** - Organized business logic
-- 🔌 **Dependency Injection** - Built-in IoC container
-- 🛣️ **RESTful Routing** - Intuitive route definition
-- 📡 **Event Broadcasting** - Real-time events
-- 🧩 **Middleware** - Request processing pipeline
-- 🔐 **Authentication** - RBAC and ACL support
-- 🧪 **Testing** - Built-in testing utilities
-- ⚡ **High Performance** - Async support with Swoole
+- **Swoole first:** long-running HTTP workers, coroutine-aware integrations, graceful worker lifecycle, and controlled memory growth.
+- **Friendly syntax:** familiar route, controller, middleware, response, and domain conventions.
+- **Performance by default:** compile route patterns at registration, avoid repeated reflection in hot paths, keep request objects isolated, and make expensive features opt-in.
+- **Explicit lifecycle:** distinguish process-wide services from request-specific state. Never keep user/request data in process singletons.
+- **Compatibility:** FPM is supported through the same HTTP kernel and router, but is not the primary runtime.
 
-## 🚀 Quick Start
+## Requirements
 
-### 1. Run with FPM (Development)
+- PHP 8.1+
+- Composer 2
+- Swoole PHP extension (required for the primary runtime)
+- Redis is optional and only needed by Redis-backed features
 
-```bash
-php -S 127.0.0.1:8000 -t public/
-```
-
-Visit: `http://127.0.0.1:8000`
-
-### 2. Run with Swoole (Production)
+## Quick start
 
 ```bash
-# Set in .env
-APP_RUNTIME=swoole
-
-# Start server
-php app/bootstrap/swoole.php
+composer install
+cp .env.example .env
+pecl install swoole
+php app/bootstrap/app.php
 ```
 
-### 3. Create Your First Route
+The default configuration uses Swoole and listens on `127.0.0.1:8000`.
 
-Edit `app/routes/web.php`:
+To explicitly use the compatibility runtime:
+
+```bash
+APP_RUNTIME=fpm php -S 127.0.0.1:8000 -t public/
+```
+
+## Define routes
 
 ```php
 use App\Support\Route;
 
-Route::get('/hello/{name}', function($name) {
-    return "Hello, {$name}!";
+Route::get('/health', fn () => response()->json(['status' => 'ok']));
+
+Route::get('/users/{id}', [UserController::class, 'show']);
+Route::post('/users', [UserController::class, 'store']);
+
+Route::prefix('/api', function (): void {
+    Route::get('/ping', fn () => ['message' => 'pong']);
 });
 ```
 
-Visit: `http://127.0.0.1:8000/hello/World`
+Static routes use a direct lookup table. Parameterized routes are compiled once during application bootstrap, then matched without rebuilding regular expressions for every request.
 
-## 📚 Documentation
-
-| Document | Purpose |
-|----------|---------|
-| [QUICKSTART.md](QUICKSTART.md) | 5-minute getting started |
-| [SETUP.md](SETUP.md) | Comprehensive setup guide |
-| [Framework Flow Process.md](Framework%20Flow%20Process.md) | Architecture & request flow |
-| [API.md](API.md) | API endpoint documentation |
-| [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md) | Development tasks |
-| [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | What was implemented |
-
-## 📂 Project Structure
-
-```
-framework/
-├── app/                    # Application code
-│   ├── bootstrap/          # Bootstrap files (FPM, Swoole)
-│   ├── config/             # Configuration
-│   ├── console/            # CLI commands
-│   ├── domains/            # Domain-driven code
-│   ├── http/               # HTTP controllers & middleware
-│   ├── routes/             # Route definitions
-│   ├── support/            # Helper functions
-│   └── views/              # View templates
-├── core/                   # Framework core
-│   ├── App/                # Application class
-│   ├── Auth/               # Authentication
-│   ├── Broadcasting/       # Real-time broadcasting
-│   ├── Console/            # CLI system
-│   ├── Container/          # Dependency injection
-│   ├── Http/               # HTTP handling
-│   ├── Routing/            # Router
-│   ├── Server/             # Swoole server
-│   └── ...                 # Other core systems
-├── public/
-│   └── index.php           # Entry point
-├── tests/                  # Test files
-├── vendor/                 # Dependencies
-├── .env                    # Environment config
-└── composer.json           # Dependencies
-```
-
-## 🛣️ Routing
-
-### Basic Routes
-
-```php
-use App\Support\Route;
-
-// Simple routes
-Route::get('/posts', 'PostController@index');
-Route::post('/posts', 'PostController@store');
-Route::put('/posts/{id}', 'PostController@update');
-Route::delete('/posts/{id}', 'PostController@destroy');
-
-// Route groups
-Route::prefix('/api', function() {
-    Route::get('/users', 'UserController@index');
-});
-
-// Resource routes
-Route::resource('posts', 'PostController');
-
-// WebSocket
-Route::ws('/ws', function($connection) { /* ... */ });
-```
-
-## 🎮 Controllers
+## Controllers
 
 ```php
 <?php
-namespace App\Http\Controllers;
+
+namespace App\Domains\User\Http\Controllers;
 
 use Ds\Http\Request;
 use Ds\Http\Response;
 
-class PostController
+final class UserController
 {
-    public function index(Request $request): Response
-    {
-        $posts = [
-            ['id' => 1, 'title' => 'First Post'],
-        ];
-        return new Response(200, json_encode($posts));
-    }
-
     public function show(Request $request, int $id): Response
     {
-        $post = ['id' => $id, 'title' => 'Post ' . $id];
-        return new Response(200, json_encode($post));
+        return response()->json([
+            'id' => $id,
+            'page' => $request->getQuery('page', 1),
+        ]);
     }
 }
 ```
 
-## 🏛️ Domains
+Controller dependencies can be constructor-injected through the container. Bind interfaces explicitly; concrete classes can be autowired.
 
-Organize code by business domain:
+## Responses
 
-```bash
-# Create domain
-php app/console make:domain Product
-
-# Structure created
-app/domains/Product/
-├── Http/Controllers/
-├── Http/Middleware.php
-├── Http/Routes.php
-├── Services/
-├── Models/
-├── Repositories/
-├── Listeners/
-└── Events/
+```php
+return response()->json(['saved' => true], 201);
+return response()->html('<h1>Hello</h1>');
+return response()->text('Ready');
+return response()->redirect('/login');
 ```
 
-## 🔧 Configuration
+Or use `Response::json($data, 201)` directly.
 
-Edit `.env`:
+## Project structure
+
+```text
+app/
+  bootstrap/       # Swoole-first and FPM bootstrap
+  config/          # Application and server configuration
+  domains/         # Domain-oriented application modules
+  http/            # Controllers and middleware
+  routes/          # Route definitions
+  support/         # Route DSL and helpers
+core/
+  App/             # Application lifecycle
+  Container/       # Dependency injection
+  Http/            # Request, response, dispatcher, kernel
+  Routing/         # Static and parameterized route matching
+  Server/          # Swoole server integration
+  Middleware/      # Middleware pipeline
+  Lifecycle/       # Process/application lifecycle
+  Pool/            # Resource pooling primitives
+tests/
+  Routing/
+  Unit/
+```
+
+## Swoole configuration
 
 ```ini
-APP_NAME="My App"
-APP_ENV=local
-APP_DEBUG=true
-APP_RUNTIME=fpm          # or 'swoole'
-
+APP_RUNTIME=swoole
 SERVER_HOST=127.0.0.1
 SERVER_PORT=8000
-
-# Swoole
 SWOOLE_WORKERS=4
-
-# WebSocket
-WEBSOCKET_ENABLED=true
-WEBSOCKET_PORT=6001
+SWOOLE_TASK_WORKERS=2
+SWOOLE_COROUTINE=true
+SWOOLE_MAX_REQUEST=10000
+SWOOLE_MAX_CONN=1024
 ```
 
-## 📡 Real-time Features
+Tune worker counts against CPU, memory, and workload. Use `SWOOLE_MAX_REQUEST` as a safety valve for worker recycling, not as a substitute for fixing leaks.
 
-### WebSocket
+## Long-running worker rules
 
-```javascript
-const ws = new WebSocket('ws://localhost:6001/ws');
+1. Keep request data inside the `Request` instance or an explicit request scope.
+2. Do not store authenticated users, request headers, tenant IDs, or mutable request data in singletons or static properties.
+3. Do not perform blocking I/O inside coroutine-enabled request handlers unless the library is coroutine-aware.
+4. Close or return database/Redis connections in a `finally` block or managed pool lifecycle.
+5. Register routes and immutable configuration once during bootstrap.
+6. Measure memory per worker over sustained traffic; a successful single-request test is not a memory-safety test.
 
-ws.onmessage = (event) => {
-    console.log('Message:', event.data);
-};
-
-ws.send(JSON.stringify({action: 'ping'}));
-```
-
-### Broadcasting
-
-```php
-// Server broadcasts event
-event(new OrderCreated($order));
-
-// Listen to broadcast
-Event::listen(OrderCreated::class, function($event) {
-    Broadcast::to('orders')->emit('created', $event->order);
-});
-```
-
-## 🧪 Testing
+## Testing
 
 ```bash
-# Run tests
+composer install
 ./vendor/bin/phpunit
-
-# Create test
-php app/console make:test PostTest
 ```
 
-## 🚀 Deployment
+New behavior should include unit or regression tests. Load tests should measure throughput, latency percentiles, worker RSS, and memory growth over time.
 
-### FPM (Traditional)
+## Documentation
 
-```bash
-# Configure Nginx to point to public/
-# Set APP_ENV=production
-# Disable APP_DEBUG
-```
+- [Setup](SETUP.md)
+- [Quick start](QUICKSTART.md)
+- [API reference](API.md)
+- [Development checklist](DEVELOPMENT_CHECKLIST.md)
+- [Framework flow](Framework%20Flow%20Process.md)
 
-### Swoole (High-Performance)
+## License
 
-```bash
-# Set APP_RUNTIME=swoole
-# Use Supervisor to manage process
-# Configure load balancer
-```
-
-## 🔒 Security
-
-- Update `.env` for production
-- Disable `APP_DEBUG` in production
-- Use `APP_ENV=production`
-- Configure HTTPS
-- Implement authentication
-- Validate and sanitize inputs
-
-## 📊 Performance
-
-- Use Swoole for high-traffic applications
-- Configure appropriate worker counts
-- Enable caching
-- Optimize database queries
-- Use connection pooling
-
-## 🐛 Debugging
-
-```php
-// Dump variable
-dump($variable);
-
-// Dump and die
-dd($variable);
-
-// Check configuration
-echo config('app.name');
-
-// Check environment
-echo env('APP_DEBUG');
-```
-
-## 📞 Helper Functions
-
-```php
-// Configuration
-config('app.name');
-env('APP_DEBUG', false);
-
-// Paths
-base_path('vendor');
-app_path('domains');
-public_path('css/style.css');
-
-// Response helpers
-response()->json($data);
-response()->html($html);
-response()->redirect('/');
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please ensure:
-
-- Code follows PSR-12 standards
-- Tests pass
-- Documentation is updated
-- New features have tests
-
-## 📝 License
-
-This framework is open source and available under the MIT license.
-
-## 🎓 Learning Resources
-
-1. **Start Here**: [QUICKSTART.md](QUICKSTART.md)
-2. **Detailed Setup**: [SETUP.md](SETUP.md)
-3. **Architecture**: [Framework Flow Process.md](Framework%20Flow%20Process.md)
-4. **API Docs**: [API.md](API.md)
-5. **Development**: [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md)
-
-## 💡 Examples
-
-### Create a Blog
-
-```bash
-# Create domain
-php app/console make:domain Blog
-
-# Create routes in app/domains/Blog/Http/Routes.php
-Route::get('/blog', 'PostController@index');
-Route::get('/blog/{slug}', 'PostController@show');
-Route::post('/blog', 'PostController@store');
-```
-
-### Real-time Chat
-
-```php
-// WebSocket route
-Route::ws('/chat', function($connection) {
-    $connection->on('message', function($data) {
-        broadcast($data);
-    });
-});
-```
-
-### REST API
-
-```php
-// Resource route
-Route::resource('api/users', 'UserController');
-
-// Generates: GET/POST/PUT/DELETE /api/users
-```
-
----
-
-**Ready to build?** Start with [QUICKSTART.md](QUICKSTART.md) 🚀
+MIT
