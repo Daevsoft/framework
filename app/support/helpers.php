@@ -97,9 +97,9 @@ if (!function_exists('public_path')) {
 
 
 if (!function_exists('db')) {
-    function db(): \\Ds\\Database\\DatabaseManager
+    function db(): \Ds\Database\DatabaseManager
     {
-        return \\Ds\\Database\\DatabaseManager::default();
+        return \Ds\Database\DatabaseManager::default();
     }
 }
 
