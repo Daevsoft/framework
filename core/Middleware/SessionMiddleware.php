@@ -11,11 +11,15 @@ use Ds\Session\SessionManager;
 
 final class SessionMiddleware implements MiddlewareInterface
 {
+    public function __construct(private readonly ?string $directory = null)
+    {
+    }
+
     public function handle(Request $request, callable $next): Response
     {
         $session = SessionManager::start(
             $request,
-            base_path('app/storage/sessions'),
+            $this->directory ?? base_path('app/storage/sessions'),
             (string) env('SESSION_COOKIE', 'DSF_SESSID'),
             (int) env('SESSION_LIFETIME', 120) * 60
         );
