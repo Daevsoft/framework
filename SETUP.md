@@ -104,7 +104,20 @@ final class UserController
 }
 ```
 
-Concrete constructor dependencies can be autowired. Bind interfaces to concrete implementations explicitly. Singleton services must contain only process-safe state.
+Concrete constructor dependencies can be autowired. Bind interfaces to concrete implementations explicitly.
+
+The container supports three lifetimes:
+
+- Transient (default): a new instance for each resolution.
+- Singleton: one process-wide instance; it must contain only process-safe state.
+- Request-scoped: one instance per request/coroutine, cleared at the end of the request.
+
+```php
+$container->singleton(CacheClient::class);
+$container->scoped(CurrentTenant::class);
+```
+
+A singleton cannot capture a request-scoped dependency; the container rejects that dependency graph to prevent state leaking between users. Request scope is stored in Swoole coroutine-local context and is reset in a `finally` block.
 
 ## Request and response lifecycle
 
