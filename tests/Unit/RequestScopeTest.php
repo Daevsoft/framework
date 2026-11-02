@@ -33,7 +33,7 @@ final class RequestScopeTest extends TestCase
         $container->singleton(SingletonWithRequestScopedDependency::class);
         $container->beginRequest();
 
-        $this->expectException(\\RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('cannot depend on request-scoped service');
 
         try {
