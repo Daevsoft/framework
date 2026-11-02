@@ -7,6 +7,7 @@ require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
 use App\Http\Kernel as AppKernel;
 use App\Support\RouteRegistry;
 use Ds\Container\Container;
+use Ds\Database\DatabaseManager;
 use Ds\Context\Context;
 use Ds\Http\Request;
 use Ds\Http\Response;
