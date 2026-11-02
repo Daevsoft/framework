@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ds\Server;
 
 use Ds\Container\Container;
+use Ds\Context\Context;
 use Ds\Http\Request;
 use RuntimeException;
 use Throwable;
@@ -41,8 +42,13 @@ final class SwooleServer
         $container = $this->container;
         $kernel = $this->kernel;
         $server->on('request', static function ($swooleRequest, $swooleResponse) use ($container, $kernel): void {
+            $context = $container->make(Context::class);
+            $context->clear();
+
             try {
                 $request = Request::fromSwoole($swooleRequest);
+                $context->set('request', $request);
+
                 $httpKernel = is_callable($kernel)
                     ? $kernel()
                     : ($kernel ?? $container->make(\App\Http\Kernel::class));
@@ -57,6 +63,8 @@ final class SwooleServer
                 error_log((string) $exception);
                 $swooleResponse->status(500);
                 $swooleResponse->end('Internal Server Error');
+            } finally {
+                $context->clear();
             }
         });
 
