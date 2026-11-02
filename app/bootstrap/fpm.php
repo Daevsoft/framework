@@ -1,29 +1,22 @@
 <?php
 
-require __DIR__ . '/../../vendor/autoload.php';
+declare(strict_types=1);
 
-use Ds\Http\Request;
+require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
+
 use App\Http\Kernel as AppKernel;
 use App\Support\RouteRegistry;
 use Ds\Container\Container;
+use Ds\Http\Request;
 use Ds\Routing\Router;
 
-// Load routes first so the DSL populates the registry
-require __DIR__ . '/../routes/web.php';
+$router = new Router();
+RouteRegistry::setRouter($router);
 
+require dirname(__DIR__) . '/routes/web.php';
+require dirname(__DIR__) . '/routes/api.php';
 
 $container = new Container();
-
-$router = RouteRegistry::getRouter();
-if ($router === null) {
-    $router = new Router();
-    RouteRegistry::setRouter($router);
-}
-
 $kernel = new AppKernel($router, $container);
-
-$response = $kernel->handle(
-    Request::capture()
-);
-
+$response = $kernel->handle(Request::capture());
 $response->send();
