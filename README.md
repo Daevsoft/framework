@@ -79,6 +79,93 @@ final class UserController
 
 Controller dependencies can be constructor-injected through the container. Bind interfaces explicitly; concrete classes can be autowired.
 
+
+### Implicit controller routing
+
+For controllers with several endpoints, v4 supports the v3-style attribute routing API. Attributes are discovered once during bootstrap; controller instances and reflection are not created while registering each request.
+
+```php
+use App\Support\Route;
+use Ds\Http\Request;
+use Ds\Http\Response;
+use Ds\Routing\Attributes\Get;
+use Ds\Routing\Attributes\Post;
+
+Route::group('/users', UserController::class);
+
+final class UserController
+{
+    #[Get('/all')]
+    public function index(Request $request): Response
+    {
+        return Response::json([]);
+    }
+
+    #[Get('/detail/{userId}')]
+    public function show(Request $request, int $userId): Response
+    {
+        return Response::json(['id' => $userId]);
+    }
+
+    #[Post('/save', ['api-auth'])]
+    public function store(Request $request): Response
+    {
+        return Response::json($request->all(), 201);
+    }
+}
+```
+
+The resulting routes are `GET /users/all`, `GET /users/detail/{userId}`, and `POST /users/save`. Supported attributes are `Get`, `Post`, `Put`, `Patch`, `Delete`, and `Options`. Route middleware accepts registered aliases or middleware class names implementing `MiddlewareInterface`.
+
+### PieTemplate views
+
+PieTemplate keeps v3's compact syntax and compiles templates to PHP once per source version. Compiled files are cached under `app/storage/cache/views`; subsequent requests include the compiled PHP rather than re-running the template compiler.
+
+Layout `app/views/layouts/app.pie.php`:
+
+```html
+<html>
+<head><title>@slot('title')Ds App@end</title></head>
+<body>@slot('content')</body>
+</html>
+```
+
+Page `app/views/pages/home.pie.php`:
+
+```html
+@use('layouts.app')
+@part('title'){{ $title }}@endpart
+@part('content')
+<h1>{! $heading !}</h1>
+@if($users)
+    @foreach($users as $user)
+        <p>{{ $user['name'] }}</p>
+    @endforeach
+@else
+    <p>No users found.</p>
+@endif
+@endpart
+```
+
+Return the rendered view from a controller:
+
+```php
+return response()->html(view('pages.home', [
+    'title' => 'Home',
+    'heading' => '<Welcome>',
+    'users' => [],
+]));
+```
+
+- `{{ expression }}` outputs a PHP expression as-is (escape untrusted values yourself).
+- `{! expression !}` HTML-escapes the value.
+- `<< PHP statement >>` emits a PHP statement.
+- `@use('layout')`, `@slot('name')`, and `@part('name')...@endpart` compose layouts.
+- `@if`, `@elseif`, `@else`, `@endif`, `@foreach`, `@endforeach`, `@for`, `@endfor`, `@while`, `@endwhile`, and switch directives provide control flow.
+- `@join('partials.card')` renders a partial view.
+
+PieTemplate files are trusted PHP templates, not a sandbox. Use escaped output for user-controlled content. The old v3 experimental `<x-...>` component parser contained debugging exits and is not copied; a proper component system will be added separately.
+
 ## Responses
 
 ```php
