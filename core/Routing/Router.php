@@ -20,7 +20,7 @@ final class Router
 
         if (!str_contains($path, '{')) {
             $this->staticRoutes[$method][$path] = $route;
-            return;
+            return $route;
         }
 
         $names = [];
@@ -39,6 +39,8 @@ final class Router
             'pattern' => '~^' . $pattern . '$~D',
             'names' => $names,
         ];
+
+        return $route;
     }
 
     public function match(string $method, string $path): ?Route
