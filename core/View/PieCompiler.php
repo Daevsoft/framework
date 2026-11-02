@@ -133,18 +133,18 @@ final class PieCompiler
     {
         $condition = '((?:[^()]|\([^()]*\))*)';
         $patterns = [
-            '/@elseif\(' . $condition . '\)/' => '<?php } elseif ($1): ?>',
-            '/@if\(' . $condition . '\)/' => '<?php if ($1): ?>',
-            '/@foreach\(' . $condition . '\)/' => '<?php foreach ($1): ?>',
-            '/@for\(' . $condition . '\)/' => '<?php for ($1): ?>',
-            '/@while\(' . $condition . '\)/' => '<?php while ($1): ?>',
-            '/@isset\(' . $condition . '\)/' => '<?php if (isset($1)): ?>',
-            '/@notset\(' . $condition . '\)/' => '<?php if (!isset($1)): ?>',
-            '/@empty\(' . $condition . '\)/' => '<?php if (empty($1)): ?>',
-            '/@notempty\(' . $condition . '\)/' => '<?php if (!empty($1)): ?>',
-            '/@isnull\(' . $condition . '\)/' => '<?php if (($1) === null): ?>',
-            '/@notnull\(' . $condition . '\)/' => '<?php if (($1) !== null): ?>',
-            '/@switch\(' . $condition . '\)/' => '<?php switch ($1): ?>',
+            '/@elseif\(' . $condition . '\):?/' => '<?php } elseif ($1): ?>',
+            '/@if\(' . $condition . '\):?/' => '<?php if ($1): ?>',
+            '/@foreach\(' . $condition . '\):?/' => '<?php foreach ($1): ?>',
+            '/@for\(' . $condition . '\):?/' => '<?php for ($1): ?>',
+            '/@while\(' . $condition . '\):?/' => '<?php while ($1): ?>',
+            '/@isset\(' . $condition . '\):?/' => '<?php if (isset($1)): ?>',
+            '/@notset\(' . $condition . '\):?/' => '<?php if (!isset($1)): ?>',
+            '/@empty\(' . $condition . '\):?/' => '<?php if (empty($1)): ?>',
+            '/@notempty\(' . $condition . '\):?/' => '<?php if (!empty($1)): ?>',
+            '/@isnull\(' . $condition . '\):?/' => '<?php if (($1) === null): ?>',
+            '/@notnull\(' . $condition . '\):?/' => '<?php if (($1) !== null): ?>',
+            '/@switch\(' . $condition . '\):?/' => '<?php switch ($1): ?>',
             '/@case\s+([^\r\n]+)/' => '<?php case $1: ?>',
         ];
 
@@ -153,7 +153,7 @@ final class PieCompiler
         }
 
         $simple = [
-            '/@else\b/' => '<?php else: ?>',
+            '/@else:?(?![A-Za-z_])/' => '<?php else: ?>',
             '/@endif\b/' => '<?php endif; ?>',
             '/@endforeach\b/' => '<?php endforeach; ?>',
             '/@endfor\b/' => '<?php endfor; ?>',
