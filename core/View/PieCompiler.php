@@ -142,6 +142,12 @@ final class PieCompiler
             'isnull' => static fn (string $e): string => '<?php if ((' . $e . ') === null): ?>',
             'notnull' => static fn (string $e): string => '<?php if ((' . $e . ') !== null): ?>',
             'switch' => static fn (string $e): string => '<?php switch (' . $e . '): ?>',
+            'isflash' => static fn (string $e): string => '<?php if (is_flash(' . $e . ')): ?>',
+            'flash' => static fn (string $e): string => '<?= flash(' . $e . ') ?>',
+            'error' => static fn (string $e): string => '<?= flash("error_" . (' . $e . ')) ?>',
+            'old' => static fn (string $e): string => '<?= old(' . $e . ') ?>',
+            'css' => static fn (string $e): string => '<?= css_source(' . $e . ') ?>',
+            'js' => static fn (string $e): string => '<?= js_source(' . $e . ') ?>',
             'case' => static fn (string $e): string => '<?php case ' . $e . ': ?>',
         ];
 
