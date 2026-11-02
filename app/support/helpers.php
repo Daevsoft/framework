@@ -102,7 +102,7 @@ if (!function_exists('session')) {
     {
         $manager = \Ds\Context\Context::default()->get('session');
         if ($manager === null) {
-            throw new \\RuntimeException('Session access requires SessionMiddleware.');
+            throw new \RuntimeException('Session access requires SessionMiddleware.');
         }
 
         if (is_array($key)) {
@@ -121,7 +121,7 @@ if (!function_exists('unsession')) {
     {
         $manager = \Ds\Context\Context::default()->get('session');
         if ($manager === null) {
-            throw new \\RuntimeException('Session access requires SessionMiddleware.');
+            throw new \RuntimeException('Session access requires SessionMiddleware.');
         }
         $manager->forget($key);
     }
@@ -132,7 +132,7 @@ if (!function_exists('set_flash')) {
     {
         $manager = \Ds\Context\Context::default()->get('session');
         if ($manager === null) {
-            throw new \\RuntimeException('Flash data requires SessionMiddleware.');
+            throw new \RuntimeException('Flash data requires SessionMiddleware.');
         }
         $manager->flash($key, $value);
     }
