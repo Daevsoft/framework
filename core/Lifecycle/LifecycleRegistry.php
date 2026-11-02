@@ -16,6 +16,7 @@ class LifecycleRegistry
         'request.handled',
         'worker.start',
         'worker.stop',
+        'server.shutdown',
     ];
 
     public function all(): array
