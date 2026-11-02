@@ -5,74 +5,58 @@ declare(strict_types=1);
 namespace Ds\Support;
 
 use Ds\Http\Response;
+use RuntimeException;
 
-class ResponseFactory
+final class ResponseFactory
 {
-    /**
-     * Create JSON response
-     */
-    public static function json(array $data, int $status = 200, array $headers = []): Response
+    public static function json(mixed $data, int $status = 200, array $headers = []): Response
     {
-        $response = new Response($status, $headers, json_encode($data, JSON_UNESCAPED_SLASHES));
-        $response->withHeader('Content-Type', 'application/json');
-        return $response;
+        return new Response(
+            $status,
+            array_merge(['Content-Type' => 'application/json; charset=utf-8'], $headers),
+            json_encode($data, JSON_THROW_ON_ERROR)
+        );
     }
 
-    /**
-     * Create HTML response
-     */
     public static function html(string $content, int $status = 200, array $headers = []): Response
     {
-        $response = new Response($status, $headers, $content);
-        $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
-        return $response;
+        return new Response(
+            $status,
+            array_merge(['Content-Type' => 'text/html; charset=utf-8'], $headers),
+            $content
+        );
     }
 
-    /**
-     * Create plain text response
-     */
     public static function text(string $content, int $status = 200, array $headers = []): Response
     {
-        $response = new Response($status, $headers, $content);
-        $response->withHeader('Content-Type', 'text/plain');
-        return $response;
+        return new Response(
+            $status,
+            array_merge(['Content-Type' => 'text/plain; charset=utf-8'], $headers),
+            $content
+        );
     }
 
-    /**
-     * Create redirect response
-     */
     public static function redirect(string $url, int $status = 302): Response
     {
-        $response = new Response($status);
-        $response->withHeader('Location', $url);
-        return $response;
+        return Response::redirect($url, $status);
     }
 
-    /**
-     * Create file download response
-     */
-    public static function file(string $path, string $name = null): Response
+    public static function file(string $path, ?string $name = null): Response
     {
-        if (!file_exists($path)) {
-            throw new \Exception("File not found: {$path}");
+        if (!is_file($path) || !is_readable($path)) {
+            throw new RuntimeException("File not found or unreadable: {$path}");
         }
 
-        $response = new Response(200, [
-            'Content-Disposition' => "attachment; filename=\"{$name}\"",
-            'Content-Length' => (string)filesize($path),
-            'Content-Type' => mime_content_type($path),
-        ], file_get_contents($path));
-        $name = $name ?? basename($path);
+        $content = file_get_contents($path);
+        if ($content === false) {
+            throw new RuntimeException("Unable to read file: {$path}");
+        }
 
-        return $response;
-    }
-}
-
-if (!function_exists('response')) {
-    /**
-     * Helper function to get response factory
-     */
-    function response(): ResponseFactory {
-        return new ResponseFactory();
+        $name ??= basename($path);
+        return new Response(200, [
+            'Content-Disposition' => 'attachment; filename="' . addcslashes($name, '"\\') . '"',
+            'Content-Length' => (string) strlen($content),
+            'Content-Type' => mime_content_type($path) ?: 'application/octet-stream',
+        ], $content);
     }
 }
