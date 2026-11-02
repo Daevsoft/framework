@@ -7,6 +7,7 @@ namespace Ds\Console;
 use Ds\Console\Commands\FpmServe;
 use Ds\Console\Commands\SwooleServe;
 use Ds\Console\Commands\MakeDomain;
+use Ds\Console\Commands\Migrate;
 
 class ConsoleKernel
 {
@@ -20,6 +21,7 @@ class ConsoleKernel
         SwooleServe::class,
         FpmServe::class,
         MakeDomain::class,
+        Migrate::class,
     ];
 
     /**
