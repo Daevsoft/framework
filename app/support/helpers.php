@@ -180,6 +180,40 @@ if (!function_exists('view')) {
     }
 }
 
+if (!function_exists('css_source')) {
+    function css_source(string $source): string
+    {
+        $source = trim($source);
+        if ($source === '') {
+            return '';
+        }
+
+        $path = str_starts_with($source, '/') ? $source : '/assets/css/' . ltrim($source, '/');
+        if (pathinfo(parse_url($path, PHP_URL_PATH) ?: $path, PATHINFO_EXTENSION) === '') {
+            $path .= '.css';
+        }
+
+        return '<link rel="stylesheet" href="' . htmlspecialchars($path, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">';
+    }
+}
+
+if (!function_exists('js_source')) {
+    function js_source(string $source): string
+    {
+        $source = trim($source);
+        if ($source === '') {
+            return '';
+        }
+
+        $path = str_starts_with($source, '/') ? $source : '/assets/js/' . ltrim($source, '/');
+        if (pathinfo(parse_url($path, PHP_URL_PATH) ?: $path, PATHINFO_EXTENSION) === '') {
+            $path .= '.js';
+        }
+
+        return '<script src="' . htmlspecialchars($path, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"></script>';
+    }
+}
+
 if (!function_exists('dd')) {
     function dd(mixed ...$args): never
     {
