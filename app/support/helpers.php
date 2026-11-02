@@ -180,6 +180,29 @@ if (!function_exists('view')) {
     }
 }
 
+if (!function_exists('asset')) {
+    /**
+     * Resolve a public asset URL. ASSET_URL may point to a CDN or a
+     * reverse-proxy asset prefix; without it, assets are served from web root.
+     */
+    function asset(string $path): string
+    {
+        $path = trim($path);
+        if ($path === '') {
+            return '';
+        }
+
+        if (preg_match('#^(?:https?:)?//#i', $path) === 1) {
+            return $path;
+        }
+
+        $base = rtrim((string) env('ASSET_URL', ''), '/');
+        $path = '/' . ltrim($path, '/');
+
+        return $base . $path;
+    }
+}
+
 if (!function_exists('css_source')) {
     function css_source(string $source): string
     {
