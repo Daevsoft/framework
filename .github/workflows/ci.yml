@@ -55,9 +55,7 @@ jobs:
           grep -q 'test' cli-help.txt
           php ds route:list > route-list.txt
           grep -q '/health' route-list.txt
-          php ds config --clear
-          php ds config
-          test -f app/storage/cache/config.php
+
 
       - name: Swoole HTTP smoke test
         shell: bash
@@ -96,6 +94,12 @@ jobs:
           done
 
           php -r '$data = json_decode(file_get_contents("fpm-health.json"), true); if (($data["status"] ?? null) !== "ok") { fwrite(STDERR, "Invalid FPM health response\\n"); exit(1); }'
+
+      - name: Configuration cache smoke test
+        run: |
+          php ds config
+          test -f app/storage/cache/config.php
+          php ds config --clear
 
       - name: Upload test diagnostics
         if: always()
