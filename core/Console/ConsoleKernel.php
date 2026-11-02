@@ -8,6 +8,13 @@ use Ds\Console\Commands\FpmServe;
 use Ds\Console\Commands\Config;
 use Ds\Console\Commands\SwooleServe;
 use Ds\Console\Commands\MakeDomain;
+use Ds\Console\Commands\AddController;
+use Ds\Console\Commands\AddModel;
+use Ds\Console\Commands\AddView;
+use Ds\Console\Commands\AddTest;
+use Ds\Console\Commands\AddMigration;
+use Ds\Console\Commands\RouteList;
+use Ds\Console\Commands\Test;
 use Ds\Console\Commands\Migrate;
 
 class ConsoleKernel
@@ -24,6 +31,13 @@ class ConsoleKernel
         MakeDomain::class,
         Migrate::class,
         Config::class,
+        AddController::class,
+        AddModel::class,
+        AddView::class,
+        AddTest::class,
+        AddMigration::class,
+        RouteList::class,
+        Test::class,
     ];
 
     /**
