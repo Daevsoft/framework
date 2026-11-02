@@ -42,8 +42,8 @@ final class SwooleServer
         $container = $this->container;
         $kernel = $this->kernel;
         $server->on('request', static function ($swooleRequest, $swooleResponse) use ($container, $kernel): void {
+            $container->beginRequest();
             $context = $container->make(Context::class);
-            $context->clear();
 
             try {
                 $request = Request::fromSwoole($swooleRequest);
@@ -64,7 +64,7 @@ final class SwooleServer
                 $swooleResponse->status(500);
                 $swooleResponse->end('Internal Server Error');
             } finally {
-                $context->clear();
+                $container->endRequest();
             }
         });
 
