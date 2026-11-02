@@ -67,6 +67,11 @@ final class SwooleServer
 
             try {
                 $container->make(Scheduler::class)->clear();
+            } catch (Throwable $exception) {
+                error_log((string) $exception);
+            }
+
+            try {
                 $container->make(PoolManager::class)->clear();
             } catch (Throwable $exception) {
                 error_log((string) $exception);
