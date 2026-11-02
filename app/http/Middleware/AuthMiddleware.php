@@ -7,7 +7,7 @@ namespace App\Http\Middleware;
 use Ds\Http\Request;
 use Ds\Http\Response;
 
-class AuthMiddleware
+class AuthMiddleware implements MiddlewareInterface
 {
     /**
      * Handle the request
