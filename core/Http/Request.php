@@ -4,101 +4,164 @@ declare(strict_types=1);
 
 namespace Ds\Http;
 
-class Request
+/**
+ * Immutable-per-request HTTP data. Never reads PHP superglobals from a
+ * Swoole request; all request state is copied from the server request object.
+ */
+final class Request
 {
     public string $path = '/';
     public string $method = 'GET';
     public array $query = [];
 
-    // Flattened data from GET/POST/JSON body for convenient access
     protected array $data = [];
+    protected array $headers = [];
+    protected string $body = '';
 
-    public function __construct()
-    {
-        $this->loadInputs();
-    }
-
-    public function loadInputs(): void
-    {
-        $this->data = [];
-        // Merge GET first, then POST overrides, then JSON body overrides
-        if (!empty($_GET)) {
-            $this->deepMerge($this->data, $_GET);
-        }
-        if (!empty($_POST)) {
-            $this->deepMerge($this->data, $_POST);
-        }
-        $body = @file_get_contents('php://input');
-        if ($body !== false && $body !== '') {
-            $json = json_decode($body, true);
-            if (is_array($json)) {
-                $this->deepMerge($this->data, $json);
-            }
-        }
-    }
-
-    private function deepMerge(array &$target, array $source): void
-    {
-        foreach ($source as $k => $v) {
-            if (is_array($v) && isset($target[$k]) && is_array($target[$k])) {
-                $this->deepMerge($target[$k], $v);
-            } else {
-                $target[$k] = $v;
-            }
-        }
+    public function __construct(
+        array $data = [],
+        array $headers = [],
+        string $method = 'GET',
+        string $path = '/'
+    ) {
+        $this->data = $data;
+        $this->headers = self::normalizeHeaders($headers);
+        $this->method = strtoupper($method);
+        $this->path = self::normalizePath($path);
+        $this->query = [];
     }
 
     public static function capture(): self
     {
-        $req = new self();
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
-        $req->path = parse_url($uri, PHP_URL_PATH) ?: '/';
-        $req->method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $qs = parse_url($uri, PHP_URL_QUERY);
-        $req->query = [];
-        if ($qs) {
-            parse_str($qs, $req->query);
-        }
-        // Ensure data is loaded for capture as well
-        $req->loadInputs();
-        return $req;
+        $path = parse_url($uri, PHP_URL_PATH) ?: '/';
+        $query = [];
+        parse_str((string) (parse_url($uri, PHP_URL_QUERY) ?? ''), $query);
+
+        $headers = function_exists('getallheaders') ? (getallheaders() ?: []) : [];
+        $body = file_get_contents('php://input');
+        $request = new self([], $headers, $_SERVER['REQUEST_METHOD'] ?? 'GET', $path);
+        $request->query = $query;
+        $request->body = $body === false ? '' : $body;
+        $request->mergeInput($_GET ?? []);
+        $request->mergeInput($_POST ?? []);
+        $request->mergeParsedBody($request->body);
+
+        return $request;
     }
 
-    // Convenience: build from Swoole request
-    public static function fromSwoole($swReq): self
+    public static function fromSwoole(object $swRequest): self
     {
-        $r = new self();
-        $path = $swReq->server['request_uri'] ?? '/';
-        $r->path = parse_url($path, PHP_URL_PATH) ?: '/';
-        $r->method = $swReq->server['request_method'] ?? 'GET';
-        $qs = parse_url($path, PHP_URL_QUERY);
-        $r->query = [];
-        if ($qs) parse_str($qs, $r->query);
-        // Merge any data from Swoole body as well if needed
-        $r->loadInputs();
-        return $r;
+        $server = $swRequest->server ?? [];
+        $uri = (string) ($server['request_uri'] ?? '/');
+        $path = parse_url($uri, PHP_URL_PATH) ?: '/';
+        $query = [];
+        parse_str((string) (parse_url($uri, PHP_URL_QUERY) ?? ''), $query);
+
+        $headers = (array) ($swRequest->header ?? []);
+        $request = new self([], $headers, (string) ($server['request_method'] ?? 'GET'), $path);
+        $request->query = $query;
+        $request->body = method_exists($swRequest, 'rawContent')
+            ? (string) ($swRequest->rawContent() ?: '')
+            : '';
+
+        $request->mergeInput((array) ($swRequest->get ?? []));
+        $request->mergeInput((array) ($swRequest->post ?? []));
+        $request->mergeParsedBody($request->body);
+
+        return $request;
     }
 
-    // Dynamic access: $request->username reads from inputs
-    public function __get(string $name)
+    public function getMethod(): string { return $this->method; }
+    public function getPath(): string { return $this->path; }
+    public function getUri(): string
     {
-        return $this->data[$name] ?? null;
+        return $this->path . ($this->query === [] ? '' : '?' . http_build_query($this->query));
     }
-
-    public function __isset(string $name): bool
+    public function getHeaders(): array { return $this->headers; }
+    public function getHeader(string $name, mixed $default = null): mixed
     {
-        return isset($this->data[$name]);
+        return $this->headers[strtolower($name)] ?? $default;
     }
-
-    // Return a specific input value or default
+    public function getQuery(?string $key = null, mixed $default = null): mixed
+    {
+        return $key === null ? $this->query : ($this->query[$key] ?? $default);
+    }
+    public function getBody(): string { return $this->body; }
+    public function getParsedBody(): array
+    {
+        $parsed = json_decode($this->body, true);
+        return is_array($parsed) ? $parsed : [];
+    }
+    public function getInput(?string $key = null, mixed $default = null): mixed
+    {
+        return $key === null ? $this->data : ($this->data[$key] ?? $default);
+    }
     public function input(string $name, mixed $default = null): mixed
     {
         return $this->data[$name] ?? $default;
     }
-
-    // Return all aggregated inputs
-    public function all(): array
+    public function all(): array { return $this->data; }
+    public function has(string $key): bool { return array_key_exists($key, $this->data); }
+    public function only(array $keys): array
     {
-        return $this->data;
+        return array_intersect_key($this->data, array_flip($keys));
+    }
+    public function except(array $keys): array
+    {
+        return array_diff_key($this->data, array_flip($keys));
+    }
+
+    public function __get(string $name): mixed { return $this->data[$name] ?? null; }
+    public function __isset(string $name): bool { return isset($this->data[$name]); }
+
+    protected function mergeParsedBody(string $body): void
+    {
+        if ($body === '') {
+            return;
+        }
+
+        $contentType = strtolower((string) ($this->headers['content-type'] ?? ''));
+        if (str_contains($contentType, 'application/json')) {
+            $decoded = json_decode($body, true);
+            if (is_array($decoded)) {
+                $this->mergeInput($decoded);
+            }
+            return;
+        }
+
+        if (str_contains($contentType, 'application/x-www-form-urlencoded')) {
+            $parsed = [];
+            parse_str($body, $parsed);
+            $this->mergeInput($parsed);
+        }
+    }
+
+    protected function mergeInput(array $source): void
+    {
+        foreach ($source as $key => $value) {
+            if (is_array($value) && isset($this->data[$key]) && is_array($this->data[$key])) {
+                $this->data[$key] = array_replace_recursive($this->data[$key], $value);
+            } else {
+                $this->data[$key] = $value;
+            }
+        }
+    }
+
+    private static function normalizeHeaders(array $headers): array
+    {
+        $normalized = [];
+        foreach ($headers as $name => $value) {
+            $normalized[strtolower((string) $name)] = is_array($value)
+                ? implode(', ', $value)
+                : (string) $value;
+        }
+        return $normalized;
+    }
+
+    private static function normalizePath(string $path): string
+    {
+        $path = '/' . trim($path, '/');
+        return $path === '//' ? '/' : $path;
     }
 }
