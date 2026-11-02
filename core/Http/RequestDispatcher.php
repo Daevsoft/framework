@@ -97,7 +97,12 @@ final class RequestDispatcher
         $key = $controller::class . '::' . $method;
         $reflection = $this->methodReflectionCache[$key] ??= new ReflectionMethod($controller, $method);
 
-        return $controller->{$method}(...$this->buildArguments($reflection, $request, $params, true));
+        $first = $reflection->getParameters()[0] ?? null;
+        $type = $first?->getType();
+        $expectsRequest = ($type instanceof ReflectionNamedType && $type->getName() === Request::class)
+            || ($first !== null && in_array(strtolower($first->getName()), ['request', 'req'], true));
+
+        return $controller->{$method}(...$this->buildArguments($reflection, $request, $params, $expectsRequest));
     }
 
     protected function invokeCallable(callable $handler, Request $request, array $params): mixed
