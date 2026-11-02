@@ -136,6 +136,24 @@ $middleware->push(new CorsMiddleware());
 
 Middleware classes implement `Ds\Middleware\MiddlewareInterface`; closures with the signature `function (Request $request, callable $next): Response` are also supported. The built-in `AuthMiddleware` is intentionally fail-closed with HTTP 501 because authentication is not implemented yet. Do not use it as a production authenticator.
 
+## Worker lifecycle and scheduled tasks
+
+Register worker-owned resources and recurring tasks from a `worker.start` listener. Timers and pooled resources are automatically cleared when the worker stops:
+
+```php
+use Ds\Lifecycle\LifecycleEvent;
+use Ds\Lifecycle\LifecycleManager;
+use Ds\Tasks\Scheduler;
+use App\Tasks\CleanupTask;
+
+$lifecycle = $container->make(LifecycleManager::class);
+$lifecycle->register('worker.start', function (LifecycleEvent $event) use ($container): void {
+    $container->make(Scheduler::class)->schedule(new CleanupTask(), 60_000);
+});
+```
+
+A zero interval schedules a one-shot task; a positive interval is recurring milliseconds. The scheduler has a bounded timer count (256 by default). Keep task handlers short and coroutine-safe; move long-running work to dedicated task workers or a queue adapter.
+
 ## Request and response lifecycle
 
 1. Swoole receives the network request.
