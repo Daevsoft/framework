@@ -119,6 +119,25 @@ final class PieTemplateTest extends TestCase
         self::assertSame('Unknown', $renderer->render('switch', ['status' => 'other']));
     }
 
+    public function testRendersImportedPieComponentMacros(): void
+    {
+        mkdir($this->views . '/components', 0777, true);
+        file_put_contents(
+            $this->views . '/components/button.pie.php',
+            "@pie('primary')<button>{{ \$label }}</button>@endpie"
+        );
+        file_put_contents(
+            $this->views . '/component-page.pie.php',
+            "@import('components.button', 'ui')@ui('primary')"
+        );
+
+        $html = (new ViewRenderer($this->views, $this->cache))->render('component-page', [
+            'label' => 'Save',
+        ]);
+
+        self::assertSame('<button>Save</button>', $html);
+    }
+
     public function testCompilesLegacyAuthFlashCsrfAndAssetDirectives(): void
     {
         $compiler = new PieCompiler($this->views, $this->cache);
