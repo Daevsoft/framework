@@ -182,6 +182,88 @@ final class PieTemplateTest extends TestCase
         self::assertSame('<button>Submit</button>', $html);
     }
 
+    public function testRendersComponentAttributesAndDefaultSlot(): void
+    {
+        mkdir($this->views . '/components', 0777, true);
+        file_put_contents(
+            $this->views . '/components/alert.pie.php',
+            '<aside class="alert {{ $type }}">{{ $message }}<x-slot /></aside>'
+        );
+        file_put_contents(
+            $this->views . '/component-attributes.pie.php',
+            '<x-alert type="success" :message="$message">Saved</x-alert>'
+        );
+
+        $html = (new ViewRenderer($this->views, $this->cache))->render(
+            'component-attributes',
+            ['message' => 'Done']
+        );
+
+        self::assertSame('<aside class="alert success">DoneSaved</aside>', $html);
+    }
+
+    public function testRendersNamedSlotsAndComponentFallbacks(): void
+    {
+        mkdir($this->views . '/components', 0777, true);
+        file_put_contents(
+            $this->views . '/components/panel.pie.php',
+            '<section><header><x-slot name="title">Default title</x-slot></header><main><x-slot /></main></section>'
+        );
+        file_put_contents(
+            $this->views . '/named-slots.pie.php',
+            '<x-panel><x-slot name="title">Custom title</x-slot>Panel body</x-panel><x-panel>Only body</x-panel>'
+        );
+
+        $html = (new ViewRenderer($this->views, $this->cache))->render('named-slots');
+
+        self::assertSame(
+            '<section><header>Custom title</header><main>Panel body</main></section>'
+                . '<section><header>Default title</header><main>Only body</main></section>',
+            $html
+        );
+    }
+
+    public function testSupportsNestedComponentsAndCallerScopedSlotVariables(): void
+    {
+        mkdir($this->views . '/components', 0777, true);
+        file_put_contents(
+            $this->views . '/components/badge.pie.php',
+            '<b>{{ $label }}</b>'
+        );
+        file_put_contents(
+            $this->views . '/components/card.pie.php',
+            '<article><x-slot /></article>'
+        );
+        file_put_contents(
+            $this->views . '/nested-components.pie.php',
+            '<x-card><x-badge :label="$name" /></x-card>'
+        );
+
+        $html = (new ViewRenderer($this->views, $this->cache))->render(
+            'nested-components',
+            ['name' => 'Nested']
+        );
+
+        self::assertSame('<article><b>Nested</b></article>', $html);
+    }
+
+    public function testComponentScopeDoesNotLeakBetweenComponents(): void
+    {
+        mkdir($this->views . '/components', 0777, true);
+        file_put_contents(
+            $this->views . '/components/greeting.pie.php',
+            '<p>{{ $message }}</p>'
+        );
+        file_put_contents(
+            $this->views . '/isolated-components.pie.php',
+            '<x-greeting message="First" /><x-greeting message="Second" />'
+        );
+
+        $html = (new ViewRenderer($this->views, $this->cache))->render('isolated-components');
+
+        self::assertSame('<p>First</p><p>Second</p>', $html);
+    }
+
     public function testInvalidatesCompiledViewWhenLayoutChanges(): void
     {
         file_put_contents(
