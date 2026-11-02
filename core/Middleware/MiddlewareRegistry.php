@@ -11,7 +11,10 @@ use RuntimeException;
 final class MiddlewareRegistry
 {
     /** @var array<string, class-string<MiddlewareInterface>> */
-    private static array $aliases = [];
+    private static array $aliases = [
+        'session' => SessionMiddleware::class,
+        'csrf' => CsrfMiddleware::class,
+    ];
 
     public static function alias(string $name, string $middleware): void
     {
@@ -43,6 +46,9 @@ final class MiddlewareRegistry
 
     public static function clear(): void
     {
-        self::$aliases = [];
+        self::$aliases = [
+            'session' => SessionMiddleware::class,
+            'csrf' => CsrfMiddleware::class,
+        ];
     }
 }
