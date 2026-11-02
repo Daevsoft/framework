@@ -19,10 +19,21 @@ final class Scheduler
     /** @var array<int, true> */
     protected array $timers = [];
 
+    public function __construct(protected int $maxTimers = 256)
+    {
+        if ($maxTimers < 1) {
+            throw new InvalidArgumentException('maxTimers must be greater than zero.');
+        }
+    }
+
     public function schedule(Task $task, int $intervalMs = 0): int
     {
         if ($intervalMs < 0) {
             throw new InvalidArgumentException('Task interval cannot be negative.');
+        }
+
+        if (count($this->timers) >= $this->maxTimers) {
+            throw new RuntimeException('Scheduler timer capacity exceeded.');
         }
 
         $timerClass = '\\Swoole\\Timer';
