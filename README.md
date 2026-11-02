@@ -233,10 +233,17 @@ app/
 core/
   App/             # Application lifecycle
   Container/       # Dependency injection
+  Context/         # Coroutine-local request context
+  Database/        # PDO manager, query builder, migrations
   Http/            # Request, response, dispatcher, kernel
-  Routing/         # Static and parameterized route matching
+  Middleware/      # Global and route middleware
+  Routing/         # Static, parameterized, and attribute routing
+  Security/        # CSRF protection
   Server/          # Swoole server integration
-  Middleware/      # Middleware pipeline
+  Session/         # Request-scoped session handling
+  Support/         # Collection and cache utilities
+  Validation/      # Request validation
+  View/            # Compiled PieTemplate renderer
   Lifecycle/       # Process/application lifecycle
   Pool/            # Resource pooling primitives
 tests/
