@@ -157,6 +157,7 @@ return response()->html(view('pages.home', [
 ]));
 ```
 
+- Both v3 colon style (`@if(...):`, `@foreach(...):`) and modern style (`@if(...)`, `@foreach(...)`) are supported.
 - `{{ expression }}` outputs a PHP expression as-is (escape untrusted values yourself).
 - `{! expression !}` HTML-escapes the value.
 - `<< PHP statement >>` emits a PHP statement.
@@ -207,7 +208,7 @@ return new class extends Migration {
 };
 ```
 
-Run migrations with `php ds migrate`, inspect with `php ds migrate --status`, and roll back the latest migration with `php ds migrate --rollback`. Migration methods receive the active PDO connection and run inside a transaction. The query builder currently covers common SELECT/INSERT/UPDATE/DELETE operations; the legacy v3 Active Record ORM and full schema DSL are not yet ported.
+Run migrations with `php ds migrate`, inspect with `php ds migrate --status`, and roll back the latest migration with `php ds migrate --rollback`. Migration methods receive the active PDO connection and run inside a transaction. The query builder currently covers common SELECT/INSERT/UPDATE/DELETE operations; the v3 Active Record compatibility base supports basic `all()`, `find()`, `where()`, `count()`, `save()`, `create()`, `updateById()`, and `deleteById()`. Legacy magic hydration, relationships, advanced query methods, and the full schema DSL are not yet ported. Generated models start with an empty fillable whitelist; add allowed columns before using mass-assignment methods.
 
 ## Responses
 
@@ -337,7 +338,7 @@ $message = flash('notice');
 $token = csrf_token();
 ```
 
-The `session` and `csrf` route middleware aliases are also available. CSRF tokens are HMAC-signed with `APP_KEY` and compared using `hash_equals`. Configure a unique random `APP_KEY` of at least 32 characters. The built-in session adapter stores JSON-compatible values in per-session files; for high-concurrency production deployments, use a coroutine-aware external session store rather than blocking local storage.
+The `session` and `csrf` route middleware aliases are also available. Legacy v3 namespaces for `Request`, `Response`, `Middleware`, route attributes, session facades, and CSRF helpers are bridged to the v4 implementations. A legacy middleware returning `null` short-circuits with HTTP 403. CSRF tokens are HMAC-signed with `APP_KEY` and compared using `hash_equals`. Configure a unique random `APP_KEY` of at least 32 characters. The built-in session adapter stores JSON-compatible values in per-session files; for high-concurrency production deployments, use a coroutine-aware external session store rather than blocking local storage.
 
 ## Collections and cache
 
