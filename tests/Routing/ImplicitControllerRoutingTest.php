@@ -100,6 +100,28 @@ final class ImplicitControllerRoutingTest extends TestCase
         self::assertSame('slug:developer', $response->body());
     }
 
+    public function testBindsRouteParametersByNameRatherThanDeclarationOrder(): void
+    {
+        RouteDsl::group('/members', ImplicitMemberController::class);
+
+        $response = (new RequestDispatcher(RouteRegistry::getRouter()))->dispatch(
+            new Request([], [], 'GET', '/members/reordered/first/second')
+        );
+
+        self::assertSame('second:first', $response->body());
+    }
+
+    public function testInjectsRequestAfterRouteParameters(): void
+    {
+        RouteDsl::group('/members', ImplicitMemberController::class);
+
+        $response = (new RequestDispatcher(RouteRegistry::getRouter()))->dispatch(
+            new Request([], [], 'GET', '/members/request-after/73')
+        );
+
+        self::assertSame('73:GET', $response->body());
+    }
+
     public function testRegistersMultipleHttpMethodsAndAttributeMiddleware(): void
     {
         RouteDsl::group('/members', ImplicitMemberController::class);
@@ -156,6 +178,18 @@ final class ImplicitMemberController
     public function slug(string $name): Response
     {
         return Response::text('slug:' . $name);
+    }
+
+    #[Get('/reordered/{first}/{second}')]
+    public function reordered(string $second, string $first): Response
+    {
+        return Response::text($second . ':' . $first);
+    }
+
+    #[Get('/request-after/{id}')]
+    public function requestAfter(int $id, Request $request): Response
+    {
+        return Response::text($id . ':' . $request->getMethod());
     }
 
     #[Post('/', ['auth'])]
