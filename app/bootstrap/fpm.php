@@ -9,6 +9,7 @@ use App\Support\RouteRegistry;
 use Ds\Container\Container;
 use Ds\Context\Context;
 use Ds\Http\Request;
+use Ds\Http\Response;
 use Ds\Lifecycle\LifecycleManager;
 use Ds\Middleware\MiddlewareStack;
 use Ds\Routing\Router;
@@ -36,6 +37,9 @@ try {
 
     $response = $kernel->handle($request);
     $response->send();
+} catch (\\Throwable $exception) {
+    error_log((string) $exception);
+    Response::text('Internal Server Error', 500)->send();
 } finally {
     try {
         $lifecycle->emit('request.handled', ['request' => $request ?? null]);
