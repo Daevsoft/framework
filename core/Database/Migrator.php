@@ -50,7 +50,7 @@ final class Migrator
         return $ran;
     }
 
-    public function rollback(): ?string
+    public function rollback(?string $directory = null): ?string
     {
         $this->ensureRepository();
         $latest = $this->database->select(
@@ -61,7 +61,7 @@ final class Migrator
             return null;
         }
 
-        $file = $this->migrationFileFor($latest);
+        $file = $this->migrationFileFor($latest, $directory ?? base_path('database/migrations'));
         if ($file === null) {
             throw new RuntimeException("Migration source for [{$latest}] was not found.");
         }
@@ -104,9 +104,8 @@ final class Migrator
         );
     }
 
-    private function migrationFileFor(string $name): ?string
+    private function migrationFileFor(string $name, string $directory): ?string
     {
-        $directory = base_path('database/migrations');
         $file = $directory . DIRECTORY_SEPARATOR . $name . '.php';
         return is_file($file) ? $file : null;
     }
