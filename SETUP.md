@@ -4,7 +4,7 @@ Ds Framework 4 is **Swoole-first**. The normal installation path runs a persiste
 
 ## Requirements
 
-- PHP 8.1 or newer
+- PHP 8.1+ for runtime execution; PHP 8.3+ for development and PHPUnit 12.5 tests.
 - Composer 2
 - Swoole extension for the primary runtime
 - Redis only when using Redis-backed broadcasting or cache adapters
@@ -12,7 +12,8 @@ Ds Framework 4 is **Swoole-first**. The normal installation path runs a persiste
 ## Install
 
 ```bash
-composer install
+composer install # PHP 8.3+ (includes PHPUnit development dependencies)
+# On PHP 8.1/8.2 production hosts: composer install --no-dev
 cp .env.example .env
 ```
 
