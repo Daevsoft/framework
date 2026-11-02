@@ -6,6 +6,7 @@ namespace Ds\Middleware;
 
 use Ds\Http\Request;
 use Ds\Http\Response;
+use UnexpectedValueException;
 
 class MiddlewarePipeline
 {
@@ -23,7 +24,11 @@ class MiddlewarePipeline
         );
 
         $result = $runner($request);
-        return $result instanceof Response ? $result : new Response();
+        if (!$result instanceof Response) {
+            throw new UnexpectedValueException('Every middleware and HTTP handler must return a Response instance.');
+        }
+
+        return $result;
     }
 }
 
