@@ -6,6 +6,7 @@ use App\Http\Kernel as AppKernel;
 use App\Support\RouteRegistry;
 use Ds\Container\Container;
 use Ds\Lifecycle\LifecycleManager;
+use Ds\Middleware\MiddlewareStack;
 use Ds\Pool\PoolManager;
 use Ds\Routing\Router;
 use Ds\Server\SwooleServer;
@@ -19,6 +20,7 @@ require dirname(__DIR__) . '/routes/api.php';
 
 $container = new Container();
 $container->instance(LifecycleManager::class, new LifecycleManager());
+$container->instance(MiddlewareStack::class, new MiddlewareStack());
 $container->singleton(PoolManager::class);
 $kernel = new AppKernel($router, $container);
 
