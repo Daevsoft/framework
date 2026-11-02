@@ -104,7 +104,7 @@ final class DatabaseManager
         if (
             !class_exists('Swoole\\Coroutine\\Channel')
             || !class_exists('Swoole\\Coroutine')
-            || \\Swoole\\Coroutine::getCid() < 0
+            || \Swoole\Coroutine::getCid() < 0
         ) {
             $this->localConnection ??= $this->createConnection();
             return $callback($this->localConnection);
