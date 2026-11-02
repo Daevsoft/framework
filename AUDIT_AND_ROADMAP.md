@@ -46,8 +46,17 @@ The framework should optimize for two goals at once:
 - Added bounded resource pools with validation, duplicate-release protection, disposal callbacks, and worker-stop cleanup.
 - Added a bounded Swoole timer scheduler for one-shot and recurring tasks; worker-stop lifecycle clears timers and pools.
 - Wired lifecycle events for application boot, request handling, worker start/stop, and server shutdown.
-- Added a container-managed middleware stack supporting closures and middleware classes, with immutable CORS responses and OPTIONS preflight handling.
+- Added a container-managed global middleware stack and per-route middleware aliases, supporting closures and middleware classes.
+- Added immutable CORS responses and OPTIONS preflight handling.
 - Changed the unimplemented authentication middleware to fail closed with HTTP 501 rather than silently allowing requests.
+- Added v3-style implicit controller routing through `Route::group('/prefix', Controller::class)` and repeatable `#[Get]`, `#[Post]`, `#[Put]`, `#[Patch]`, `#[Delete]`, and `#[Options]` attributes; reflection runs at bootstrap only.
+- Added the PieTemplate renderer with `@use`, `@slot`, `@part`, `@endpart`, echo/escape syntax, conditionals, loops, switch statements, and `@join`; compiled output is cached by source hash and published atomically.
+- Added a dependency-free validation engine with structured field errors, common v3 rules, custom messages, and Request integration; it never emits output or terminates a worker.
+- Added per-request session state, signed HMAC CSRF tokens, flash/old-input helpers, secure HttpOnly/SameSite cookies, and built-in session/CSRF middleware aliases.
+- Added native Collection and atomic TTL FileCache utilities without the v3 Illuminate dependency.
+- Added a PDO DatabaseManager, safe identifier quoting, prepared-statement query builder for common CRUD, transaction handling, and a bounded coroutine-channel connection pool in active Swoole coroutines.
+- Added transactional database migrations with status/rollback commands and a `php ds migrate` CLI command.
+- Restored PDO support for MySQL, PostgreSQL, SQLite, and SQL Server drivers.
 - Added `php ds serve` as the primary Swoole command and `php ds fpm:serve` as the explicit compatibility development server; host/port validation and shell escaping prevent command injection.
 - Added Swoole request package size limits and disabled unused task workers by default to reduce idle memory use.
 - Added explicit PSR-4 mappings for the repository's lowercase application directories so class loading works on case-sensitive Linux filesystems.
@@ -60,16 +69,15 @@ The framework should optimize for two goals at once:
 ### P0 — Runtime correctness and request isolation
 
 - Add a configurable error renderer and structured error responses; adapters currently return a safe generic 500 response.
-- Add graceful drain/signal policy and deterministic cleanup for all worker-owned singleton services; worker start/stop and shutdown hooks, timer cleanup, and pool cleanup are now wired.
-- Verify Swoole version compatibility and server settings across a supported extension-version matrix.
-- Verify Swoole version compatibility and server settings against supported extension versions.
+- Add graceful drain/signal policy and deterministic cleanup for all worker-owned singleton services; worker start/stop and shutdown hooks, timer cleanup, generic pool cleanup, and PDO pool shutdown are wired.
+- Verify Swoole version compatibility and server settings against a supported extension-version matrix.
 
 ### P1 — Core framework completeness
 
 - Implement WebSocket server lifecycle and route registration; current `Route::ws()` is only a route declaration and is not a complete WebSocket runtime.
-- Add route/group-level middleware, aliases, and per-route middleware metadata; the global middleware stack is now operational.
+- Add route name registration, URL generation, route constraints, method-not-allowed handling, and HEAD support.
 - Add named routes, URL generation, route constraints, method-not-allowed handling, and HEAD support.
-- Add robust request validation, uploaded-file handling, cookies, and content negotiation.
+- Add uploaded-file handling, cookie APIs, and content negotiation; validation rules and session/CSRF foundations are now available.
 - Complete event/broadcast adapters and implement queued task-worker execution; current scheduled tasks use bounded Swoole timers.
 - Add pool acquisition timeouts/factories and coroutine-safe pool checkout semantics; current pools are bounded and disposable but intentionally remain simple LIFO pools.
 
@@ -78,7 +86,7 @@ The framework should optimize for two goals at once:
 - Add generators for controllers, middleware, services, events, listeners, tests, and domain modules.
 - Add route:list and config:cache commands.
 - Add explicit interface binding/provider registration APIs.
-- Standardize response helpers, exception types, validation errors, and pagination.
+- Standardize response helpers, exception types, validation errors, and pagination; basic validation is now implemented.
 - Provide a compact default application skeleton and runnable examples.
 
 ### P3 — Performance and security
@@ -106,4 +114,4 @@ GitHub Actions successfully completed PHP syntax checks, Composer validation, al
 
 ## Branch status
 
-All implementation commits in this work target `v4`. The repository's GitHub default branch setting was observed as `v3`; changing the default branch is a repository administration setting and has not been changed by these code commits. To make `v4` the GitHub default branch, set it under **Settings → General → Default branch** after reviewing the branch.
+All implementation commits in this migration target **`v4`**, which is the primary development and integration branch for this work. The repository's GitHub default branch setting is still `v3`; changing that setting requires repository administration permissions and is not performed by code commits. If `v4` must also become the default branch shown by GitHub, an administrator must change **Settings → General → Default branch** to `v4`.
