@@ -49,30 +49,34 @@ final class Container
 
     public function make(string $abstract, array $parameters = []): mixed
     {
-        return $this->resolve($abstract, $parameters, []);
+        return $this->resolve($abstract, $parameters, [], 'transient');
     }
 
-    /**
-     * Start a request scope. In Swoole, Context stores this state per coroutine.
-     */
     public function beginRequest(): void
     {
         $this->requestContext()->clear();
     }
 
-    /**
-     * Always call from a finally block after the request has been handled.
-     */
     public function endRequest(): void
     {
         $this->requestContext()->clear();
     }
 
-    private function resolve(string $abstract, array $parameters, array $resolving): mixed
-    {
+    private function resolve(
+        string $abstract,
+        array $parameters,
+        array $resolving,
+        string $consumerLifetime
+    ): mixed {
         $binding = $this->bindings->get($abstract);
         $concrete = $binding['concrete'] ?? $abstract;
         $scope = $binding['scope'] ?? (($binding['shared'] ?? false) ? 'singleton' : 'transient');
+
+        if ($consumerLifetime === 'singleton' && $scope === 'request') {
+            throw new RuntimeException(
+                "A singleton dependency graph cannot depend on request-scoped service {$abstract}."
+            );
+        }
 
         if ($scope === 'singleton' && isset($this->instances[$abstract])) {
             return $this->instances[$abstract];
@@ -94,13 +98,16 @@ final class Container
         }
 
         $resolving[$abstract] = true;
+        $lifetime = ($scope === 'singleton' || $consumerLifetime === 'singleton')
+            ? 'singleton'
+            : $scope;
 
         if (is_object($concrete) && !$concrete instanceof \Closure) {
             $object = $concrete;
         } elseif ($concrete instanceof \Closure || is_callable($concrete)) {
             $object = $concrete($this, $parameters);
         } elseif (is_string($concrete) && class_exists($concrete)) {
-            $object = $this->build($concrete, $parameters, $resolving);
+            $object = $this->build($concrete, $parameters, $resolving, $lifetime);
         } else {
             throw new RuntimeException("Unable to resolve {$abstract}");
         }
@@ -115,8 +122,12 @@ final class Container
         return $object;
     }
 
-    private function build(string $class, array $parameters, array $resolving): object
-    {
+    private function build(
+        string $class,
+        array $parameters,
+        array $resolving,
+        string $lifetime
+    ): object {
         $reflection = new ReflectionClass($class);
         if (!$reflection->isInstantiable()) {
             throw new RuntimeException("Class {$class} is not instantiable");
@@ -131,7 +142,7 @@ final class Container
             if (array_key_exists($parameter['name'], $parameters)) {
                 $arguments[] = $parameters[$parameter['name']];
             } elseif ($parameter['type'] !== null && class_exists($parameter['type'])) {
-                $arguments[] = $this->resolve($parameter['type'], [], $resolving);
+                $arguments[] = $this->resolve($parameter['type'], [], $resolving, $lifetime);
             } elseif ($parameter['hasDefault']) {
                 $arguments[] = $parameter['default'];
             } elseif ($parameter['nullable']) {
