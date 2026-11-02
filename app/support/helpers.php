@@ -76,6 +76,18 @@ if (!function_exists('public_path')) {
 
 
 
+
+if (!function_exists('session_manager')) {
+    function session_manager(): \Ds\Session\SessionManager
+    {
+        $manager = \Ds\Context\Context::default()->get('session');
+        if (!$manager instanceof \Ds\Session\SessionManager) {
+            throw new \RuntimeException('Session access requires SessionMiddleware.');
+        }
+        return $manager;
+    }
+}
+
 if (!function_exists('session')) {
     function session(string|array|null $key = null, mixed $default = null): mixed
     {
