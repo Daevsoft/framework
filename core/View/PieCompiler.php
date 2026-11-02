@@ -8,7 +8,7 @@ use RuntimeException;
 
 final class PieCompiler
 {
-    private const VERSION = '1';
+    private const VERSION = '2';
 
     public function __construct(
         private readonly string $viewRoot,
@@ -57,9 +57,7 @@ final class PieCompiler
         $source = $this->expandLayouts($source, $origin, 0);
         $source = $this->applySlots($source);
         $source = $this->compileEchoStatements($source);
-        $source = $this->compileDirectives($source);
-
-        return $source;
+        return $this->compileDirectives($source);
     }
 
     private function expandLayouts(string $source, string $origin, int $depth): string
@@ -131,26 +129,56 @@ final class PieCompiler
 
     private function compileDirectives(string $source): string
     {
-        $condition = '((?:[^()]|\([^()]*\))*)';
-        $patterns = [
-            '/@elseif\(' . $condition . '\):?/' => '<?php } elseif ($1): ?>',
-            '/@if\(' . $condition . '\):?/' => '<?php if ($1): ?>',
-            '/@foreach\(' . $condition . '\):?/' => '<?php foreach ($1): ?>',
-            '/@for\(' . $condition . '\):?/' => '<?php for ($1): ?>',
-            '/@while\(' . $condition . '\):?/' => '<?php while ($1): ?>',
-            '/@isset\(' . $condition . '\):?/' => '<?php if (isset($1)): ?>',
-            '/@notset\(' . $condition . '\):?/' => '<?php if (!isset($1)): ?>',
-            '/@empty\(' . $condition . '\):?/' => '<?php if (empty($1)): ?>',
-            '/@notempty\(' . $condition . '\):?/' => '<?php if (!empty($1)): ?>',
-            '/@isnull\(' . $condition . '\):?/' => '<?php if (($1) === null): ?>',
-            '/@notnull\(' . $condition . '\):?/' => '<?php if (($1) !== null): ?>',
-            '/@switch\(' . $condition . '\):?/' => '<?php switch ($1): ?>',
-            '/@case\s+([^\r\n]+)/' => '<?php case $1: ?>',
+        $replacements = [
+            'elseif' => static fn (string $e): string => '<?php } elseif (' . $e . '): ?>',
+            'if' => static fn (string $e): string => '<?php if (' . $e . '): ?>',
+            'foreach' => static fn (string $e): string => '<?php foreach (' . $e . '): ?>',
+            'for' => static fn (string $e): string => '<?php for (' . $e . '): ?>',
+            'while' => static fn (string $e): string => '<?php while (' . $e . '): ?>',
+            'isset' => static fn (string $e): string => '<?php if (isset(' . $e . ')): ?>',
+            'notset' => static fn (string $e): string => '<?php if (!isset(' . $e . ')): ?>',
+            'empty' => static fn (string $e): string => '<?php if (empty(' . $e . ')): ?>',
+            'notempty' => static fn (string $e): string => '<?php if (!empty(' . $e . ')): ?>',
+            'isnull' => static fn (string $e): string => '<?php if ((' . $e . ') === null): ?>',
+            'notnull' => static fn (string $e): string => '<?php if ((' . $e . ') !== null): ?>',
+            'switch' => static fn (string $e): string => '<?php switch (' . $e . '): ?>',
+            'case' => static fn (string $e): string => '<?php case ' . $e . ': ?>',
         ];
 
-        foreach ($patterns as $pattern => $replacement) {
-            $source = preg_replace($pattern, $replacement, $source) ?? $source;
+        $offset = 0;
+        $directivePattern = '/@(elseif|if|foreach|for|while|isset|notset|empty|notempty|isnull|notnull|switch|case)\s*\(/';
+
+        while (preg_match($directivePattern, $source, $match, PREG_OFFSET_CAPTURE, $offset) === 1) {
+            $directive = $match[1][0];
+            $start = $match[0][1];
+            $open = $start + strlen($match[0][0]) - 1;
+            $close = $this->findClosingParenthesis($source, $open);
+
+            if ($close === null) {
+                $offset = $open + 1;
+                continue;
+            }
+
+            $expression = trim(substr($source, $open + 1, $close - $open - 1));
+            $end = $close + 1;
+            if (($source[$end] ?? '') === ':') {
+                $end++;
+            }
+
+            $replacement = $replacements[$directive]($expression);
+            $source = substr_replace($source, $replacement, $start, $end - $start);
+            $offset = $start + strlen($replacement);
         }
+
+        // Also accept the original line-oriented @case expression syntax.
+        $source = preg_replace_callback(
+            '/@case[ \t]+([^\r\n]+)/',
+            static function (array $m): string {
+                $expression = rtrim(trim($m[1]), ':');
+                return '<?php case ' . $expression . ': ?>';
+            },
+            $source
+        ) ?? $source;
 
         $simple = [
             '/@else:?(?![A-Za-z_])/' => '<?php else: ?>',
@@ -169,13 +197,44 @@ final class PieCompiler
             $source = preg_replace($pattern, $replacement, $source) ?? $source;
         }
 
-        $source = preg_replace_callback(
+        return preg_replace_callback(
             '/@join\(\s*[\'"]([^\'"]+)[\'"]\s*\)/',
             static fn (array $m): string => '<?= view(' . var_export($m[1], true) . ') ?>',
             $source
         ) ?? $source;
+    }
 
-        return $source;
+    private function findClosingParenthesis(string $source, int $open): ?int
+    {
+        $depth = 0;
+        $quote = null;
+        $escaped = false;
+        $length = strlen($source);
+
+        for ($index = $open; $index < $length; $index++) {
+            $char = $source[$index];
+
+            if ($quote !== null) {
+                if ($escaped) {
+                    $escaped = false;
+                } elseif ($char === '\\') {
+                    $escaped = true;
+                } elseif ($char === $quote) {
+                    $quote = null;
+                }
+                continue;
+            }
+
+            if ($char === '"' || $char === "'") {
+                $quote = $char;
+            } elseif ($char === '(') {
+                $depth++;
+            } elseif ($char === ')' && --$depth === 0) {
+                return $index;
+            }
+        }
+
+        return null;
     }
 
     private function resolveView(string $name): string
