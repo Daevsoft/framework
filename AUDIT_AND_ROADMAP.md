@@ -98,7 +98,7 @@ The framework should optimize for two goals at once:
 
 ## Verification status
 
-An earlier CI run successfully completed PHP syntax checks, all 13 then-current PHPUnit tests, and a live Swoole HTTP smoke test. The request-scope and pool additions have expanded the suite and are undergoing another CI pass; do not treat the latest changes as verified until the newest workflow run is green. Sustained load, concurrent request isolation under realistic traffic, worker memory growth, and production deployment validation remain pending.
+GitHub Actions successfully completed PHP syntax checks, Composer validation, all 23 PHPUnit tests, and a live Swoole HTTP smoke test on PHP 8.3 with the Swoole extension enabled. The test suite includes coroutine-local Context isolation, request-scope isolation, singleton lifetime safety, bounded pool behavior, and lifecycle hooks. The live server returned a valid /health response and successfully dispatched /users/42. Sustained load, p95/p99 latency, long-duration worker memory growth, production database/Redis adapters, and deployment validation remain pending.
 
 ## Branch status
 
