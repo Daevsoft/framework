@@ -191,7 +191,7 @@ final class RequestDispatcher
             } elseif ($parameter->allowsNull()) {
                 $arguments[] = null;
             } else {
-                throw new \\RuntimeException(
+                throw new \RuntimeException(
                     "Unable to resolve required route parameter [{$parameterName}] for handler."
                 );
             }
