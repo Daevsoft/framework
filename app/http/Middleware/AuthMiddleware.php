@@ -8,18 +8,14 @@ use Ds\Http\Request;
 use Ds\Http\Response;
 use Ds\Middleware\MiddlewareInterface;
 
-class AuthMiddleware implements MiddlewareInterface
+/**
+ * Fail-closed placeholder. Replace with a configured authenticator before
+ * registering this middleware on protected routes.
+ */
+final class AuthMiddleware implements MiddlewareInterface
 {
-    /**
-     * Handle the request
-     */
-    public function handle(Request $request, $next): Response
+    public function handle(Request $request, callable $next): Response
     {
-        // TODO: Implement authentication logic
-        // This middleware can check for auth tokens, sessions, etc.
-        
-        return $next($request);
+        return Response::text('Authentication middleware is not configured.', 501);
     }
 }
-
-
