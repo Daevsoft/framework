@@ -173,7 +173,21 @@ final class SessionManager
             return;
         }
 
-        $raw = file_get_contents($file);
+        $handle = fopen($file, 'rb');
+        if ($handle === false) {
+            return;
+        }
+
+        try {
+            if (!flock($handle, LOCK_SH)) {
+                return;
+            }
+            $raw = stream_get_contents($handle);
+            flock($handle, LOCK_UN);
+        } finally {
+            fclose($handle);
+        }
+
         if ($raw === false) {
             return;
         }
