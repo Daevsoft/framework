@@ -1,45 +1,65 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Ds\Server;
 
 use Ds\Container\Container;
+use Ds\Http\Request;
+use RuntimeException;
+use Throwable;
 
-class SwooleServer
+final class SwooleServer
 {
-    protected Container $container;
-    protected string $host;
-    protected int $port;
-
-    public function __construct(Container $container, string $host = '127.0.0.1', int $port = 8080)
-    {
-        $this->container = $container;
-        $this->host = $host;
-        $this->port = $port;
+    public function __construct(
+        protected Container $container,
+        protected string $host = '127.0.0.1',
+        protected int $port = 8000,
+        protected mixed $kernel = null
+    ) {
     }
 
     public function start(): void
     {
-        $serverClass = '\Swoole\Http\Server';
+        $serverClass = '\\Swoole\\Http\\Server';
         if (!class_exists($serverClass)) {
-            echo "Swoole extension not loaded. Running in fallback mode.\n";
-            return;
+            throw new RuntimeException('Swoole extension is required. Install it or explicitly select APP_RUNTIME=fpm.');
         }
+
         $server = new $serverClass($this->host, $this->port);
+        $settings = function_exists('config') ? config('server.swoole', []) : [];
+        if (is_array($settings) && $settings !== []) {
+            $server->set($settings);
+        }
+
         $host = $this->host;
         $port = $this->port;
-        $server->on('start', function () use ($host, $port) {
-            echo "Swoole server started at http://{$host}:{$port}\n";
+        $server->on('start', static function () use ($host, $port): void {
+            echo "Ds Framework Swoole server listening on http://{$host}:{$port}\n";
         });
+
         $container = $this->container;
-        $server->on('request', function ($request, $response) use ($server, $container) {
-            $kernel = $container->make(\App\Http\Kernel::class);
-            $req = \Ds\Http\Request::fromSwoole($request);
-            $resp = $kernel->handle($req);
-            foreach ($resp->headers() as $name => $value) {
-                $response->header($name, (string)$value);
+        $kernel = $this->kernel;
+        $server->on('request', static function ($swooleRequest, $swooleResponse) use ($container, $kernel): void {
+            try {
+                $request = Request::fromSwoole($swooleRequest);
+                $httpKernel = is_callable($kernel)
+                    ? $kernel()
+                    : ($kernel ?? $container->make(\App\Http\Kernel::class));
+                $response = $httpKernel->handle($request);
+
+                foreach ($response->headers() as $name => $value) {
+                    $swooleResponse->header((string) $name, (string) $value);
+                }
+                $swooleResponse->status($response->status());
+                $swooleResponse->end($response->body());
+            } catch (Throwable $exception) {
+                error_log((string) $exception);
+                $swooleResponse->status(500);
+                $swooleResponse->end('Internal Server Error');
             }
-            $response->status($resp->status());
-            $response->end($resp->body());
         });
+
         $server->start();
     }
 }
