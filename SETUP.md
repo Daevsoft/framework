@@ -145,7 +145,7 @@ Register worker-owned resources and recurring tasks from a `worker.start` listen
 use Ds\Lifecycle\LifecycleEvent;
 use Ds\Lifecycle\LifecycleManager;
 use Ds\Tasks\Scheduler;
-use App\Tasks\CleanupTask;
+use App\Domains\Maintenance\Tasks\CleanupTask;
 
 $lifecycle = $container->make(LifecycleManager::class);
 $lifecycle->register('worker.start', function (LifecycleEvent $event) use ($container): void {
