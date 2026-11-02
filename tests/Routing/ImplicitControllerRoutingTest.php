@@ -89,6 +89,18 @@ final class ImplicitControllerRoutingTest extends TestCase
         self::assertSame([ImplicitMemberController::class, 'legacy'], $route->handler);
     }
 
+    public function testDispatchesLegacyV3RequestTypeThroughClassAlias(): void
+    {
+        RouteDsl::group('/members', ImplicitMemberController::class);
+
+        $response = (new RequestDispatcher(RouteRegistry::getRouter()))->dispatch(
+            new Request([], [], 'GET', '/members/legacy-request')
+        );
+
+        self::assertSame(200, $response->status());
+        self::assertSame('legacy-request:GET', $response->body());
+    }
+
     public function testControllerMethodsCanReceiveRouteArgumentsWithoutRequest(): void
     {
         RouteDsl::group('/members', ImplicitMemberController::class);
