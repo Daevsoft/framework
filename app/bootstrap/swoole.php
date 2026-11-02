@@ -21,6 +21,7 @@ require dirname(__DIR__) . '/routes/api.php';
 
 $container = new Container();
 $container->instance(LifecycleManager::class, new LifecycleManager());
+$container->instance(DatabaseManager::class, DatabaseManager::default());
 $container->instance(MiddlewareStack::class, new MiddlewareStack());
 $container->singleton(PoolManager::class);
 $container->singleton(Scheduler::class);
