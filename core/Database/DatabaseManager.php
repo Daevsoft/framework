@@ -79,8 +79,14 @@ final class DatabaseManager
         }
 
         $driver = (string) ($this->config['driver'] ?? 'mysql');
-        $quote = $driver === 'mysql' ? '`' : '"';
+        if ($driver === 'sqlsrv') {
+            return implode('.', array_map(
+                static fn (string $part): string => '[' . $part . ']',
+                explode('.', $identifier)
+            ));
+        }
 
+        $quote = $driver === 'mysql' ? '`' : '"';
         return implode('.', array_map(
             static fn (string $part): string => $quote . $part . $quote,
             explode('.', $identifier)
@@ -166,6 +172,7 @@ final class DatabaseManager
         $dsn = match ($driver) {
             'mysql' => "mysql:host={$host};port={$port};dbname={$database};charset={$charset}",
             'pgsql' => "pgsql:host={$host};port={$port};dbname={$database}",
+            'sqlsrv' => "sqlsrv:Server={$host},{$port};Database={$database}",
             'sqlite' => 'sqlite:' . (string) ($this->config['database'] ?? ':memory:'),
             default => throw new RuntimeException("Unsupported database driver [{$driver}]."),
         };
