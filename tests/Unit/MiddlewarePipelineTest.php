@@ -6,6 +6,7 @@ namespace Tests\Unit;
 
 use Ds\Http\Request;
 use Ds\Http\Response;
+use Ds\Middleware\MiddlewareInterface;
 use Ds\Middleware\MiddlewarePipeline;
 use Ds\Middleware\MiddlewareStack;
 use PHPUnit\Framework\TestCase;
@@ -46,6 +47,24 @@ final class MiddlewarePipelineTest extends TestCase
             'second:after',
             'first:after',
         ], $trace);
+    }
+
+    public function testExecutesMiddlewareObjects(): void
+    {
+        $stack = new MiddlewareStack();
+        $stack->push(new class implements MiddlewareInterface {
+            public function handle(Request $request, callable $next): Response
+            {
+                return $next($request)->withHeader('X-Middleware', 'active');
+            }
+        });
+
+        $response = (new MiddlewarePipeline($stack))->handle(
+            new Request(),
+            static fn (): Response => Response::text('ok')
+        );
+
+        self::assertSame('active', $response->headers()['X-Middleware']);
     }
 
     public function testRejectsInvalidMiddlewareReturnValue(): void
