@@ -24,7 +24,7 @@ composer install # PHP 8.3+ (includes PHPUnit development dependencies)
 # On PHP 8.1/8.2 production hosts: composer install --no-dev
 cp .env.example .env
 pecl install swoole
-php app/bootstrap/app.php
+php ds serve
 ```
 
 The default configuration uses Swoole and listens on `127.0.0.1:8000`.
@@ -32,6 +32,9 @@ The default configuration uses Swoole and listens on `127.0.0.1:8000`.
 To explicitly use the compatibility runtime:
 
 ```bash
+php ds fpm:serve
+
+# Or explicitly run PHP's built-in server with the FPM adapter
 APP_RUNTIME=fpm php -S 127.0.0.1:8000 -t public/
 ```
 
