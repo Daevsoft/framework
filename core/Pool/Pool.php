@@ -97,14 +97,32 @@ final class Pool
         $this->items = [];
         $this->pooledIds = [];
 
+        $failure = null;
         foreach ($items as $item) {
-            $this->dispose($item);
+            try {
+                $this->dispose($item);
+            } catch (Throwable $exception) {
+                $failure ??= $exception;
+            }
+        }
+
+        if ($failure !== null) {
+            throw $failure;
         }
     }
 
     private function isValid(mixed $item): bool
     {
-        return $this->validator === null || ($this->validator)($item) === true;
+        if ($this->validator === null) {
+            return true;
+        }
+
+        try {
+            return ($this->validator)($item) === true;
+        } catch (Throwable $exception) {
+            $this->dispose($item);
+            throw $exception;
+        }
     }
 
     private function dispose(mixed $item): void
