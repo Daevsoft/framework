@@ -25,7 +25,7 @@ final class AddModel extends GeneratorCommand
                 $class = $this->className($segments);
                 $segments[array_key_last($segments)] = $class;
                 $namespace = $this->namespaceFor('App\\Models', $segments);
-                $table = $this->snake($class) . 's';
+                $table = $this->snake($class);
                 $relative = 'app/models/' . implode('/', $segments) . '.php';
                 $content = "<?php\n\ndeclare(strict_types=1);\n\nnamespace {$namespace};\n\nuse Ds\\Foundations\\Connection\\Models\\DsModel;\n\nfinal class {$class} extends DsModel\n{\n    public \$table = '{$table}';\n    protected \$fillable = [];\n}\n";
                 $this->write($relative, $content);
