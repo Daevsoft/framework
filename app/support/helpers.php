@@ -94,6 +94,20 @@ if (!function_exists('public_path')) {
     }
 }
 
+
+if (!function_exists('view')) {
+    /**
+     * Render a PHP or PieTemplate view to a string.
+     *
+     * Return the result from a controller so the HTTP dispatcher can emit it:
+     * return response()->html(view('pages.home', ['title' => 'Home']));
+     */
+    function view(string $name, array $data = []): string
+    {
+        return \\Ds\\View\\ViewRenderer::default()->render($name, $data);
+    }
+}
+
 if (!function_exists('dd')) {
     function dd(mixed ...$args): never
     {
