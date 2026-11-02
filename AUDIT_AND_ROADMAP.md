@@ -25,6 +25,9 @@ The framework should optimize for two goals at once:
 | FPM adapter | FPM bootstrap did not use the same explicit route/kernel setup as the Swoole bootstrap. | Medium |
 | Environment/config | Runtime defaults and configuration types were inconsistent; local environment files were tracked. | High |
 | Test coverage | Existing tests covered only a small part of routing and application lifecycle. | High |
+| Authentication | AuthManager returns a new placeholder Guard; Guard, RBAC, and ACL methods do not implement authentication or authorization. | Critical |
+| Scheduler | Task scheduling is currently a no-op. | High |
+| Resource pools | The original pool had no capacity limit, validation, duplicate-release protection, or cleanup API. | High |
 
 ## Changes implemented on v4
 
@@ -37,8 +40,10 @@ The framework should optimize for two goals at once:
 - Added static route lookup and precompiled parameterized route patterns during registration.
 - Implemented controller, callable, and `Class@method` dispatch, route parameter coercion, and response normalization.
 - Added backward-compatible response construction, status-aware JSON/text/HTML responses, redirects, and a functioning response factory.
-- Improved container autowiring, singleton behavior, circular dependency detection, and cached constructor metadata.
+- Improved container autowiring, singleton behavior, circular dependency detection, cached constructor metadata, and explicit transient/singleton/request lifetimes.
+- Prevented singleton dependency graphs from capturing request-scoped services and added request-scope propagation through transient dependencies.
 - Added coroutine-local request context storage and clear it in a `finally` block for both Swoole and FPM request lifecycles.
+- Added bounded resource pools with validation, duplicate-release protection, disposal callbacks, and worker-stop cleanup.
 - Added explicit PSR-4 mappings for the repository's lowercase application directories so class loading works on case-sensitive Linux filesystems.
 - Added regression tests for dynamic routing, dispatcher behavior, Swoole request parsing, container resolution, and coroutine context isolation.
 - Reworked README and setup documentation around Swoole-first operation.
@@ -52,7 +57,7 @@ The framework should optimize for two goals at once:
 - Define process, worker, and request lifetimes for services; prevent request-bound services from becoming process singletons.
 - Integrate request context with a formal request-scoped dependency lifecycle so request-bound services are isolated across concurrent coroutines.
 - Add middleware exception handling and a configurable error renderer.
-- Implement graceful shutdown, worker start/stop hooks, and deterministic resource cleanup.
+- Add graceful shutdown/signal handling and deterministic cleanup for all worker-owned services; worker start/stop lifecycle hooks and pool cleanup are now wired.
 - Verify Swoole version compatibility and server settings against supported extension versions.
 
 ### P1 — Core framework completeness
@@ -62,7 +67,7 @@ The framework should optimize for two goals at once:
 - Add named routes, URL generation, route constraints, method-not-allowed handling, and HEAD support.
 - Add robust request validation, uploaded-file handling, cookies, and content negotiation.
 - Complete event/broadcast adapters and document which drivers are actually operational.
-- Implement pool contracts with maximum size, timeout, validation, and safe release semantics.
+- Add pool acquisition timeouts/factories and coroutine-safe pool checkout semantics; current pools are bounded and disposable but intentionally remain simple LIFO pools.
 
 ### P2 — Developer experience
 
@@ -93,7 +98,7 @@ The framework should optimize for two goals at once:
 
 ## Verification status
 
-GitHub Actions successfully completed the PHP syntax check and all **13 PHPUnit tests** on PHP 8.3 with the Swoole extension installed. The Swoole HTTP smoke test also passed: `/health` returned a valid JSON health response and `/users/42` exercised parameterized routing through a live Swoole server. Sustained load, concurrent request isolation under realistic traffic, worker memory growth, and production deployment validation are still pending; this is not yet a production certification.
+An earlier CI run successfully completed PHP syntax checks, all 13 then-current PHPUnit tests, and a live Swoole HTTP smoke test. The request-scope and pool additions have expanded the suite and are undergoing another CI pass; do not treat the latest changes as verified until the newest workflow run is green. Sustained load, concurrent request isolation under realistic traffic, worker memory growth, and production deployment validation remain pending.
 
 ## Branch status
 
