@@ -54,7 +54,7 @@ final class PieTemplateTest extends TestCase
         );
         file_put_contents(
             $this->views . '/pages/home.pie.php',
-            "@use('layouts.app')\n@part('title'){{ \$title }}@endpart\n@part('content')<h1>{{ \$heading }}</h1>@endpart"
+            "@use('layouts.app')@part('title'){{ \$title }}@endpart@part('content')<h1>{{ \$heading }}</h1>@endpart"
         );
 
         $html = (new ViewRenderer($this->views, $this->cache))->render('pages.home', [
@@ -110,7 +110,7 @@ final class PieTemplateTest extends TestCase
     {
         file_put_contents(
             $this->views . '/switch.pie.php',
-            "@switch(\$status)@case('ready')Ready@break@case('pending')Pending@break@defaultUnknown@endswitch"
+            "@switch(\$status)@case('ready')Ready@break@case('pending')Pending@break@default:Unknown@endswitch"
         );
 
         $renderer = new ViewRenderer($this->views, $this->cache);
