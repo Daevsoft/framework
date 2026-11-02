@@ -212,6 +212,8 @@ return new class extends Migration {
 
 Run migrations with `php ds migrate`, inspect with `php ds migrate --status`, and roll back the latest migration with `php ds migrate --rollback`. Migration methods receive the active PDO connection and run inside a transaction. The query builder currently covers common SELECT/INSERT/UPDATE/DELETE operations; the v3 Active Record compatibility base supports basic `all()`, `find()`, `where()`, `count()`, `save()`, `create()`, `updateById()`, and `deleteById()`. Legacy magic hydration, relationships, advanced query methods, and the full schema DSL are not yet ported. Generated models start with an empty fillable whitelist; add allowed columns before using mass-assignment methods.
 
+The v3-compatible `asset('images/logo.svg')` helper is also available. Set `ASSET_URL` to a CDN or asset prefix when needed; without it, local assets resolve from the web root.
+
 ## Responses
 
 ```php
