@@ -23,7 +23,11 @@ final class PieCompiler
             throw new RuntimeException("Unable to read view: {$filename}");
         }
 
-        $key = hash('sha256', self::VERSION . "\0" . $filename . "\0" . $source);
+        // A view's output depends on its layouts and imported components too.
+        // Include their content fingerprints so persistent workers never serve stale
+        // compiled templates after a partial/layout is deployed.
+        $dependencies = $this->dependencyFingerprint($source, $filename);
+        $key = hash('sha256', self::VERSION . "\0" . $filename . "\0" . $source . "\0" . $dependencies);
         $target = rtrim($this->cacheRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $key . '.php';
 
         if (is_file($target)) {
@@ -138,7 +142,12 @@ final class PieCompiler
 
             $components = [];
             foreach ($definitions as $definition) {
-                $components[$definition[2]] = $definition[3];
+                // Imported snippets may import their own reusable snippets.
+                $components[$definition[2]] = $this->expandImports(
+                    $definition[3],
+                    $filename,
+                    $depth + 1
+                );
             }
 
             $alias = $import[4];
@@ -302,6 +311,46 @@ final class PieCompiler
         }
 
         return null;
+    }
+
+    /**
+     * Fingerprint every file that can affect this template's compiled output.
+     * The visited set also prevents circular layout/import references from
+     * causing unbounded recursion while still allowing the compiler to report
+     * the actual cycle/expansion error in the normal compilation path.
+     */
+    private function dependencyFingerprint(string $source, string $origin, array &$visited = []): string
+    {
+        $realOrigin = realpath($origin);
+        if ($realOrigin !== false) {
+            if (isset($visited[$realOrigin])) {
+                return '';
+            }
+            $visited[$realOrigin] = hash('sha256', $source);
+        }
+
+        $references = [];
+        if (preg_match_all(
+            '/@(?:use|import)\(\s*([\'"])([^\'"]+)\1/',
+            $source,
+            $matches
+        ) !== false) {
+            $references = array_values(array_unique($matches[2]));
+        }
+
+        sort($references);
+        foreach ($references as $reference) {
+            $filename = $this->resolveView($reference);
+            $dependencySource = file_get_contents($filename);
+            if ($dependencySource === false) {
+                throw new RuntimeException("Unable to read PieTemplate dependency: {$filename}");
+            }
+
+            $this->dependencyFingerprint($dependencySource, $filename, $visited);
+        }
+
+        ksort($visited);
+        return hash('sha256', serialize($visited));
     }
 
     private function resolveView(string $name): string
