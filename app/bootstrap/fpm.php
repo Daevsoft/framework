@@ -10,6 +10,7 @@ use Ds\Container\Container;
 use Ds\Context\Context;
 use Ds\Http\Request;
 use Ds\Lifecycle\LifecycleManager;
+use Ds\Middleware\MiddlewareStack;
 use Ds\Routing\Router;
 
 $router = new Router();
@@ -21,6 +22,7 @@ require dirname(__DIR__) . '/routes/api.php';
 $container = new Container();
 $lifecycle = new LifecycleManager();
 $container->instance(LifecycleManager::class, $lifecycle);
+$container->instance(MiddlewareStack::class, new MiddlewareStack());
 $lifecycle->emit('booting');
 $lifecycle->emit('booted');
 $kernel = new AppKernel($router, $container);
