@@ -103,10 +103,13 @@ final class RequestDispatcher
     protected function invokeCallable(callable $handler, Request $request, array $params): mixed
     {
         if (is_array($handler)) {
-            $reflection = $this->methodReflectionCache[$handler[0]::class . '::' . $handler[1]]
+            $targetClass = is_object($handler[0]) ? $handler[0]::class : (string) $handler[0];
+            $key = $targetClass . '::' . $handler[1];
+            $reflection = $this->methodReflectionCache[$key]
                 ??= new ReflectionMethod($handler[0], $handler[1]);
         } else {
             $closure = \Closure::fromCallable($handler);
+            $closure = $handler instanceof \\Closure ? $handler : $closure;
             $id = spl_object_id($closure);
             $reflection = $this->closureReflectionCache[$id] ??= new ReflectionFunction($closure);
         }
