@@ -102,7 +102,7 @@ final class RequestDispatcher
 
         $first = $reflection->getParameters()[0] ?? null;
         $type = $first?->getType();
-        $expectsRequest = ($type instanceof ReflectionNamedType && $type->getName() === Request::class)
+        $expectsRequest = ($type instanceof ReflectionNamedType && ($type->getName() === Request::class || is_a($type->getName(), Request::class, true)))
             || ($first !== null && in_array(strtolower($first->getName()), ['request', 'req'], true));
 
         return $controller->{$method}(...$this->buildArguments($reflection, $request, $params, $expectsRequest));
@@ -124,7 +124,7 @@ final class RequestDispatcher
 
         $first = $reflection->getParameters()[0] ?? null;
         $type = $first?->getType();
-        $expectsRequest = ($type instanceof ReflectionNamedType && $type->getName() === Request::class)
+        $expectsRequest = ($type instanceof ReflectionNamedType && ($type->getName() === Request::class || is_a($type->getName(), Request::class, true)))
             || ($first !== null && in_array(strtolower($first->getName()), ['request', 'req'], true));
 
         return $handler(...$this->buildArguments($reflection, $request, $params, $expectsRequest));
@@ -145,7 +145,7 @@ final class RequestDispatcher
                 $value = $params[$index];
                 $type = $parameter->getType();
                 if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
-                    $value = $type->getName() === Request::class ? $request : $value;
+                    $value = ($type->getName() === Request::class || is_a($type->getName(), Request::class, true)) ? $request : $value;
                 } elseif ($type instanceof ReflectionNamedType && $type->isBuiltin()) {
                     $value = match ($type->getName()) {
                         'int' => (int) $value,
