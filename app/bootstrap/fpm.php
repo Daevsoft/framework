@@ -37,7 +37,7 @@ try {
 
     $response = $kernel->handle($request);
     $response->send();
-} catch (\\Throwable $exception) {
+} catch (\Throwable $exception) {
     error_log((string) $exception);
     Response::text('Internal Server Error', 500)->send();
 } finally {
