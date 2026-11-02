@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Ds\Http;
 
 use Ds\Container\Container;
+use Ds\Middleware\MiddlewareRegistry;
+use Ds\Routing\Route;
 use Ds\Routing\Router;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -13,6 +15,12 @@ use Throwable;
 
 final class RequestDispatcher
 {
+    /** @var array<string, ReflectionMethod> */
+    private array $methodReflectionCache = [];
+
+    /** @var array<int, ReflectionFunction> */
+    private array $closureReflectionCache = [];
+
     public function __construct(
         protected Router $router,
         protected ?Container $container = null
@@ -27,29 +35,46 @@ final class RequestDispatcher
         }
 
         try {
-            $handler = $route->handler;
-            $routeParams = array_values($route->params);
+            $destination = fn (Request $current): Response => $this->dispatchHandler($route, $current);
 
-            if (is_array($handler) && count($handler) === 2 && is_string($handler[0])) {
-                $controller = $this->resolveController($handler[0]);
-                $result = $this->invokeMethod($controller, (string) $handler[1], $request, $routeParams);
-            } elseif (is_string($handler) && str_contains($handler, '@')) {
-                [$class, $method] = explode('@', $handler, 2);
-                $controller = $this->resolveController($class);
-                $result = $this->invokeMethod($controller, $method, $request, $routeParams);
-            } elseif (is_callable($handler)) {
-                $result = $this->invokeCallable($handler, $request, $routeParams);
-            } else {
-                return new Response(500, [], 'Invalid route handler');
+            // Avoid building a middleware pipeline for the common no-middleware route.
+            if ($route->middlewares === []) {
+                return $destination($request);
             }
 
-            return $this->toResponse($result);
+            $next = $destination;
+            foreach (array_reverse($route->middlewares) as $middlewareName) {
+                $middleware = MiddlewareRegistry::resolve($middlewareName, $this->container);
+                $downstream = $next;
+                $next = static fn (Request $current): Response => $middleware->handle($current, $downstream);
+            }
+
+            return $next($request);
         } catch (Throwable $exception) {
-            // Keep internals out of production responses; log through the
-            // configured PHP error logger for operational visibility.
             error_log((string) $exception);
             return new Response(500, ['Content-Type' => 'text/plain; charset=utf-8'], 'Internal Server Error');
         }
+    }
+
+    private function dispatchHandler(Route $route, Request $request): Response
+    {
+        $handler = $route->handler;
+        $routeParams = array_values($route->params);
+
+        if (is_array($handler) && count($handler) === 2 && is_string($handler[0])) {
+            $controller = $this->resolveController($handler[0]);
+            $result = $this->invokeMethod($controller, (string) $handler[1], $request, $routeParams);
+        } elseif (is_string($handler) && str_contains($handler, '@')) {
+            [$class, $method] = explode('@', $handler, 2);
+            $controller = $this->resolveController($class);
+            $result = $this->invokeMethod($controller, $method, $request, $routeParams);
+        } elseif (is_callable($handler)) {
+            $result = $this->invokeCallable($handler, $request, $routeParams);
+        } else {
+            return new Response(500, [], 'Invalid route handler');
+        }
+
+        return $this->toResponse($result);
     }
 
     protected function resolveController(string $class): object
@@ -69,15 +94,22 @@ final class RequestDispatcher
             throw new \RuntimeException('Controller method not found: ' . $method);
         }
 
-        $reflection = new ReflectionMethod($controller, $method);
+        $key = $controller::class . '::' . $method;
+        $reflection = $this->methodReflectionCache[$key] ??= new ReflectionMethod($controller, $method);
+
         return $controller->{$method}(...$this->buildArguments($reflection, $request, $params, true));
     }
 
     protected function invokeCallable(callable $handler, Request $request, array $params): mixed
     {
-        $reflection = is_array($handler)
-            ? new ReflectionMethod($handler[0], $handler[1])
-            : new ReflectionFunction(\Closure::fromCallable($handler));
+        if (is_array($handler)) {
+            $reflection = $this->methodReflectionCache[$handler[0]::class . '::' . $handler[1]]
+                ??= new ReflectionMethod($handler[0], $handler[1]);
+        } else {
+            $closure = \Closure::fromCallable($handler);
+            $id = spl_object_id($closure);
+            $reflection = $this->closureReflectionCache[$id] ??= new ReflectionFunction($closure);
+        }
 
         $first = $reflection->getParameters()[0] ?? null;
         $type = $first?->getType();
