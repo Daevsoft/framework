@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ds\Server;
 
 use Ds\Container\Container;
+use Ds\Database\DatabaseManager;
 use Ds\Context\Context;
 use Ds\Http\Request;
 use Ds\Lifecycle\LifecycleManager;
@@ -81,6 +82,12 @@ final class SwooleServer
 
             try {
                 $container->make(PoolManager::class)->clear();
+            } catch (Throwable $exception) {
+                error_log((string) $exception);
+            }
+
+            try {
+                $container->make(DatabaseManager::class)->shutdown();
             } catch (Throwable $exception) {
                 error_log((string) $exception);
             }
