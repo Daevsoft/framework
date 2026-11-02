@@ -119,7 +119,7 @@ The resulting routes are `GET /users/all`, `GET /users/detail/{userId}`, and `PO
 
 ### PieTemplate views
 
-PieTemplate keeps v3's compact syntax and compiles templates to PHP once per source version. Compiled files are cached under `app/storage/cache/views`; subsequent requests include the compiled PHP rather than re-running the template compiler.
+PieTemplate keeps v3's compact syntax and compiles templates to PHP. Compiled files are cached under `app/storage/cache/views`; the cache fingerprint includes the source plus every referenced layout and imported component (recursively), so editing a dependency invalidates the compiled page even in persistent Swoole workers.
 
 Layout `app/views/layouts/app.pie.php`:
 
