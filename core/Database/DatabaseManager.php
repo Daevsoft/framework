@@ -101,7 +101,11 @@ final class DatabaseManager
 
     private function withConnection(callable $callback): mixed
     {
-        if (!class_exists('Swoole\\Coroutine\\Channel')) {
+        if (
+            !class_exists('Swoole\\Coroutine\\Channel')
+            || !class_exists('Swoole\\Coroutine')
+            || \\Swoole\\Coroutine::getCid() < 0
+        ) {
             $this->localConnection ??= $this->createConnection();
             return $callback($this->localConnection);
         }
@@ -115,7 +119,7 @@ final class DatabaseManager
         if ($channel->length() > 0) {
             $connection = $channel->pop($timeout);
             if ($connection instanceof PDO) {
-                return $this->runAndRelease($connection, $callback, $channel);
+                return $this->runAndRelease($connection, $callback, $channel, $key);
             }
         }
 
@@ -128,7 +132,7 @@ final class DatabaseManager
                 self::$created[$key] = max(0, (self::$created[$key] ?? 1) - 1);
                 throw $exception;
             }
-            return $this->runAndRelease($connection, $callback, $channel);
+            return $this->runAndRelease($connection, $callback, $channel, $key);
         }
 
         $connection = $channel->pop($timeout);
@@ -136,15 +140,16 @@ final class DatabaseManager
             throw new RuntimeException('Timed out waiting for a database connection from the Swoole pool.');
         }
 
-        return $this->runAndRelease($connection, $callback, $channel);
+        return $this->runAndRelease($connection, $callback, $channel, $key);
     }
 
-    private function runAndRelease(PDO $connection, callable $callback, object $channel): mixed
+    private function runAndRelease(PDO $connection, callable $callback, object $channel, string $key): mixed
     {
         try {
             return $callback($connection);
         } finally {
             if (!$channel->push($connection, 0.1)) {
+                self::$created[$key] = max(0, (self::$created[$key] ?? 1) - 1);
                 $connection = null;
             }
         }
