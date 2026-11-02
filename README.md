@@ -125,7 +125,7 @@ Layout `app/views/layouts/app.pie.php`:
 
 ```html
 <html>
-<head><title>@slot('title')Ds App@end</title></head>
+<head><title>@slot('title')</title></head>
 <body>@slot('content')</body>
 </html>
 ```
