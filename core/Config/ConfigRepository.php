@@ -21,7 +21,11 @@ final class ConfigRepository
 
         $parts = explode('.', $key);
         $file = array_shift($parts);
-        $value = self::$configs[$file] ?? null;
+        if (!array_key_exists($file, self::$configs)) {
+            return $default;
+        }
+
+        $value = self::$configs[$file];
 
         foreach ($parts as $part) {
             if (!is_array($value) || !array_key_exists($part, $value)) {
@@ -30,7 +34,7 @@ final class ConfigRepository
             $value = $value[$part];
         }
 
-        return $value ?? $default;
+        return $value;
     }
 
     public static function cache(?string $configDirectory = null, ?string $cacheFile = null): array
