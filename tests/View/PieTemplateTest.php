@@ -68,7 +68,7 @@ final class PieTemplateTest extends TestCase
     {
         file_put_contents(
             $this->views . '/list.pie.php',
-            '@if($enabled)<ul>@foreach($items as $item)<li>{{ $item }}</li>@endforeach</ul>@else<p>Disabled</p>@endif'
+            '@if($enabled):<ul>@foreach($items as $item):<li>{{ $item }}</li>@endforeach</ul>@else:<p>Disabled</p>@endif'
         );
 
         $renderer = new ViewRenderer($this->views, $this->cache);
