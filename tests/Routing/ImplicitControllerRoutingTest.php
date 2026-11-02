@@ -63,6 +63,17 @@ final class ImplicitControllerRoutingTest extends TestCase
         self::assertSame('yes', $response->headers()['X-Test-Middleware']);
     }
 
+    public function testControllerMethodsCanReceiveRouteArgumentsWithoutRequest(): void
+    {
+        RouteDsl::group('/members', ImplicitMemberController::class);
+
+        $response = (new RequestDispatcher(RouteRegistry::getRouter()))->dispatch(
+            new Request([], [], 'GET', '/members/slug/developer')
+        );
+
+        self::assertSame('slug:developer', $response->body());
+    }
+
     public function testRegistersMultipleHttpMethodsAndAttributeMiddleware(): void
     {
         RouteDsl::group('/members', ImplicitMemberController::class);
@@ -93,6 +104,12 @@ final class ImplicitMemberController
     public function show(Request $request, int $id): Response
     {
         return Response::json(['id' => $id]);
+    }
+
+    #[Get('/slug/{name}')]
+    public function slug(string $name): Response
+    {
+        return Response::text('slug:' . $name);
     }
 
     #[Post('/', ['auth'])]
