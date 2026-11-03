@@ -27,7 +27,8 @@ This document is the durable work log and implementation roadmap for the v4 bran
 | Subquery support | Implemented | Parameterized IN/NOT IN; same-manager and one-column checks |
 | Query semantics and edge cases | In progress | Grouped count and empty IN/NOT IN semantics covered; broader driver edge cases remain |
 | Documentation and migration guide | In progress | README updated for grouped predicates, aliases and subqueries |
-| Resource lifecycle and performance | In progress | PDO cursors released, per-pool lifecycle reference counting, pool credentials included in key, linear WHERE assembly |\n| Full compatibility/security audit | Planned | Review v3 surface without restoring unsafe behavior |
+| Resource lifecycle and performance | In progress | PDO cursors released, per-pool lifecycle reference counting, pool credentials included in key, linear WHERE assembly |
+| Full compatibility/security audit | Planned | Review v3 surface without restoring unsafe behavior |
 
 ## Task breakdown
 
@@ -133,5 +134,6 @@ This document is the durable work log and implementation roadmap for the v4 bran
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
 | 2026-11-03 | PERF-01 | Reflection retention fix, listener cleanup APIs, pool shutdown hardening and regression tests | Pending | `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f` |
-| 2026-11-03 | DB-07 | PDO cursor release, pool lifecycle isolation, credential-aware pool keys, linear WHERE assembly and lifecycle regression tests | CI verification pending | `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49` |\n| 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`, `762bc11` |
+| 2026-11-03 | DB-07 | PDO cursor release, pool lifecycle isolation, credential-aware pool keys, linear WHERE assembly and lifecycle regression tests | CI verification pending | `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49` |
+| 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`, `762bc11` |
 | 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
