@@ -78,6 +78,28 @@ jobs:
           curl --silent --fail http://127.0.0.1:8123/users/42 > user.json
           php -r '$data = json_decode(file_get_contents("user.json"), true); if (($data["id"] ?? null) !== 42) { fwrite(STDERR, "Parameterized route failed\n"); exit(1); }'
 
+      - name: Swoole HTTP fallback-context smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_RUNTIME=swoole SERVER_HOST=127.0.0.1 SERVER_PORT=8125 \
+            SWOOLE_WORKERS=1 SWOOLE_TASK_WORKERS=0 SWOOLE_MAX_REQUEST=1000 \
+            SWOOLE_COROUTINE=0 php app/bootstrap/app.php > swoole-fallback.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          for attempt in {1..30}; do
+            if curl --silent --fail http://127.0.0.1:8125/health > fallback-health.json; then
+              break
+            fi
+            sleep 1
+          done
+
+          for attempt in {1..5}; do
+            curl --silent --fail http://127.0.0.1:8125/health > fallback-health.json
+          done
+          php -r '$data = json_decode(file_get_contents("fallback-health.json"), true); if (($data["status"] ?? null) !== "ok") { fwrite(STDERR, "Invalid fallback-context response\\n"); exit(1); }'
+
       - name: FPM compatibility smoke test
         shell: bash
         run: |
@@ -113,6 +135,8 @@ jobs:
             user.json
             fpm.log
             fpm-health.json
+            swoole-fallback.log
+            fallback-health.json
             cli-help.txt
             route-list.txt
           if-no-files-found: ignore
