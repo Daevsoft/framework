@@ -26,6 +26,40 @@ final class RequestScopeTest extends TestCase
         $container->endRequest();
     }
 
+
+    public function testRebindingScopedServiceDropsThePreviousRequestInstance(): void
+    {
+        $container = new Container();
+        $container->scoped(RequestScopedTestService::class);
+        $container->beginRequest();
+
+        $first = $container->make(RequestScopedTestService::class);
+        $container->scoped(RequestScopedTestService::class, RequestScopedReplacementService::class);
+        $second = $container->make(RequestScopedTestService::class);
+
+        self::assertNotSame($first, $second);
+        self::assertInstanceOf(RequestScopedReplacementService::class, $second);
+
+        $container->endRequest();
+    }
+
+    public function testRequestLifecyclePreservesOtherContextValues(): void
+    {
+        $container = new Container();
+        $context = new \\Ds\\Context\\Context();
+        $container->instance(\\Ds\\Context\\Context::class, $context);
+        $context->set('trace_id', 'trace-123');
+
+        $container->beginRequest();
+        self::assertSame('trace-123', $context->get('trace_id'));
+        $container->scoped(RequestScopedTestService::class);
+        $container->make(RequestScopedTestService::class);
+        $container->endRequest();
+
+        self::assertSame('trace-123', $context->get('trace_id'));
+        self::assertNull($context->get('container.request_instances'));
+    }
+
     public function testSingletonCannotCaptureRequestScopedDependency(): void
     {
         $container = new Container();
@@ -111,7 +145,7 @@ final class RequestScopeTest extends TestCase
     }
 }
 
-final class RequestScopedTestService
+class RequestScopedTestService
 {
 }
 
@@ -134,4 +168,8 @@ final class SingletonWithRequestScopedDependency
     public function __construct(RequestScopedTestService $service)
     {
     }
+}
+
+final class RequestScopedReplacementService extends RequestScopedTestService
+{
 }
