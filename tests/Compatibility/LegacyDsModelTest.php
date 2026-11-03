@@ -32,7 +32,7 @@ final class LegacyDsModelTest extends TestCase
         $id = LegacyPersonModel::save(['name' => 'Ada', 'active' => 1, 'admin' => 1]);
         self::assertSame(1, $id);
         self::assertSame('Ada', LegacyPersonModel::find($id)['name']);
-        self::assertArrayNotHasKey('admin', LegacyPersonModel::find($id));
+        self::assertNull(LegacyPersonModel::find($id)['admin']);
         self::assertSame(1, LegacyPersonModel::count());
 
         LegacyPersonModel::save(['id' => $id, 'name' => 'Grace', 'admin' => 1]);
@@ -49,7 +49,8 @@ final class LegacyDsModelTest extends TestCase
             ['name' => 'Lin', 'active' => 0],
         ]));
         self::assertSame('Ada', LegacyPersonModel::findsWhere(['active' => 1])[0]['name']);
-        self::assertNull(LegacyPersonModel::findIsNull('admin'));
+        self::assertNotNull(LegacyPersonModel::findIsNull('admin'));
+        self::assertNull(LegacyPersonModel::findIsNull('admin')['admin']);
     }
 
     public function testFillableHelperAndExplicitTableAreAvailable(): void
