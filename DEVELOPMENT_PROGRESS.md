@@ -90,9 +90,9 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Add WeakReference tests proving `LifecycleManager::unregister()` / `clear()` release captured callback objects.
 - [x] Document listener lifecycle cleanup and warn against capturing request-scoped data in process-wide callbacks.
 - [x] Inspect static middleware alias registry; it stores class-name strings only and has a reset method, so it does not retain service instances.
-- [x] Add active-lease accounting so pool shutdown waits for in-flight callbacks before closing the channel.
+- [x] Add active-operation accounting so pool shutdown waits for acquisition waiters and in-flight callbacks before closing the channel.
 - [x] Ensure scheduler timer closures do not strongly retain the Scheduler instance; make cancellation/clear exception-safe.
-- [ ] Run sustained real-Swoole concurrency tests for simultaneous shutdown, waiters, and lease return.
+- [ ] Run sustained real-Swoole concurrency tests for simultaneous shutdown, waiters, and connection return.
 
 ### DB-06 — Documentation and compatibility audit
 - [ ] Document supported query-builder APIs and examples.
@@ -106,7 +106,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Add regression tests for request-scope rebinding, preservation of unrelated context values, and WeakReference/GC release after request end.
 - [x] Change scheduler timer callbacks to hold a WeakReference to the Scheduler, allowing the scheduler to be collected and its destructor to clear timers.
 - [x] Make timer cancellation and bulk clear tolerant of stale/throwing timer IDs while continuing cleanup.
-- [x] Track active database connection leases and defer closing an unused pool channel until all in-flight callbacks have returned their connections.
+- [x] Track active database operations and defer closing an unused pool channel until all in-flight callbacks have returned their connections.
 - [x] Add a focused regression test proving pool closure is deferred while an active lease exists.
 - [x] Document request-scope, scheduler and database pool lifecycle behavior.
 - [ ] Validate simultaneous pool shutdown/lease return and timer callback cancellation under real Swoole load; CI unit coverage cannot fully emulate those runtime races.
@@ -159,7 +159,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added garbage-collection regression tests for controller instances, event listener captures and lifecycle callback captures.
 - Documented listener removal and safe process-wide callback practices in README.
 - Static MiddlewareRegistry review found only class-string aliases, with `clear()` restoring defaults; no retained service instances found there.
-- CI: pending.
+- CI: full run `41570820159` passed (PHP syntax, unit/routing, CLI, Swoole HTTP, FPM, and config-cache checks). An intermediate run exposed a stale test reflection name after the private counter rename; the test was updated and the subsequent full run passed.
 - Commits: `1ff5466`, `eac474e`, `4409f56`, `ce46aad`, `1b8529e`, `5b8b9f9`.
 
 ## Batch log
@@ -177,9 +177,9 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Container rebinding now invalidates request-scoped cache entries, preventing stale instances from surviving a changed binding.
 - Container request start/end now clear only `container.request_instances`, preserving unrelated context values managed by middleware and services.
 - Scheduler callbacks now weakly reference their Scheduler so timer registrations do not keep the scheduler object alive; scheduler destruction clears timers, and cancellation/clear continue safely around stale timer IDs.
-- DatabaseManager now tracks in-flight leases and defers channel closure until callbacks have returned connections, avoiding premature close during manager shutdown.
+- DatabaseManager now tracks in-flight operations from before connection acquisition through connection return, deferring channel closure while a coroutine is waiting or using a connection.
 - README documents the new lifecycle guarantees and explicit cleanup practices.
-- Regression tests added for scoped rebinding, context preservation, WeakReference/GC release after request end, and deferred pool closure while a lease is active.
+- Regression tests added for scoped rebinding, context preservation, WeakReference/GC release after request end, and deferred pool closure while an operation is active.
 - Three intermediate CI runs failed on doubled namespace separators in newly added test files; the affected files were corrected and the complete run `41570274744` passed all jobs.
 - Commits: `aaca977`, `b2f90bf`, `3933794`, `709dac2`, `caa0832`, `be69215`, `81a50ee`.
 - CI: full run `41570274744` passed (syntax, unit/routing, CLI, Swoole HTTP, FPM, and config-cache checks). Real concurrent Swoole shutdown/lease stress remains a required follow-up.
