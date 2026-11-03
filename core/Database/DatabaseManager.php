@@ -150,8 +150,16 @@ final class DatabaseManager
         $this->shutdown();
     }
 
+    private function __clone()
+    {
+    }
+
     private function withConnection(callable $callback): mixed
     {
+        if ($this->shutdown) {
+            throw new RuntimeException('DatabaseManager has been shut down and cannot be reused.');
+        }
+
         if (
             !class_exists('Swoole\\Coroutine\\Channel')
             || !class_exists('Swoole\\Coroutine')
