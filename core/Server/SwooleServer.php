@@ -26,7 +26,7 @@ final class SwooleServer
 
     public function start(): void
     {
-        $serverClass = '\\Swoole\\Http\\Server';
+        $serverClass = '\Swoole\Http\Server';
         if (!class_exists($serverClass)) {
             throw new RuntimeException('Swoole extension is required. Install it or explicitly select APP_RUNTIME=fpm.');
         }
@@ -125,7 +125,7 @@ final class SwooleServer
 
             $httpKernel = is_callable($kernel)
                 ? $kernel()
-                : ($kernel ?? $container->make(\\App\\Http\\Kernel::class));
+                : ($kernel ?? $container->make(\App\Http\Kernel::class));
             $response = $httpKernel->handle($request);
 
             foreach ($response->headers() as $name => $value) {
