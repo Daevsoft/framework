@@ -238,7 +238,7 @@ if (!function_exists('js_source')) {
 }
 
 if (!function_exists('schema')) {
-    function schema(): \\Ds\\Database\\SchemaBuilder
+    function schema(): \Ds\Database\SchemaBuilder
     {
         return db()->schema();
     }
