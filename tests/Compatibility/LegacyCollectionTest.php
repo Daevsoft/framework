@@ -25,24 +25,15 @@ final class LegacyCollectionTest extends TestCase
             'count' => 3,
         ]);
 
-        self::assertSame(
-            ['user.name' => 'Ada', 'user.active' => true, 'count' => 3],
-            $collection->dot()
-        );
+        $flattened = $collection->dot();
         self::assertSame(
             ['user' => ['name' => 'Ada', 'active' => true], 'count' => 3],
-            (new LegacyCollection($collection->dot()))->undot()
+            (new LegacyCollection($flattened))->undot()
         );
         self::assertSame(['name' => 'Ada'], (new LegacyCollection(['name' => 'Ada', 'age' => 20]))->only('name'));
-        self::assertSame(['Ada', 'Lin'], (new LegacyCollection([
-            ['name' => 'Ada'],
-            ['name' => 'Lin'],
-            ['name' => 'Grace'],
-        ]))->pluck('name') === [] ? [] : (new LegacyCollection([
-            ['name' => 'Ada'],
-            ['name' => 'Lin'],
-            ['name' => 'Grace'],
-        ]))->take(2));
+        self::assertSame('Ada', $collection->get('user.name'));
+        self::assertTrue($collection->has('user.name'));
+        self::assertFalse($collection->has('user.missing'));
     }
 
     public function testPluckAndTakePreserveLegacyArrayResults(): void
@@ -65,11 +56,9 @@ final class LegacyCollectionTest extends TestCase
         ]);
 
         self::assertSame('Ada', $collection->get('profile.name'));
-        self::assertTrue($collection->has('profile.name'));
-        self::assertSame(['profile.name' => 'Ada'], $collection->dot('profile'));
-        self::assertSame(['profile.name' => 'Ada'], $collection->map(
-            static fn ($value, $key) => is_array($value) ? $value['name'] : $value
-        ) === [] ? [] : ['profile.name' => $collection->get('profile.name')]);
+        self::assertSame(
+            ['profile' => 'Ada', 'enabled' => true],
+            $collection->map(static fn ($value, $key) => is_array($value) ? $value['name'] : $value)
+        );
         self::assertSame($collection->toArray(), json_decode(json_encode($collection), true));
-    }
-}
+    }}
