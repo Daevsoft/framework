@@ -95,28 +95,28 @@ $runner(static function () use ($cycles, &$timerTasksReleased, &$recurringCallba
     }
     $checks['throwing_one_shot_auto_forget'] = $scheduler->count() === 0;
 
-    if (method_exists(\\Swoole\\Coroutine::class, 'cancel')) {
+    if (method_exists(\Swoole\Coroutine::class, 'cancel')) {
         $cancelFinallyRan = false;
         $targetCid = 0;
-        \\Swoole\\Coroutine::create(static function () use (&$cancelFinallyRan, &$targetCid): void {
-            $targetCid = \\Swoole\\Coroutine::getCid();
+        \Swoole\Coroutine::create(static function () use (&$cancelFinallyRan, &$targetCid): void {
+            $targetCid = \Swoole\Coroutine::getCid();
             try {
                 while (true) {
-                    \\Swoole\\Coroutine::sleep(0.01);
+                    \Swoole\Coroutine::sleep(0.01);
                 }
             } finally {
                 $cancelFinallyRan = true;
             }
         });
-        \\Swoole\\Coroutine::sleep(0.01);
-        $cancelMethod = new ReflectionMethod(\\Swoole\\Coroutine::class, 'cancel');
+        \Swoole\Coroutine::sleep(0.01);
+        $cancelMethod = new ReflectionMethod(\Swoole\Coroutine::class, 'cancel');
         $cancelled = $cancelMethod->getNumberOfParameters() >= 2
-            ? \\Swoole\\Coroutine::cancel($targetCid, true)
-            : \\Swoole\\Coroutine::cancel($targetCid);
-        \\Swoole\\Coroutine::sleep(0.01);
+            ? \Swoole\Coroutine::cancel($targetCid, true)
+            : \Swoole\Coroutine::cancel($targetCid);
+        \Swoole\Coroutine::sleep(0.01);
         $checks['coroutine_cancel_api_available'] = true;
         $checks['coroutine_cancel_succeeded'] = $cancelled;
-        $checks['coroutine_removed_after_cancel'] = !\\Swoole\\Coroutine::exists($targetCid);
+        $checks['coroutine_removed_after_cancel'] = !\Swoole\Coroutine::exists($targetCid);
         if ($cancelMethod->getNumberOfParameters() >= 2) {
             $checks['coroutine_cancel_runs_finally'] = $cancelFinallyRan;
         }
