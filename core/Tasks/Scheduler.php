@@ -7,6 +7,7 @@ namespace Ds\Tasks;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
+use WeakReference;
 
 /**
  * Swoole worker timer scheduler.
@@ -42,14 +43,19 @@ final class Scheduler
         }
 
         $timerId = 0;
-        $callback = function () use ($task, $intervalMs, &$timerId): void {
+        // The timer must not keep the Scheduler instance alive indefinitely.
+        $schedulerReference = WeakReference::create($this);
+        $callback = static function () use ($task, $intervalMs, &$timerId, $schedulerReference): void {
             try {
                 $task->handle();
             } catch (Throwable $exception) {
                 error_log((string) $exception);
             } finally {
                 if ($intervalMs === 0 && $timerId > 0) {
-                    unset($this->timers[$timerId]);
+                    $scheduler = $schedulerReference->get();
+                    if ($scheduler instanceof self) {
+                        $scheduler->forgetTimer($timerId);
+                    }
                 }
             }
         };
@@ -84,11 +90,25 @@ final class Scheduler
         $timerClass = '\\Swoole\\Timer';
         if (class_exists($timerClass)) {
             foreach (array_keys($this->timers) as $timerId) {
-                $timerClass::clear($timerId);
+                try {
+                    $timerClass::clear($timerId);
+                } catch (Throwable) {
+                    // Continue clearing remaining timers if one timer is stale.
+                }
             }
         }
 
         $this->timers = [];
+    }
+
+    private function forgetTimer(int $timerId): void
+    {
+        unset($this->timers[$timerId]);
+    }
+
+    public function __destruct()
+    {
+        $this->clear();
     }
 
     public function count(): int
