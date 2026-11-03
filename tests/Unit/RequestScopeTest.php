@@ -60,6 +60,23 @@ final class RequestScopeTest extends TestCase
         self::assertNull($context->get('container.request_instances'));
     }
 
+
+    public function testEndingRequestReleasesScopedInstances(): void
+    {
+        $container = new Container();
+        $container->scoped(RequestScopedTestService::class);
+        $container->beginRequest();
+
+        $service = $container->make(RequestScopedTestService::class);
+        $reference = WeakReference::create($service);
+        unset($service);
+
+        $container->endRequest();
+        gc_collect_cycles();
+
+        self::assertNull($reference->get());
+    }
+
     public function testSingletonCannotCaptureRequestScopedDependency(): void
     {
         $container = new Container();
