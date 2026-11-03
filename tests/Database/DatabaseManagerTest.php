@@ -307,16 +307,16 @@ final class DatabaseManagerTest extends TestCase
             }
         };
 
-        $channels = new \\ReflectionProperty(DatabaseManager::class, 'channels');
-        $created = new \\ReflectionProperty(DatabaseManager::class, 'created');
-        $users = new \\ReflectionProperty(DatabaseManager::class, 'poolUsers');
-        $leases = new \\ReflectionProperty(DatabaseManager::class, 'activeLeases');
+        $channels = new \ReflectionProperty(DatabaseManager::class, 'channels');
+        $created = new \ReflectionProperty(DatabaseManager::class, 'created');
+        $users = new \ReflectionProperty(DatabaseManager::class, 'poolUsers');
+        $leases = new \ReflectionProperty(DatabaseManager::class, 'activeLeases');
         $channels->setValue(null, ['lease-test' => $channel]);
         $created->setValue(null, ['lease-test' => 1]);
         $users->setValue(null, []);
         $leases->setValue(null, ['lease-test' => 1]);
 
-        $closePool = new \\ReflectionMethod(DatabaseManager::class, 'closePoolIfUnused');
+        $closePool = new \ReflectionMethod(DatabaseManager::class, 'closePoolIfUnused');
         $closePool->invoke($this->database, 'lease-test');
         self::assertFalse($channel->closed);
 
