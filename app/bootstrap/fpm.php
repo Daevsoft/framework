@@ -49,7 +49,10 @@ try {
     } catch (\Throwable $exception) {
         error_log((string) $exception);
     } finally {
-        $container->endRequest();
-        $context?->clear();
+        try {
+            $container->endRequest();
+        } finally {
+            $context?->clear();
+        }
     }
 }
