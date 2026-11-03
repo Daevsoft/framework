@@ -1,0 +1,72 @@
+name: Timer Scheduler and Coroutine Lifecycle Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      worker_cycles:
+        description: Repeated worker-style scheduler shutdown cycles
+        required: false
+        default: '500'
+        type: string
+  schedule:
+    - cron: '17 5 * * 4'
+  push:
+    branches: [v4]
+    paths:
+      - 'core/Tasks/**'
+      - 'core/Server/SwooleServer.php'
+      - 'tests/Unit/SchedulerTest.php'
+      - 'tests/Unit/SchedulerLifecycleAuditTest.php'
+      - 'benchmarks/timer-scheduler-lifecycle-stress.php'
+      - '.github/workflows/audit-timer-scheduler-lifecycle.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: timer-scheduler-lifecycle-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      AUDIT_WORKER_CYCLES: ${{ inputs.worker_cycles || '500' }}
+      AUDIT_REPORT_PATH: timer-scheduler-lifecycle-report.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: swoole, sqlite3, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer configuration
+        run: composer validate --no-check-publish
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run scheduler lifecycle regression
+        run: ./vendor/bin/phpunit tests/Unit/SchedulerLifecycleAuditTest.php
+
+      - name: Validate audit harness syntax
+        run: php -l benchmarks/timer-scheduler-lifecycle-stress.php
+
+      - name: Run timer and scheduler lifecycle audit
+        run: php benchmarks/timer-scheduler-lifecycle-stress.php
+
+      - name: Upload JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: timer-scheduler-lifecycle-report-${{ github.run_id }}
+          path: timer-scheduler-lifecycle-report.json
+          if-no-files-found: warn
+          retention-days: 30
