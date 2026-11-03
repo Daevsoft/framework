@@ -94,52 +94,66 @@ final class SwooleServer
         });
 
         $server->on('Request', static function ($swooleRequest, $swooleResponse) use ($container, $kernel, $lifecycle): void {
-            $container->beginRequest();
-            $context = null;
-            $request = null;
-            $response = null;
-
-            try {
-                $context = $container->make(Context::class);
-                $request = Request::fromSwoole($swooleRequest);
-                $context->set('request', $request);
-                $lifecycle->emit('request.received', $request);
-
-                $httpKernel = is_callable($kernel)
-                    ? $kernel()
-                    : ($kernel ?? $container->make(\App\Http\Kernel::class));
-                $response = $httpKernel->handle($request);
-
-                foreach ($response->headers() as $name => $value) {
-                    $swooleResponse->header((string) $name, (string) $value);
-                }
-                $swooleResponse->status($response->status());
-                $swooleResponse->end($response->body());
-            } catch (Throwable $exception) {
-                error_log((string) $exception);
-                $swooleResponse->status(500);
-                $swooleResponse->end('Internal Server Error');
-            } finally {
-                try {
-                    $lifecycle->emit('request.handled', [
-                        'request' => $request,
-                        'response' => $response,
-                    ]);
-                } catch (Throwable $exception) {
-                    error_log((string) $exception);
-                }
-                try {
-                    $container->endRequest();
-                } finally {
-                    // Request callbacks may run without coroutine-local storage
-                    // (for example when enable_coroutine is disabled). Clear the
-                    // fallback store as well so request objects cannot survive.
-                    $context?->clear();
-                    Context::default()->clear();
-                }
-            }
+            self::handleRequest($container, $kernel, $lifecycle, $swooleRequest, $swooleResponse);
         });
 
         $server->start();
+    }
+
+    /**
+     * Execute one request with the same cleanup guarantees used by the Swoole
+     * event callback. Kept separate so the non-coroutine worker path can be
+     * exercised without starting a network listener in tests.
+     */
+    private static function handleRequest(
+        Container $container,
+        mixed $kernel,
+        LifecycleManager $lifecycle,
+        mixed $swooleRequest,
+        mixed $swooleResponse
+    ): void {
+        $container->beginRequest();
+        $context = null;
+        $request = null;
+        $response = null;
+
+        try {
+            $context = $container->make(Context::class);
+            $request = Request::fromSwoole($swooleRequest);
+            $context->set('request', $request);
+            $lifecycle->emit('request.received', $request);
+
+            $httpKernel = is_callable($kernel)
+                ? $kernel()
+                : ($kernel ?? $container->make(\\App\\Http\\Kernel::class));
+            $response = $httpKernel->handle($request);
+
+            foreach ($response->headers() as $name => $value) {
+                $swooleResponse->header((string) $name, (string) $value);
+            }
+            $swooleResponse->status($response->status());
+            $swooleResponse->end($response->body());
+        } catch (Throwable $exception) {
+            error_log((string) $exception);
+            $swooleResponse->status(500);
+            $swooleResponse->end('Internal Server Error');
+        } finally {
+            try {
+                $lifecycle->emit('request.handled', [
+                    'request' => $request,
+                    'response' => $response,
+                ]);
+            } catch (Throwable $exception) {
+                error_log((string) $exception);
+            }
+            try {
+                $container->endRequest();
+            } finally {
+                // In non-coroutine workers the fallback store is shared by
+                // sequential requests, so it must be cleared after each one.
+                $context?->clear();
+                Context::default()->clear();
+            }
+        }
     }
 }
