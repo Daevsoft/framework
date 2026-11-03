@@ -47,7 +47,7 @@ $memoryBefore = memory_get_usage(true);
 $startedAt = hrtime(true);
 
 try {
-    \Swoole\Coroutine::run(static function () use (
+    $workload = static function () use (
         $manager,
         $workers,
         $iterations,
@@ -78,6 +78,28 @@ try {
                         });
                         $completed++;
                     } catch (Throwable $exception) {
+                        $failures[] = [
+                            'worker' => $worker,
+                            'iteration' => $iteration,
+                            'class' => $exception::class,
+                            'message' => $exception->getMessage(),
+                        ];
+                    }
+                }
+            });
+        }
+    };
+
+    if (method_exists(\Swoole\Coroutine::class, 'run')) {
+        \Swoole\Coroutine::run($workload);
+    } elseif (class_exists(\Swoole\Coroutine\Scheduler::class)) {
+        $scheduler = new \Swoole\Coroutine\Scheduler();
+        $scheduler->add($workload);
+        $scheduler->start();
+    } else {
+        throw new RuntimeException('No supported Swoole coroutine scheduler is available.');
+    }
+} catch (Throwable $exception) {
                         $failures[] = [
                             'worker' => $worker,
                             'iteration' => $iteration,
