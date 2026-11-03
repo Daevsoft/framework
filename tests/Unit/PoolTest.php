@@ -202,6 +202,88 @@ final class PoolTest extends TestCase
         self::assertSame(1, $manager->count());
     }
 
+
+    public function testConcurrentDuplicateReleaseIsRejectedWhileValidatorYields(): void
+    {
+        if (!class_exists(\Swoole\Coroutine::class) || !class_exists(\Swoole\Coroutine\Scheduler::class)) {
+            self::markTestSkipped('Swoole coroutine scheduler is unavailable.');
+        }
+
+        $pool = new Pool(2, static function (): bool {
+            \Swoole\Coroutine::sleep(0.03);
+            return true;
+        });
+        $resource = new stdClass();
+        $duplicateRejected = false;
+        $runner = static function (callable $callback): void {
+            if (method_exists(\Swoole\Coroutine::class, 'run')) {
+                \Swoole\Coroutine::run($callback);
+                return;
+            }
+            $scheduler = new \Swoole\Coroutine\Scheduler();
+            $scheduler->add($callback);
+            $scheduler->start();
+        };
+
+        $runner(static function () use ($pool, $resource, &$duplicateRejected): void {
+            \Swoole\Coroutine::create(static function () use ($pool, $resource): void {
+                $pool->release($resource);
+            });
+            \Swoole\Coroutine::create(static function () use ($pool, $resource, &$duplicateRejected): void {
+                \Swoole\Coroutine::sleep(0.005);
+                try {
+                    $pool->release($resource);
+                } catch (LogicException) {
+                    $duplicateRejected = true;
+                }
+            });
+        });
+
+        self::assertTrue($duplicateRejected);
+        self::assertSame(1, $pool->size());
+        self::assertSame($resource, $pool->acquire());
+    }
+
+    public function testClearInvalidatesAReleaseSuspendedInAValidator(): void
+    {
+        if (!class_exists(\Swoole\Coroutine::class) || !class_exists(\Swoole\Coroutine\Scheduler::class)) {
+            self::markTestSkipped('Swoole coroutine scheduler is unavailable.');
+        }
+
+        $pool = new Pool(2, static function (): bool {
+            \Swoole\Coroutine::sleep(0.03);
+            return true;
+        });
+        $resource = new stdClass();
+        $releaseRejected = false;
+        $runner = static function (callable $callback): void {
+            if (method_exists(\Swoole\Coroutine::class, 'run')) {
+                \Swoole\Coroutine::run($callback);
+                return;
+            }
+            $scheduler = new \Swoole\Coroutine\Scheduler();
+            $scheduler->add($callback);
+            $scheduler->start();
+        };
+
+        $runner(static function () use ($pool, $resource, &$releaseRejected): void {
+            \Swoole\Coroutine::create(static function () use ($pool, $resource, &$releaseRejected): void {
+                try {
+                    $pool->release($resource);
+                } catch (LogicException) {
+                    $releaseRejected = true;
+                }
+            });
+            \Swoole\Coroutine::create(static function () use ($pool): void {
+                \Swoole\Coroutine::sleep(0.005);
+                $pool->clear();
+            });
+        });
+
+        self::assertTrue($releaseRejected);
+        self::assertSame(0, $pool->size());
+    }
+
     public function testPoolDoesNotExceedConfiguredCapacity(): void
     {
         $disposed = [];
