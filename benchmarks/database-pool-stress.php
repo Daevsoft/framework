@@ -88,7 +88,17 @@ try {
                 }
             });
         }
-    });
+    };
+
+    if (method_exists(\\Swoole\\Coroutine::class, 'run')) {
+        \\Swoole\\Coroutine::run($workload);
+    } elseif (class_exists(\\Swoole\\Coroutine\\Scheduler::class)) {
+        $scheduler = new \\Swoole\\Coroutine\\Scheduler();
+        $scheduler->add($workload);
+        $scheduler->start();
+    } else {
+        throw new RuntimeException('No supported Swoole coroutine scheduler is available.');
+    }
 } catch (Throwable $exception) {
     $failures[] = [
         'worker' => null,
