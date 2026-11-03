@@ -7,7 +7,6 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Ds\Container\Container;
 use Ds\Context\Context;
 use Ds\Lifecycle\LifecycleManager;
-use RuntimeException;
 
 if (!class_exists(\Swoole\Coroutine::class)) {
     fwrite(STDERR, "Swoole coroutine runtime is required for this audit.\n");
