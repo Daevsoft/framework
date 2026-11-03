@@ -78,11 +78,14 @@ final class Scheduler
             return false;
         }
 
-        $timerClass = '\\Swoole\\Timer';
-        $cleared = class_exists($timerClass) && $timerClass::clear($timerId);
-        unset($this->timers[$timerId]);
-
-        return $cleared;
+        $timerClass = '\\\\Swoole\\\\Timer';
+        try {
+            return class_exists($timerClass) && $timerClass::clear($timerId);
+        } catch (Throwable) {
+            return false;
+        } finally {
+            unset($this->timers[$timerId]);
+        }
     }
 
     public function clear(): void
