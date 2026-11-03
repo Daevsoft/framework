@@ -48,6 +48,23 @@ final class AuthMiddlewareTest extends TestCase
         self::assertSame('user-42', $response->body());
     }
 
+    public function testSessionGuardDoesNotPretendToBeBearerAuthentication(): void
+    {
+        $auth = new AuthManager([
+            'default' => 'session',
+            'guards' => ['session' => ['driver' => 'session', 'provider' => 'users']],
+            'providers' => [],
+        ]);
+        $auth->registerProvider('users', static fn () => ['id' => 'user-1']);
+
+        $response = (new AuthMiddleware($auth, 'session'))->handle(
+            new Request([], ['Authorization' => 'Bearer token']),
+            static fn (): Response => Response::text('must not run')
+        );
+
+        self::assertSame(401, $response->status());
+    }
+
     public function testInvalidBearerTokenIsRejected(): void
     {
         $auth = new AuthManager(['default' => 'token', 'guards' => ['token' => ['provider' => 'users']], 'providers' => []]);
