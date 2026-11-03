@@ -17,9 +17,10 @@ The v3 tree contains 90 tracked files (including assets, templates, tests and me
 - The v3 console exposed `serve`, `add:*`, `config`, `test`, `cronjob`, `migrate` and `cache`. v4 has a different command set; no complete alias/option parity has been established.
 - v3 generators included controller, model, view, helper, test, job and migration templates. v4 currently has controller, model, view, test and migration generators; helper and job generation are not present in the base command list.
 - v3 CronJob `Job`/`Worker` is a CLI runner that discovers and executes `*.job.php` files. v4 `Scheduler` is a Swoole timer for bounded callbacks. It is not a job queue or equivalent runner.
-- v4 broadcasting is scaffolding, not operational realtime delivery. `BroadcastManager::connection()` returns a new empty `Broadcaster`; `Broadcaster::broadcast()` has no delivery implementation; Redis/SSE/WebSocket connection classes are empty; `Route::ws()` registers a route with method `WS`, but `SwooleServer` only registers the HTTP `Request` callback and does not configure WebSocket callbacks or upgrade/connection lifecycle.
-- v4 authentication is not production-ready: `Guard::check()` currently returns false, and the sample AuthMiddleware deliberately responds with HTTP 501.
-- v4 has real implementations and passing CI coverage for the core request lifecycle, router, PDO query builder, schema/migrations, validation, sessions/CSRF, PieTemplate, collection/cache, timer scheduler and resource lifecycle. This does not mean all v3 APIs or all roadmap items are complete.
+- v4 now has a Swoole WebSocket server path, `Open`/`Message`/`Close` callbacks, per-worker connection registry, channel subscriptions and worker-local broadcast delivery. Redis/SSE transports, cross-worker pub/sub, heartbeat policy, bounded send queues/backpressure and WebSocket channel authorization remain open.
+- v4 authentication now supports pluggable Bearer-token provider resolvers, fail-closed 401 middleware, role permission checks, ACL grants and explicit policy callbacks. There is no built-in persistent token/user provider, password workflow or session guard implementation; authentication is extensible but not production-complete by itself.
+- v4 now dispatches serializable `Task` objects to configured Swoole task workers. This is ephemeral async dispatch, not a durable queue: retries, persistence, delayed jobs, failed-job storage and exactly-once semantics are not implemented.
+- The v4 CI suite passes for the exercised HTTP runtime and new unit tests. It does not yet exercise a real WebSocket client handshake/message round trip or real task-worker execution.
 
 ## Subsystem inventory and disposition
 
@@ -79,11 +80,11 @@ The following current v4 files were inspected directly:
 
 | Roadmap item | Current evidence | Status |
 |---|---|---|
-| WebSocket upgrade + connection lifecycle + heartbeat/backpressure + worker-safe broadcast | No upgrade or WebSocket callbacks in SwooleServer; transport classes empty | Not implemented |
+| WebSocket lifecycle and local broadcast | Swoole WebSocket callbacks, per-worker hub and unit-tested channel delivery | Partial; no real-client test, cross-worker pub/sub, heartbeat, backpressure queue or channel auth |
 | Route naming/URL generation, constraints, 405 and HEAD | Router has parameterized matching; full parity not demonstrated | Partial / open |
 | Upload handling, cookie API, content negotiation | v3 Request has file helpers; v4 request upload/cookie/content-negotiation parity not established | Open |
-| Authentication/authorization | Guard returns false; sample middleware returns 501 | Placeholder / not production-ready |
-| Queued task-worker execution | Scheduler is timer-only | Not implemented |
+| Authentication/authorization | Bearer resolver, fail-closed 401 middleware, RBAC/ACL/policy callbacks | Partial; no built-in persistent user/token provider or complete session/password flow |
+| Swoole task-worker dispatch | TaskDispatcher dispatches Task objects through Swoole task workers | Partial; no durable queue, retries, delayed jobs or failed-job persistence |
 | Error rendering and structured errors | Server returns generic 500; configurable rendering not established | Partial / open |
 | Sustained Swoole load and worker RSS/latency percentiles | Existing lifecycle audits are synthetic targeted tests | Not yet satisfied |
 | v3 API parity | This file-level baseline exists; complete public method/signature inventory still pending | In progress |
