@@ -12,6 +12,7 @@ final class PoolManager
 {
     protected array $pools = [];
     private bool $clearing = false;
+    private array $forgetting = [];
 
     public function __construct(protected int $maxPools = 64)
     {
@@ -28,6 +29,10 @@ final class PoolManager
     ): Pool {
         if ($this->clearing) {
             throw new RuntimeException('Cannot create or retrieve pools while PoolManager is being cleared.');
+        }
+
+        if (isset($this->forgetting[$name])) {
+            throw new RuntimeException("Pool [{$name}] is being forgotten and cannot be recreated yet.");
         }
 
         if (isset($this->pools[$name])) {
@@ -51,9 +56,19 @@ final class PoolManager
             return;
         }
 
+        if (isset($this->forgetting[$name])) {
+            return;
+        }
+
         $pool = $this->pools[$name];
+        $this->forgetting[$name] = true;
         unset($this->pools[$name]);
-        $pool->clear();
+
+        try {
+            $pool->clear();
+        } finally {
+            unset($this->forgetting[$name]);
+        }
     }
 
     public function clear(): void
