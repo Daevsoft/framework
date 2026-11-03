@@ -121,6 +121,31 @@ final class DatabaseManagerTest extends TestCase
             ->get();
 
         self::assertCount(3, $nested);
+
+        self::assertCount(1, $this->database->table('users')
+            ->orWhereGroup(static function ($query): void {
+                $query->where('name', 'Ada');
+            })
+            ->get());
+
+        self::assertCount(3, $this->database->table('users')
+            ->whereGroup(static function ($query): void {
+            })
+            ->get());
+
+        self::assertSame(1, $this->database->table('users')
+            ->where('active', 1)
+            ->whereGroup(static function ($query): void {
+                $query->where('name', 'Mia');
+            })
+            ->update(['active' => 0]));
+
+        self::assertSame(1, $this->database->table('users')
+            ->where('active', 0)
+            ->whereGroup(static function ($query): void {
+                $query->where('name', 'Lin');
+            })
+            ->delete());
     }
 
     public function testJoinAliasesAndParameterizedSubqueries(): void
