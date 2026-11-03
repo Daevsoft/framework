@@ -42,6 +42,47 @@ final class PoolTest extends TestCase
         self::assertSame([$resource], $disposed);
     }
 
+
+    public function testPoolRejectsReentrantReleaseDuringClear(): void
+    {
+        $pool = null;
+        $resource = new stdClass();
+        $pool = new Pool(2, null, static function ($item) use (&$pool): void {
+            if ($pool !== null) {
+                $pool->release(new stdClass());
+            }
+        });
+        $pool->release($resource);
+
+        try {
+            $pool->clear();
+            self::fail('Reentrant release should be rejected during clear.');
+        } catch (LogicException $exception) {
+            self::assertStringContainsString('being cleared', $exception->getMessage());
+        }
+
+        self::assertSame(0, $pool->size());
+    }
+
+    public function testPoolManagerRejectsPoolCreationDuringClear(): void
+    {
+        $manager = null;
+        $manager = new PoolManager();
+        $manager->get('primary', 2, null, static function () use (&$manager): void {
+            $manager->get('created-during-clear');
+        })->release(new stdClass());
+
+        try {
+            $manager->clear();
+            self::fail('Pool creation should be rejected while manager is clearing.');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('being cleared', $exception->getMessage());
+        }
+
+        self::assertSame(0, $manager->count());
+        self::assertSame(1, $manager->get('after-clear')->maxSize() > 0 ? 1 : 0);
+    }
+
     public function testPoolDoesNotExceedConfiguredCapacity(): void
     {
         $disposed = [];
