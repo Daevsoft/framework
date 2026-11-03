@@ -78,7 +78,7 @@ final class Scheduler
             return false;
         }
 
-        $timerClass = '\\\\Swoole\\\\Timer';
+        $timerClass = '\\Swoole\\Timer';
         try {
             return class_exists($timerClass) && $timerClass::clear($timerId);
         } catch (Throwable) {
