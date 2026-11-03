@@ -103,10 +103,11 @@ This document is the durable work log and implementation roadmap for the v4 bran
 ### PERF-03 — Request scope, context and timer/database lifecycle
 - [x] Invalidate cached request-scoped instances when a binding is rebound or replaced by an explicit instance.
 - [x] Make container request start/end remove only the container-owned request cache instead of clearing unrelated context values.
-- [x] Add regression tests for request-scope rebinding and preservation of unrelated context values.
+- [x] Add regression tests for request-scope rebinding, preservation of unrelated context values, and WeakReference/GC release after request end.
 - [x] Change scheduler timer callbacks to hold a WeakReference to the Scheduler, allowing the scheduler to be collected and its destructor to clear timers.
 - [x] Make timer cancellation and bulk clear tolerant of stale/throwing timer IDs while continuing cleanup.
 - [x] Track active database connection leases and defer closing an unused pool channel until all in-flight callbacks have returned their connections.
+- [x] Add a focused regression test proving pool closure is deferred while an active lease exists.
 - [x] Document request-scope, scheduler and database pool lifecycle behavior.
 - [ ] Validate simultaneous pool shutdown/lease return and timer callback cancellation under real Swoole load; CI unit coverage cannot fully emulate those runtime races.
 
@@ -177,6 +178,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Scheduler callbacks now weakly reference their Scheduler so timer registrations do not keep the scheduler object alive; scheduler destruction clears timers, and cancellation/clear continue safely around stale timer IDs.
 - DatabaseManager now tracks in-flight leases and defers channel closure until callbacks have returned connections, avoiding premature close during manager shutdown.
 - README documents the new lifecycle guarantees and explicit cleanup practices.
-- Regression tests added for scoped rebinding and context preservation.
+- Regression tests added for scoped rebinding, context preservation, WeakReference/GC release after request end, and deferred pool closure while a lease is active.
+- Two intermediate CI runs failed on doubled namespace separators in newly added test files; the affected files were corrected and a fresh full CI run is in progress.
 - Commits: `aaca977`, `b2f90bf`, `3933794`, `709dac2`, `caa0832`, `be69215`, `81a50ee`.
-- CI: pending; real concurrent Swoole shutdown/lease stress remains a required follow-up.
+- CI: pending on the corrected test set; real concurrent Swoole shutdown/lease stress remains a required follow-up.
