@@ -25,7 +25,7 @@ The GitHub Actions workflow runs the focused PHPUnit regression and the standalo
 - All report checks passed.
 - Audit workflow: [run 41586660849](https://github.com/Daevsoft/framework/actions/runs/41586660849).
 - Main CI: [run 41586660797](https://github.com/Daevsoft/framework/actions/runs/41586660797).
-- JSON report artifact: [download](https://github.com/Daevsoft/framework/actions/runs/41586660849/artifacts/13209280114).
+- JSON report artifact: [download](https://github.com/Daevsoft/framework/actions/runs/41586660849/artifacts/13208585535).
 
 These are synthetic single-process measurements on a GitHub-hosted runner, not production throughput or memory-leak guarantees.
 
