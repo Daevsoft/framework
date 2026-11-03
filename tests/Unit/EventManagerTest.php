@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tests\\Unit;
+namespace Tests\Unit;
 
-use Ds\\Events\\Event;
-use Ds\\Events\\EventManager;
-use PHPUnit\\Framework\\TestCase;
+use Ds\Events\Event;
+use Ds\Events\EventManager;
+use PHPUnit\Framework\TestCase;
 
 final class EventManagerTest extends TestCase
 {
