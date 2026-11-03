@@ -122,9 +122,10 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Guard PoolManager::forget() against recreating the same pool name before its old resources have been disposed.
 - [x] Ensure cleanup state is restored even when a disposer throws, and preserve the existing behavior of attempting every disposer.
 - [x] Add regression tests for context object release, shared default-context identity, Pool/PoolManager clear and forget reentrancy, Scheduler task release after cancellation/destruction, duplicate release during a yielding validator, and clear during a suspended release.
-- [ ] Verify request isolation with Swoole `enable_coroutine=false` integration test on a real Swoole runtime.
+- [x] Run Swoole HTTP smoke test with `SWOOLE_COROUTINE=0` to exercise the non-coroutine fallback request path.
+- [ ] Add an end-to-end assertion that request-specific Context values cannot be observed by a subsequent request in the same non-coroutine worker.
 - [x] Run real-Swoole multi-coroutine Pool/PoolManager clear/forget contention with yielding disposers.
-- [ ] Add longer-duration pool contention/throughput tests with resource counters under sustained production load.
+- [ ] Add longer-duration pool contention/throughput tests with resource counters under sustained production load and multiple worker processes.
 
 ## Completed work log
 
@@ -206,4 +207,4 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Pool clear now enters a guarded clearing state and rejects reentrant acquire/release from disposer callbacks; state is restored in finally. It reserves object/resource identities while validators run and uses a clear generation so an in-flight release cannot repopulate the pool after a clear began.
 - PoolManager clear now rejects reentrant get/forget while it is disposing managed pools, preventing a newly created pool from escaping the in-progress clear. `forget(name)` also prevents re-creating that same name until disposal finishes. Nested clear is idempotent.
 - Added WeakReference/GC coverage for Context::clear and Scheduler timer task release, plus regression tests for Pool/PoolManager clear and forget reentrancy.
-- CI: run `41571905176` passed, including Swoole no-coroutine HTTP smoke, real coroutine pool clear/forget with yielding disposers, Scheduler timer task WeakReference release, and blocked database waiter shutdown. The subsequent context unification and concurrent Pool identity tests are pending in the current CI run.
+- CI: full run `41572245645` passed, including Swoole HTTP with coroutine mode enabled and disabled, FPM compatibility, blocked database waiter shutdown, yielding disposer/validator races, Scheduler timer task WeakReference release, PoolManager clear/forget races, syntax, unit/routing, CLI and config-cache checks. The CI Swoole extension was active; these coroutine tests executed rather than being skipped.
