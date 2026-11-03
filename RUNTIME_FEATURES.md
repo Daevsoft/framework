@@ -59,7 +59,7 @@ $connection->on('connect', static function ($request, $peer): void {
 });
 ```
 
-**Limitations:** the hub is process/worker-local. It does not deliver across Swoole workers or hosts. Redis and SSE adapters are not implemented. Heartbeat policy, bounded outbound queues/backpressure, private/presence channel authorization and a real-client handshake/message integration test remain open. Do not deploy it as horizontally scalable realtime infrastructure.
+**Limitations:** the hub is process/worker-local. It does not deliver across Swoole workers or hosts. Redis and SSE adapters are not implemented. Heartbeat policy, bounded outbound queues/backpressure, private/presence channel authorization and multi-client/concurrency coverage remain open. CI verifies a real single-client handshake and message echo. Do not deploy it as horizontally scalable realtime infrastructure.
 
 ## Bearer-token authentication
 
