@@ -19,7 +19,9 @@ final class Pool
 {
     protected array $items = [];
     protected array $pooledIds = [];
+    private array $reservedIds = [];
     private bool $clearing = false;
+    private int $clearVersion = 0;
     protected ?Closure $validator;
     protected ?Closure $disposer;
 
@@ -47,13 +49,20 @@ final class Pool
             $id = $this->identity($item);
             if ($id !== null) {
                 unset($this->pooledIds[$id]);
+                $this->reservedIds[$id] = true;
             }
 
-            if ($this->isValid($item)) {
-                return $item;
-            }
+            try {
+                if ($this->isValid($item)) {
+                    return $item;
+                }
 
-            $this->dispose($item);
+                $this->dispose($item);
+            } finally {
+                if ($id !== null) {
+                    unset($this->reservedIds[$id]);
+                }
+            }
         }
 
         return null;
@@ -70,23 +79,40 @@ final class Pool
         }
 
         $id = $this->identity($item);
-        if ($id !== null && isset($this->pooledIds[$id])) {
+        if ($id !== null && (isset($this->pooledIds[$id]) || isset($this->reservedIds[$id]))) {
             throw new LogicException('The same resource cannot be released into a pool more than once.');
         }
 
-        if (!$this->isValid($item)) {
-            $this->dispose($item);
-            return;
-        }
-
-        if (count($this->items) >= $this->maxSize) {
-            $this->dispose($item);
-            return;
-        }
-
-        $this->items[] = $item;
+        $version = $this->clearVersion;
         if ($id !== null) {
-            $this->pooledIds[$id] = true;
+            // Reserve before invoking user validators, which may yield in a coroutine.
+            $this->reservedIds[$id] = true;
+        }
+
+        try {
+            if (!$this->isValid($item)) {
+                $this->dispose($item);
+                return;
+            }
+
+            // A clear may have started while a validator was suspended.
+            if ($this->clearing || $version !== $this->clearVersion) {
+                throw new LogicException('Cannot complete a resource release after pool clearing has started.');
+            }
+
+            if (count($this->items) >= $this->maxSize) {
+                $this->dispose($item);
+                return;
+            }
+
+            $this->items[] = $item;
+            if ($id !== null) {
+                $this->pooledIds[$id] = true;
+            }
+        } finally {
+            if ($id !== null) {
+                unset($this->reservedIds[$id]);
+            }
         }
     }
 
@@ -116,6 +142,7 @@ final class Pool
         }
 
         $this->clearing = true;
+        ++$this->clearVersion;
         $items = $this->items;
         $this->items = [];
         $this->pooledIds = [];
