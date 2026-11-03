@@ -210,7 +210,7 @@ return new class extends Migration {
 };
 ```
 
-Run migrations with `php ds migrate`, inspect with `php ds migrate --status`, and roll back the latest migration with `php ds migrate --rollback`. Migration methods receive the active PDO connection and run inside a transaction. The query builder currently covers common SELECT/INSERT/UPDATE/DELETE operations; the v3 Active Record compatibility base supports basic `all()`, `find()`, `where()`, `count()`, `save()`, `create()`, `updateById()`, and `deleteById()`. Legacy magic hydration, relationships, advanced query methods, and the full schema DSL are not yet ported. Generated models start with an empty fillable whitelist; add allowed columns before using mass-assignment methods.
+Run migrations with `php ds migrate`, inspect with `php ds migrate --status`, and roll back the latest migration with `php ds migrate --rollback`. Migration methods receive the active PDO connection and run inside a transaction. The query builder supports parameterized SELECT/INSERT/UPDATE/DELETE, `whereIn`/`whereNotIn`, null predicates, OR predicates, distinct selection, grouping, and parameterized HAVING. Model results remain arrays by default; `findModel()` and `allModels()` opt into hydrated model instances. Hydrated instances expose `hasOne()`, `hasMany()`, and `belongsTo()` query relationships using explicit foreign/local keys. Generated models start with an empty fillable whitelist; add allowed columns before using mass-assignment methods.
 
 The v3-compatible `asset('images/logo.svg')` helper is also available. Set `ASSET_URL` to a CDN or asset prefix when needed; without it, local assets resolve from the web root.
 
@@ -352,7 +352,7 @@ For v3 model migration, extend `Ds\\Foundations\\Connection\\Models\\DsModel` to
 
 For v3 migration, `Ds\Foundations\Common\Collection` and the `collect()` helper are available as compatibility APIs. The legacy collection keeps array-returning helper methods where practical; new v4 code should use `Ds\Support\Collection` for fluent immutable-style transformations. The compatibility layer has no Illuminate dependency.
 
-The v4 schema API is available through `db()->schema()` or `schema()`. It currently supports safe table creation/deletion and common column definitions (`id`, `string`, `integer`, `boolean`, `text`, `date`, `datetime`, `timestamp`), nullable/default/unique attributes, and table-existence checks. The v3 `Scheme`/migration callback API is not source-compatible; rewrite migrations to the v4 `Migration` contract and use the v4 schema builder for new DDL. Alter-column operations are intentionally not exposed until driver-specific behavior is implemented and tested.
+The v4 schema API is available through `db()->schema()` or `schema()`. It currently supports safe table creation/deletion and common column definitions (`id`, `string`, `integer`, `boolean`, `text`, `date`, `datetime`, `timestamp`), nullable/default/unique attributes, and table-existence checks. A compatibility bridge supports legacy migration classes implementing `Ds\\Foundations\\Migrate\\Migrations` with `up(Scheme)` and `down(Scheme)` for create/drop table operations and common column definitions. Legacy `Scheme::alter()` and column types without a tested cross-driver mapping remain unsupported; use a driver-specific v4 `Migration` for those operations.
 
 ## Dependency lifetimes
 
