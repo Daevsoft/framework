@@ -13,6 +13,35 @@ use stdClass;
 
 final class PoolTest extends TestCase
 {
+
+    public function testPoolDestructorDisposesPooledResources(): void
+    {
+        $disposed = [];
+        $resource = new stdClass();
+        $pool = new Pool(2, null, static function ($item) use (&$disposed): void {
+            $disposed[] = $item;
+        });
+        $pool->release($resource);
+
+        unset($pool);
+
+        self::assertSame([$resource], $disposed);
+    }
+
+    public function testPoolManagerDestructorDisposesManagedResources(): void
+    {
+        $disposed = [];
+        $resource = new stdClass();
+        $manager = new PoolManager();
+        $manager->get('database', 2, null, static function ($item) use (&$disposed): void {
+            $disposed[] = $item;
+        })->release($resource);
+
+        unset($manager);
+
+        self::assertSame([$resource], $disposed);
+    }
+
     public function testPoolDoesNotExceedConfiguredCapacity(): void
     {
         $disposed = [];
