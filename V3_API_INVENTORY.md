@@ -179,6 +179,10 @@ src/Helper/Str.php
 src/base.php
 ```
 
+## Method-level inventory follow-up
+
+A declaration-level scan across all 76 tracked v3 PHP files is now recorded in [V3_PUBLIC_METHOD_INVENTORY.md](V3_PUBLIC_METHOD_INVENTORY.md). It lists the principal public and protected APIs grouped by subsystem. It is a source declaration inventory, not yet a completed v4 parity classification or runtime semantic certification.
+
 ## Next audit steps
 
 1. Complete public method/signature inventory for each v3 class and map it to v4 source/tests.
