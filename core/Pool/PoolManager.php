@@ -66,6 +66,15 @@ final class PoolManager
         }
     }
 
+    public function __destruct()
+    {
+        try {
+            $this->clear();
+        } catch (Throwable) {
+            // Destructors must not throw during worker shutdown.
+        }
+    }
+
     public function count(): int
     {
         return count($this->pools);
