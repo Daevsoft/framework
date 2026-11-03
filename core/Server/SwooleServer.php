@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace Ds\Server;
 
+use Ds\Broadcasting\Connections\WebSocketConnection;
+use Ds\Broadcasting\WebSocketHub;
 use Ds\Container\Container;
 use Ds\Database\DatabaseManager;
 use Ds\Context\Context;
 use Ds\Http\Request;
 use Ds\Lifecycle\LifecycleManager;
 use Ds\Pool\PoolManager;
+use Ds\Routing\Route;
 use Ds\Tasks\Scheduler;
+use Ds\Tasks\Task;
+use Ds\Tasks\TaskDispatcher;
+use App\Support\RouteRegistry;
 use RuntimeException;
 use Throwable;
 
@@ -21,47 +27,53 @@ final class SwooleServer
         protected string $host = '127.0.0.1',
         protected int $port = 8000,
         protected mixed $kernel = null
-    ) {
-    }
+    ) {}
 
     public function start(): void
     {
-        $serverClass = '\Swoole\Http\Server';
+        $settings = function_exists('config') ? config('server', []) : [];
+        $swooleSettings = $settings['swoole'] ?? [];
+        $websocketEnabled = (bool) ($settings['websocket']['enabled'] ?? false);
+
+        $serverClass = $websocketEnabled ? '\\Swoole\\WebSocket\\Server' : '\\Swoole\\Http\\Server';
         if (!class_exists($serverClass)) {
-            throw new RuntimeException('Swoole extension is required. Install it or explicitly select APP_RUNTIME=fpm.');
+            throw new RuntimeException(
+                $websocketEnabled
+                    ? 'Swoole WebSocket server is required when server.websocket.enabled is true.'
+                    : 'Swoole extension is required. Install it or explicitly select APP_RUNTIME=fpm.'
+            );
         }
 
-        $server = new $serverClass($this->host, $this->port);
-        $settings = function_exists('config') ? config('server.swoole', []) : [];
-        if (is_array($settings) && $settings !== []) {
-            $server->set($settings);
-        }
+        $bindHost = $websocketEnabled
+            ? (string) ($settings['websocket']['host'] ?? $this->host)
+            : $this->host;
+        $bindPort = $websocketEnabled
+            ? (int) ($settings['websocket']['port'] ?? $this->port)
+            : $this->port;
+
+        $server = new $serverClass($bindHost, $bindPort);
+        if (is_array($swooleSettings) && $swooleSettings !== []) $server->set($swooleSettings);
 
         $container = $this->container;
         $kernel = $this->kernel;
         $lifecycle = $container->make(LifecycleManager::class);
         $lifecycle->emit('booting');
 
-        $host = $this->host;
-        $port = $this->port;
-        $server->on('Start', static function () use ($host, $port, $lifecycle): void {
+        $server->on('Start', static function () use ($bindHost, $bindPort, $lifecycle, $websocketEnabled): void {
             $lifecycle->emit('booted');
-            echo "Ds Framework Swoole server listening on http://{$host}:{$port}\n";
+            $scheme = $websocketEnabled ? 'ws' : 'http';
+            echo "Ds Framework Swoole server listening on {$scheme}://{$bindHost}:{$bindPort}\n";
         });
 
         $server->on('Shutdown', static function () use ($lifecycle): void {
-            try {
-                $lifecycle->emit('server.shutdown');
-            } catch (Throwable $exception) {
-                error_log((string) $exception);
-            }
+            try { $lifecycle->emit('server.shutdown'); }
+            catch (Throwable $exception) { error_log((string) $exception); }
         });
 
         $server->on('WorkerStart', static function ($server, int $workerId) use ($lifecycle): void {
-            $lifecycle->emit('worker.start', [
-                'server' => $server,
-                'worker_id' => $workerId,
-            ]);
+            WebSocketHub::replaceDefault(new WebSocketHub());
+            TaskDispatcher::setServer($server);
+            $lifecycle->emit('worker.start', ['server' => $server, 'worker_id' => $workerId]);
         });
 
         $server->on('WorkerStop', static function ($server, int $workerId) use ($container, $lifecycle): void {
@@ -72,14 +84,63 @@ final class SwooleServer
             self::handleRequest($container, $kernel, $lifecycle, $swooleRequest, $swooleResponse);
         });
 
+        if ($websocketEnabled) {
+            $server->on('Open', static function ($server, $request) use ($lifecycle): void {
+                self::handleWebSocketOpen($server, $request, $lifecycle);
+            });
+            $server->on('Message', static function ($server, $frame): void {
+                $connection = WebSocketHub::default()->get((int) $frame->fd);
+                $connection?->dispatch('message', (string) ($frame->data ?? ''));
+            });
+            $server->on('Close', static function ($server, int $fd): void {
+                $hub = WebSocketHub::default();
+                $connection = $hub->get($fd);
+                if ($connection !== null) {
+                    $connection->dispatch('disconnect');
+                    $connection->markClosed();
+                    $hub->remove($fd);
+                }
+            });
+        }
+
+        $taskWorkers = (int) ($swooleSettings['task_worker_num'] ?? 0);
+        if ($taskWorkers > 0) {
+            $server->on('Task', static function ($server, int $taskId, int $srcWorkerId, mixed $data): void {
+                TaskDispatcher::run($data);
+            });
+            $server->on('Finish', static function ($server, int $taskId, mixed $data): void {
+                // Task results are intentionally optional; task handlers own durable result storage.
+            });
+        }
+
         $server->start();
     }
 
-    /**
-     * Execute one request with the same cleanup guarantees used by the Swoole
-     * event callback. Kept separate so the non-coroutine worker path can be
-     * exercised without starting a network listener in tests.
-     */
+    private static function handleWebSocketOpen(object $server, object $request, LifecycleManager $lifecycle): void
+    {
+        $uri = (string) ($request->server['request_uri'] ?? '/');
+        $path = parse_url($uri, PHP_URL_PATH) ?: '/';
+        $route = RouteRegistry::getRouter()?->match('WS', $path);
+        if ($route === null || !is_callable($route->handler)) {
+            $server->disconnect((int) $request->fd, 1008, 'WebSocket route not found');
+            return;
+        }
+
+        $hub = WebSocketHub::default();
+        $connection = new WebSocketConnection($server, (int) $request->fd, $hub);
+        $hub->add($connection);
+
+        try {
+            ($route->handler)($connection, $request);
+            $connection->dispatch('connect', $request);
+            $lifecycle->emit('websocket.open', ['connection' => $connection, 'request' => $request]);
+        } catch (Throwable $exception) {
+            error_log((string) $exception);
+            $hub->remove((int) $request->fd);
+            $connection->close(1011, 'WebSocket handler failed');
+        }
+    }
+
     private static function handleRequest(
         Container $container,
         mixed $kernel,
@@ -98,14 +159,10 @@ final class SwooleServer
             $context->set('request', $request);
             $lifecycle->emit('request.received', $request);
 
-            $httpKernel = is_callable($kernel)
-                ? $kernel()
-                : ($kernel ?? $container->make(\App\Http\Kernel::class));
+            $httpKernel = is_callable($kernel) ? $kernel() : ($kernel ?? $container->make(\App\Http\Kernel::class));
             $response = $httpKernel->handle($request);
 
-            foreach ($response->headers() as $name => $value) {
-                $swooleResponse->header((string) $name, (string) $value);
-            }
+            foreach ($response->headers() as $name => $value) $swooleResponse->header((string) $name, (string) $value);
             $swooleResponse->status($response->status());
             $swooleResponse->end($response->body());
         } catch (Throwable $exception) {
@@ -113,55 +170,35 @@ final class SwooleServer
             $swooleResponse->status(500);
             $swooleResponse->end('Internal Server Error');
         } finally {
-            try {
-                $lifecycle->emit('request.handled', [
-                    'request' => $request,
-                    'response' => $response,
-                ]);
-            } catch (Throwable $exception) {
-                error_log((string) $exception);
-            }
-            try {
-                $container->endRequest();
-            } finally {
-                // In non-coroutine workers the fallback store is shared by
-                // sequential requests, so it must be cleared after each one.
+            try { $lifecycle->emit('request.handled', ['request' => $request, 'response' => $response]); }
+            catch (Throwable $exception) { error_log((string) $exception); }
+            try { $container->endRequest(); }
+            finally {
                 $context?->clear();
                 Context::default()->clear();
             }
         }
     }
 
-    /**
-     * Run every worker cleanup even if an application lifecycle listener fails.
-     * Isolated from the server listener so shutdown ordering is testable.
-     */
     private static function handleWorkerStop(
         Container $container,
         LifecycleManager $lifecycle,
         mixed $server,
         int $workerId
     ): void {
-        try {
-            $lifecycle->emit('worker.stop', [
-                'server' => $server,
-                'worker_id' => $workerId,
-            ]);
-        } catch (Throwable $exception) {
-            error_log((string) $exception);
-        }
+        try { $lifecycle->emit('worker.stop', ['server' => $server, 'worker_id' => $workerId]); }
+        catch (Throwable $exception) { error_log((string) $exception); }
+
+        WebSocketHub::default()->clear();
+        WebSocketHub::replaceDefault(null);
+        TaskDispatcher::setServer(null);
 
         foreach ([Scheduler::class, PoolManager::class, DatabaseManager::class] as $service) {
             try {
                 $instance = $container->make($service);
-                if ($instance instanceof Scheduler || $instance instanceof PoolManager) {
-                    $instance->clear();
-                } elseif ($instance instanceof DatabaseManager) {
-                    $instance->shutdown();
-                }
-            } catch (Throwable $exception) {
-                error_log((string) $exception);
-            }
+                if ($instance instanceof Scheduler || $instance instanceof PoolManager) $instance->clear();
+                elseif ($instance instanceof DatabaseManager) $instance->shutdown();
+            } catch (Throwable $exception) { error_log((string) $exception); }
         }
     }
 }
