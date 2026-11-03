@@ -1,0 +1,80 @@
+name: Context and Lifecycle Stress Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: Sequential request cycles
+        required: false
+        default: '10000'
+        type: string
+      gc_interval:
+        description: Garbage collection interval
+        required: false
+        default: '100'
+        type: string
+  schedule:
+    - cron: '43 3 * * 1'
+  push:
+    branches: [v4]
+    paths:
+      - 'core/Context/**'
+      - 'core/Container/**'
+      - 'core/Http/**'
+      - 'core/Middleware/**'
+      - 'core/Lifecycle/**'
+      - 'core/Events/**'
+      - 'tests/Unit/ContextTest.php'
+      - 'tests/Unit/LifecycleManagerTest.php'
+      - 'benchmarks/context-lifecycle-stress.php'
+      - '.github/workflows/audit-context-lifecycle.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: context-lifecycle-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  context-lifecycle-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      AUDIT_ITERATIONS: ${{ inputs.iterations || '10000' }}
+      AUDIT_GC_INTERVAL: ${{ inputs.gc_interval || '100' }}
+      AUDIT_MEMORY_GROWTH_LIMIT_BYTES: '8388608'
+      AUDIT_REPORT_PATH: context-lifecycle-stress-report.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: swoole, sqlite3, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer configuration
+        run: composer validate --no-check-publish
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Check stress harness syntax
+        run: php -l benchmarks/context-lifecycle-stress.php
+
+      - name: Run context and lifecycle stress audit
+        run: php benchmarks/context-lifecycle-stress.php
+
+      - name: Upload stress report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: context-lifecycle-stress-report-${{ github.run_id }}
+          path: context-lifecycle-stress-report.json
+          if-no-files-found: warn
+          retention-days: 30
