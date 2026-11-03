@@ -139,10 +139,16 @@ final class DatabaseManager
 
         unset(self::$poolUsers[$key]);
         $channel = self::$channels[$key] ?? null;
-        if (is_object($channel) && method_exists($channel, 'close')) {
-            $channel->close();
+        try {
+            if (is_object($channel) && method_exists($channel, 'close')) {
+                $channel->close();
+            }
+        } catch (Throwable) {
+            // Destructors and worker shutdown must not fail because a pool
+            // channel was already closed by the runtime.
+        } finally {
+            unset(self::$channels[$key], self::$created[$key]);
         }
-        unset(self::$channels[$key], self::$created[$key]);
     }
 
     public function __destruct()
