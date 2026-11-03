@@ -21,14 +21,14 @@ This document is the durable work log and implementation roadmap for the v4 bran
 | Core query builder CRUD and bindings | Done | Existing parameterized SELECT/INSERT/UPDATE/DELETE |
 | IN/null/OR filters, grouping and HAVING | Done, audit pending | Existing implementation needs edge-case coverage |
 | Validated INNER/LEFT/RIGHT joins | Done | Validated optional alias argument added in DB-03 |
-| Legacy DsModel query compatibility | Done, audit pending | Safe adapters added in prior commits |
+| Legacy DsModel query compatibility | Partial | Transitional adapter covers selected array-returning CRUD/filter methods; full v3 Active Record parity remains open |
 | Grouped WHERE expressions | Implemented | Nested AND/OR groups with collision-safe binding renaming |
 | JOIN aliases | Implemented | Optional fifth alias argument with strict identifier validation |
 | Subquery support | Implemented | Parameterized IN/NOT IN; same-manager and one-column checks |
 | Query semantics and edge cases | In progress | Grouped count and empty IN/NOT IN semantics covered; broader driver edge cases remain |
-| Documentation and migration guide | In progress | README updated for grouped predicates, aliases and subqueries |
+| Documentation and migration guide | In progress | Root docs aligned and V3_TO_V4_MIGRATION.md added; public v3 API inventory remains open |
 | Resource lifecycle and performance | In progress | PDO cursors released, per-pool lifecycle reference counting, credential-aware pool keys, linear WHERE assembly; controller/listener retention regression tests added |
-| Full compatibility/security audit | Planned | Review v3 surface without restoring unsafe behavior |
+| Full compatibility/security audit | In progress | Initial v3/v4 subsystem matrix documented; public method/command/template inventory and parity tests remain open |
 
 ## Task breakdown
 
@@ -99,7 +99,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 ### DB-06 — Documentation and compatibility audit
 - [ ] Document supported query-builder APIs and examples.
-- [ ] Document remaining v3 migration gaps with concrete alternatives.
+- [x] Document initial v3 migration gaps and concrete alternatives in V3_TO_V4_MIGRATION.md; complete the public API inventory and per-method parity tests.
 - [ ] Audit README claims against implementation and tests.
 
 
@@ -276,12 +276,20 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 
 ### 2026-11-03 — AUDIT-06: Timer, Scheduler & Coroutine Cancellation Lifecycle
-- Added a focused Scheduler regression suite covering recurring timer cancellation, bulk clear, task WeakReference release, and 100 repeated worker-style teardown cycles.
+- Added a focused Scheduler regression suite covering recurring timer cancellation, bulk clear, task WeakReference release, and 100 repeated worker-style teardown cycles; the standalone stress harness covers 500 cycles.
 - Added a standalone Swoole stress harness that verifies one-shot timer self-removal, recurring timer execution/cancellation, exception-safe one-shot cleanup, and native coroutine cancellation.
 - The coroutine cancellation check confirms the target coroutine exits and its finally cleanup executes on runtimes exposing the extended cancellation API.
 - Added a weekly/manual GitHub Actions workflow with PHP 8.3 + Swoole and a 30-day JSON report artifact.
 - Verification: audit run `41586986503` passed on PHP 8.3.36 / Swoole 6.2.3. All checks passed; 500/500 worker-style Scheduler shutdown cycles released their timer tasks; the recurring timer fired 4 times before cancellation and did not fire afterward; the one-shot callback and throwing callback both left Scheduler bookkeeping empty; coroutine cancellation succeeded, the coroutine was removed, and its finally block ran.
-- Main CI run `41586660797` passed. Report artifact: https://github.com/Daevsoft/framework/actions/runs/41586660849/artifacts/13208396662
+- Main CI run `41587082438` passed on the documentation integration commit. Report artifact: https://github.com/Daevsoft/framework/actions/runs/41586986503/artifacts/13208396662
 - Scope limitation: single-process synthetic test. It does not trigger OS-level worker reload or multi-process worker shutdown and does not cover every native I/O, third-party extension, or cancellation/shutdown interleaving.
 
-| 2026-11-03 | AUDIT-06 | Scheduler/timer lifecycle regression, 500-cycle teardown harness, native coroutine cancellation check, workflow and docs | Audit `41586660849` passed; CI `41586660797` passed | Completed |
+| 2026-11-03 | AUDIT-06 | Scheduler/timer lifecycle regression, 500-cycle teardown harness, native coroutine cancellation check, workflow and docs | Audit `41586986503` passed; CI `41587082438` passed | Completed |
+
+
+### 2026-11-03 — v3 → v4 migration documentation alignment
+- Compared the tracked v3 source tree under `src/Foundations` with the v4 implementation and existing compatibility adapters.
+- Added `V3_TO_V4_MIGRATION.md` with subsystem-level status, known gaps, migration actions and explicit completion criteria.
+- Reworked `DEVELOPMENT_CHECKLIST.md`, `IMPLEMENTATION_SUMMARY.md` and `COMPLETION.md` so they no longer claim complete v3 parity, operational WebSocket support or production authentication.
+- Updated `README.md`, `QUICKSTART.md`, `SETUP.md`, `API.md`, `Framework Flow Process.md`, `DOCUMENTATION_INDEX.md`, `AUDIT_AND_ROADMAP.md` and `CONSOLE_VERIFICATION.md` to align paths, CLI commands, feature boundaries and links.
+- Documentation-only alignment; no runtime code was changed in this batch. The full v3 public API/method/template inventory remains unfinished, so migration status remains **partial**.
