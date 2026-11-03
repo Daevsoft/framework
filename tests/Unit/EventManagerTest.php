@@ -13,8 +13,8 @@ final class EventManagerTest extends TestCase
     public function testClearingListenersReleasesCapturedObjects(): void
     {
         $manager = new EventManager();
-        $target = new \\stdClass();
-        $reference = \\WeakReference::create($target);
+        $target = new \stdClass();
+        $reference = \WeakReference::create($target);
         $listener = static function () use ($target): void {};
 
         $manager->on('retained', $listener);
@@ -29,8 +29,8 @@ final class EventManagerTest extends TestCase
     public function testRemovingListenerReleasesCapturedObjects(): void
     {
         $manager = new EventManager();
-        $target = new \\stdClass();
-        $reference = \\WeakReference::create($target);
+        $target = new \stdClass();
+        $reference = \WeakReference::create($target);
         $listener = static function () use ($target): void {};
 
         $manager->on('retained', $listener);
