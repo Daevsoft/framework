@@ -117,12 +117,14 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Use the same Context::default() instance for container injection and framework helpers such as session(), preventing split request state in non-coroutine runtimes.
 - [x] Explicitly clear the FPM request Context after response handling and exception paths.
 - [x] Guard Pool::clear() against reentrant acquire/release while disposer callbacks are executing.
+- [x] Reserve object/resource identities across yielding validators and invalidate a pending release if clear starts before validation completes.
 - [x] Guard PoolManager::clear() against reentrant pool creation/forget while managed pools are being disposed.
 - [x] Guard PoolManager::forget() against recreating the same pool name before its old resources have been disposed.
 - [x] Ensure cleanup state is restored even when a disposer throws, and preserve the existing behavior of attempting every disposer.
-- [x] Add regression tests for context object release, shared default-context identity, Pool/PoolManager clear and forget reentrancy, and Scheduler task release after cancellation/destruction.
+- [x] Add regression tests for context object release, shared default-context identity, Pool/PoolManager clear and forget reentrancy, Scheduler task release after cancellation/destruction, duplicate release during a yielding validator, and clear during a suspended release.
 - [ ] Verify request isolation with Swoole `enable_coroutine=false` integration test on a real Swoole runtime.
-- [ ] Run multi-coroutine Pool/PoolManager clear/forget contention with yielding disposers and resource counters under real Swoole.
+- [x] Run real-Swoole multi-coroutine Pool/PoolManager clear/forget contention with yielding disposers.
+- [ ] Add longer-duration pool contention/throughput tests with resource counters under sustained production load.
 
 ## Completed work log
 
@@ -201,7 +203,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 ### 2026-11-03 — Request context and reentrant pool cleanup audit
 - Swoole request handling now clears both the container context and Context::default() after lifecycle completion and request-scope cleanup, preventing fallback-store request objects from remaining in a long-lived worker when coroutine mode is disabled. Container injection now resolves Context::default(), so framework helpers and dependency injection share the same request state.
 - FPM bootstrap also clears both container and default Context explicitly in its finally block, including exception handling.
-- Pool clear now enters a guarded clearing state and rejects reentrant acquire/release from disposer callbacks; state is restored in finally.
+- Pool clear now enters a guarded clearing state and rejects reentrant acquire/release from disposer callbacks; state is restored in finally. It reserves object/resource identities while validators run and uses a clear generation so an in-flight release cannot repopulate the pool after a clear began.
 - PoolManager clear now rejects reentrant get/forget while it is disposing managed pools, preventing a newly created pool from escaping the in-progress clear. `forget(name)` also prevents re-creating that same name until disposal finishes. Nested clear is idempotent.
 - Added WeakReference/GC coverage for Context::clear and Scheduler timer task release, plus regression tests for Pool/PoolManager clear and forget reentrancy.
-- CI: full run `41571621677` passed for request-context cleanup, reentrant pool clear and the blocked-waiter/shutdown test. Timer task WeakReference and per-name forget tests are in the next CI run.
+- CI: run `41571905176` passed, including Swoole no-coroutine HTTP smoke, real coroutine pool clear/forget with yielding disposers, Scheduler timer task WeakReference release, and blocked database waiter shutdown. The subsequent context unification and concurrent Pool identity tests are pending in the current CI run.
