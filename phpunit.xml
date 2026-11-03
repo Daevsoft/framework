@@ -13,5 +13,8 @@
     <testsuite name="Compatibility">
       <directory>tests/Compatibility</directory>
     </testsuite>
+    <testsuite name="Database">
+      <directory>tests/Database</directory>
+    </testsuite>
   </testsuites>
 </phpunit>
