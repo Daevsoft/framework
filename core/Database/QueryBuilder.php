@@ -10,6 +10,7 @@ final class QueryBuilder
     private array $conditions = [];
     private array $bindings = [];
     private array $orders = [];
+    private array $joins = [];
     private array $groups = [];
     private array $havingConditions = [];
     private bool $distinctValue = false;
@@ -30,6 +31,38 @@ final class QueryBuilder
             fn (string $column): string => $this->database->quoteIdentifier(trim($column)),
             $columns
         );
+        return $this;
+    }
+
+    public function join(string $table, string $first, string $operator, string $second): self
+    {
+        return $this->addJoin('INNER', $table, $first, $operator, $second);
+    }
+
+    public function innerJoin(string $table, string $first, string $operator, string $second): self
+    {
+        return $this->addJoin('INNER', $table, $first, $operator, $second);
+    }
+
+    public function leftJoin(string $table, string $first, string $operator, string $second): self
+    {
+        return $this->addJoin('LEFT', $table, $first, $operator, $second);
+    }
+
+    public function rightJoin(string $table, string $first, string $operator, string $second): self
+    {
+        return $this->addJoin('RIGHT', $table, $first, $operator, $second);
+    }
+
+    private function addJoin(string $type, string $table, string $first, string $operator, string $second): self
+    {
+        $operator = strtoupper(trim($operator));
+        if (!in_array($operator, ['=', '!=', '<>', '>', '>=', '<', '<='], true)) {
+            throw new \InvalidArgumentException("Unsupported SQL join operator [{$operator}].");
+        }
+        $this->joins[] = $type . ' JOIN ' . $this->database->quoteIdentifier($table)
+            . ' ON ' . $this->database->quoteIdentifier($first) . " {$operator} "
+            . $this->database->quoteIdentifier($second);
         return $this;
     }
 
@@ -191,6 +224,7 @@ final class QueryBuilder
     {
         $sql = 'SELECT ' . ($this->distinctValue ? 'DISTINCT ' : '') . implode(', ', $this->columns)
             . ' FROM ' . $this->database->quoteIdentifier($this->table)
+            . ($this->joins === [] ? '' : ' ' . implode(' ', $this->joins))
             . $this->whereSql();
 
         if ($this->groups !== []) {
@@ -222,6 +256,7 @@ final class QueryBuilder
     public function count(): int
     {
         $sql = 'SELECT COUNT(*) AS aggregate FROM ' . $this->database->quoteIdentifier($this->table)
+            . ($this->joins === [] ? '' : ' ' . implode(' ', $this->joins))
             . $this->whereSql();
         $row = $this->database->select($sql, $this->bindings)[0] ?? [];
         return (int) ($row['aggregate'] ?? 0);

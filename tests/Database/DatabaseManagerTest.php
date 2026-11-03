@@ -67,6 +67,34 @@ final class DatabaseManagerTest extends TestCase
         self::assertSame(3, count($this->database->table('users')->where('active', 1)->orWhere('name', 'C')->get()));
     }
 
+    public function testInnerLeftAndRightJoinsUseValidatedIdentifiers(): void
+    {
+        $this->database->execute('CREATE TABLE profiles (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, city TEXT NOT NULL)');
+        $this->database->table('users')->insert(['name' => 'Ada', 'active' => 1]);
+        $this->database->table('users')->insert(['name' => 'Lin', 'active' => 0]);
+        $this->database->table('profiles')->insert(['id' => 1, 'user_id' => 1, 'city' => 'London']);
+
+        $inner = $this->database->table('users')
+            ->select(['users.id', 'users.name', 'profiles.city'])
+            ->join('profiles', 'users.id', '=', 'profiles.user_id')
+            ->get();
+        self::assertCount(1, $inner);
+        self::assertSame('London', $inner[0]['city']);
+
+        self::assertCount(2, $this->database->table('users')
+            ->leftJoin('profiles', 'users.id', '=', 'profiles.user_id')
+            ->get());
+
+        self::assertCount(1, $this->database->table('users')
+            ->rightJoin('profiles', 'users.id', '=', 'profiles.user_id')
+            ->get());
+
+        self::assertSame(1, $this->database->table('users')
+            ->leftJoin('profiles', 'users.id', '=', 'profiles.user_id')
+            ->where('profiles.city', 'London')
+            ->count());
+    }
+
     public function testTransactionRollsBackOnFailure(): void
     {
         try {

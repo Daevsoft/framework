@@ -244,7 +244,7 @@ php ds config
 php ds config --clear
 ```
 
-Generated models extend the compatibility `DsModel` base, which now delegates to the v4 PDO query builder. It supports basic `all()`, `find()`, `save()`, `create()`, `updateById()`, and `deleteById()` operations returning arrays/row counts. The legacy v3 model hydration, relationship system, advanced query chaining, and schema DSL are not yet available.
+Generated models extend the compatibility `DsModel` base, which now delegates to the v4 PDO query builder. It supports basic `all()`, `find()`, `save()`, `create()`, `updateById()`, and `deleteById()` operations returning arrays/row counts. The compatibility model supports legacy array-returning CRUD and lookup methods. Hydrated model instances and explicit-key `hasOne()`, `hasMany()`, and `belongsTo()` query relationships are available through `findModel()` and `allModels()`. The query builder supports validated inner, left, and right joins through `join()`, `innerJoin()`, `leftJoin()`, and `rightJoin()`; use qualified column names when joining tables.
 
 `php ds config` writes a PHP configuration cache from `app/config/*.php`; run it again after changing environment/config values. Use `php ds config --clear` to remove it.
 
@@ -348,7 +348,7 @@ The `session` and `csrf` route middleware aliases are also available. Legacy v3 
 
 `Ds\Support\Collection` provides dependency-free map/filter/pluck/groupBy/iteration helpers. `Ds\Support\FileCache` provides JSON-serializable values, TTL, atomic replacement, `remember()`, and explicit invalidation. Both are opt-in; no collection or cache object is created per request unless your application uses it.
 
-For v3 model migration, extend `Ds\\Foundations\\Connection\\Models\\DsModel` to keep the legacy base-class namespace while using the v4 PDO model/query builder. The adapter covers table inference, `all`, `find`, `findBy`, `findsBy`, `findsWhere`, `findIsNull`, fillable filtering, `save`, and `remove`. Raw SQL, joins, grouped OR expressions, and cursor/result-object APIs are not implicitly supported and must be migrated explicitly.
+For v3 model migration, extend `Ds\\Foundations\\Connection\\Models\\DsModel` to keep the legacy base-class namespace while using the v4 PDO model/query builder. The adapter covers table inference, `all`, `find`, `findBy`, `findsBy`, `findsWhere`, `findIsNull`, fillable filtering, `save`, and `remove`. Raw SQL, grouped OR expressions, and cursor/result-object APIs are not implicitly supported and must be migrated explicitly. Query-builder joins are available through the v4 API and require validated table/column identifiers.
 
 For v3 migration, `Ds\Foundations\Common\Collection` and the `collect()` helper are available as compatibility APIs. The legacy collection keeps array-returning helper methods where practical; new v4 code should use `Ds\Support\Collection` for fluent immutable-style transformations. The compatibility layer has no Illuminate dependency.
 
