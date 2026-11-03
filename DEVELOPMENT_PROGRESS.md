@@ -120,7 +120,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Ensure cleanup state is restored even when a disposer throws, and preserve the existing behavior of attempting every disposer.
 - [x] Add regression tests for context object release and pool/manager reentrancy.
 - [ ] Verify request isolation with Swoole `enable_coroutine=false` integration test on a real Swoole runtime.
-- [ ] Run multi-coroutine pool clear/forget contention with yielding disposers and resource counters under real Swoole.
+- [ ] Run multi-coroutine Pool/PoolManager clear/forget contention with yielding disposers and resource counters under real Swoole.
 
 ## Completed work log
 
@@ -177,7 +177,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
-| 2026-11-03 | PERF-05 | Explicit Swoole/FPM request context cleanup; reentrant Pool/PoolManager clear guards; WeakReference and reentrancy regression tests | Pending | Pending |
+| 2026-11-03 | PERF-05 | Explicit Swoole/FPM request context cleanup; reentrant Pool/PoolManager clear guards; WeakReference/reentrancy tests; Swoole blocked-waiter shutdown stress | CI run `41571621677` passed | `332270b` |
 | 2026-11-03 | PERF-03 | Request-scope invalidation and context preservation; WeakReference cleanup test; weakly-held scheduler callbacks; deferred database pool closure and regression coverage | CI run `41570274744` passed | `aaca977`, `b2f90bf`, `3933794`, `709dac2`, `caa0832`, `be69215`, `e0e8542`, `9c6a5ca`, `8794373`, `be9a174`, `68067b0`, `8cd9488` |
 | 2026-11-03 | PERF-02 | WeakReference/GC tests for dispatcher, event and lifecycle retention; worker cleanup documentation | CI passed in run `41569612807` | `1ff5466`, `eac474e`, `4409f56`, `ce46aad`, `1b8529e`, `5b8b9f9` |
 | 2026-11-03 | PERF-01 | Reflection retention fix, listener cleanup APIs, pool shutdown hardening and regression tests | CI passed on final batch commit `a328d1c` after correcting intermediate syntax typos | `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f`, `452d666`, `825ea16`, `42b24d7`, `95445b7` |
@@ -202,4 +202,4 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Pool clear now enters a guarded clearing state and rejects reentrant acquire/release from disposer callbacks; state is restored in finally.
 - PoolManager clear now rejects reentrant get/forget while it is disposing managed pools, preventing a newly created pool from escaping the in-progress clear. Nested clear is idempotent.
 - Added WeakReference/GC coverage for Context::clear and regression tests for Pool and PoolManager reentrancy.
-- CI: pending.
+- CI: full run `41571621677` passed, including the Swoole-enabled blocked-waiter/shutdown test, Swoole HTTP smoke test, FPM compatibility, CLI, syntax, unit/routing and config-cache checks.
