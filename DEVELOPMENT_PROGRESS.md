@@ -25,9 +25,9 @@ This document is the durable work log and implementation roadmap for the v4 bran
 | Grouped WHERE expressions | Implemented | Nested AND/OR groups with collision-safe binding renaming |
 | JOIN aliases | Implemented | Optional fifth alias argument with strict identifier validation |
 | Subquery support | Implemented | Parameterized IN/NOT IN; same-manager and one-column checks |
-| Query semantics and edge cases | In progress | Grouped count fixed; empty-list and mutation predicate coverage remains |
+| Query semantics and edge cases | In progress | Grouped count and empty IN/NOT IN semantics covered; broader driver edge cases remain |
 | Documentation and migration guide | In progress | README updated for grouped predicates, aliases and subqueries |
-| Full compatibility/security audit | Planned | Review v3 surface without restoring unsafe behavior |
+| Resource lifecycle and performance | In progress | PDO cursors released, per-pool lifecycle reference counting, pool credentials included in key, linear WHERE assembly |\n| Full compatibility/security audit | Planned | Review v3 surface without restoring unsafe behavior |
 
 ## Task breakdown
 
@@ -59,12 +59,33 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [ ] Verify update/delete predicates and binding order.
 - [ ] Run full suite and all CI smoke tests.
 
+### DB-07 — Memory, resource lifecycle and performance
+- [x] Explicitly close PDO statement cursors after SELECT and write operations, including exceptions.
+- [x] Make DatabaseManager shutdown idempotent and prevent use after shutdown.
+- [x] Scope Swoole pool cleanup to the matching pool key and retain shared pools while managers still reference them.
+- [x] Include a password hash in the pool key to prevent different credentials sharing one pool.
+- [x] Prevent cloning DatabaseManager so pool reference counts cannot be corrupted.
+- [x] Build WHERE SQL with a linear parts array and implode rather than repeated string concatenation.
+- [x] Add regression tests for shutdown isolation, idempotence, use-after-shutdown, and empty IN/NOT IN behavior.
+- [ ] Add coroutine-enabled pool lifecycle tests and benchmark before/after under representative load.
+- [ ] Audit all long-lived static registries and coroutine-owned resources across the framework.
+
 ### DB-06 — Documentation and compatibility audit
 - [ ] Document supported query-builder APIs and examples.
 - [ ] Document remaining v3 migration gaps with concrete alternatives.
 - [ ] Audit README claims against implementation and tests.
 
 ## Completed work log
+
+### 2026-11-03 — Resource lifecycle and query performance (CI verification pending)
+- PDO statements now close their cursors in `finally` blocks for SELECT and execute paths.
+- DatabaseManager shutdown is idempotent and terminal; a shut-down manager cannot create another connection.
+- Swoole pool cleanup is scoped by connection-pool key and uses manager reference counts so one manager does not close a pool still shared by another.
+- Pool keys now include a SHA-256 digest of the password, preventing cross-credential pool reuse without storing the raw password in the key.
+- DatabaseManager cloning is disabled to protect pool reference accounting.
+- WHERE SQL assembly now collects fragments and joins them once, avoiding repeated string copying as conditions grow.
+- Added tests for manager shutdown isolation/idempotence, use-after-shutdown, and empty IN/NOT IN semantics.
+- Commits: `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49`.
 
 ### 2026-11-03 — Query composition and count semantics (CI verification pending)
 - Added nested `whereGroup()` / `orWhereGroup()` predicates with isolated child builders and parent-safe binding renaming.
@@ -93,5 +114,5 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
-| 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`, `762bc11` |
+| 2026-11-03 | DB-07 | PDO cursor release, pool lifecycle isolation, credential-aware pool keys, linear WHERE assembly and lifecycle regression tests | CI verification pending | `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49` |\n| 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`, `762bc11` |
 | 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
