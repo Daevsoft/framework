@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use Ds\Container\Container;
+use Ds\Context\Context;
 use PHPUnit\Framework\TestCase;
 use WeakReference;
 
@@ -76,6 +77,24 @@ final class RequestScopeTest extends TestCase
         gc_collect_cycles();
 
         self::assertNull($reference->get());
+    }
+
+
+    public function testContainerAndFrameworkHelpersShareTheDefaultContext(): void
+    {
+        $context = Context::default();
+        $context->clear();
+
+        $container = new Container();
+        $container->beginRequest();
+
+        self::assertSame($context, $container->make(Context::class));
+        $context->set('session_marker', 'same-context');
+
+        self::assertSame('same-context', Context::default()->get('session_marker'));
+
+        $container->endRequest();
+        $context->clear();
     }
 
     public function testSingletonCannotCaptureRequestScopedDependency(): void
