@@ -9,6 +9,10 @@ use Ds\Context\Context;
 use Ds\Http\Request;
 use Ds\Http\Response;
 use Ds\Lifecycle\LifecycleManager;
+use Ds\Database\DatabaseManager;
+use Ds\Pool\PoolManager;
+use Ds\Tasks\Scheduler;
+use Ds\Tasks\Task;
 use Ds\Server\SwooleServer;
 use PHPUnit\Framework\TestCase;
 
@@ -69,6 +73,45 @@ final class SwooleRequestTest extends TestCase
 
         self::assertNull($observed, 'The second request must not observe data written by the first request.');
         self::assertNull($context->get('request.secret'));
+    }
+
+    public function testWorkerStopCleansAllResourcesWhenLifecycleListenerThrows(): void
+    {
+        if (!class_exists(\Swoole\Timer::class)) {
+            self::markTestSkipped('Swoole timer extension is unavailable.');
+        }
+
+        $container = new Container();
+        $lifecycle = new LifecycleManager();
+        $lifecycle->register('worker.stop', static function (): void {
+            throw new \RuntimeException('application worker-stop failure');
+        });
+
+        $scheduler = new Scheduler();
+        $scheduler->schedule(new class extends Task {
+            public function handle(): void
+            {
+            }
+        }, 1000);
+        $poolManager = new PoolManager();
+        $poolManager->get('worker-resource');
+        $database = new DatabaseManager(['driver' => 'sqlite', 'database' => ':memory:']);
+        $database->execute('CREATE TABLE worker_cleanup_probe (id INTEGER PRIMARY KEY)');
+
+        $container->instance(Scheduler::class, $scheduler);
+        $container->instance(PoolManager::class, $poolManager);
+        $container->instance(DatabaseManager::class, $database);
+
+        $method = new \ReflectionMethod(SwooleServer::class, 'handleWorkerStop');
+        $method->setAccessible(true);
+        $method->invoke(null, $container, $lifecycle, null, 7);
+
+        self::assertSame(0, $scheduler->count());
+        self::assertSame(0, $poolManager->count());
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('shut down');
+        $database->select('SELECT 1');
     }
 
     public function testRequestHandledListenerFailureStillClearsFallbackContext(): void
