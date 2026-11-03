@@ -49,5 +49,6 @@ try {
         error_log((string) $exception);
     } finally {
         $container->endRequest();
+        $context?->clear();
     }
 }
