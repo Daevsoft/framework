@@ -11,6 +11,7 @@ use Throwable;
 final class PoolManager
 {
     protected array $pools = [];
+    private bool $clearing = false;
 
     public function __construct(protected int $maxPools = 64)
     {
@@ -25,6 +26,10 @@ final class PoolManager
         ?callable $validator = null,
         ?callable $disposer = null
     ): Pool {
+        if ($this->clearing) {
+            throw new RuntimeException('Cannot create or retrieve pools while PoolManager is being cleared.');
+        }
+
         if (isset($this->pools[$name])) {
             return $this->pools[$name];
         }
@@ -38,6 +43,10 @@ final class PoolManager
 
     public function forget(string $name): void
     {
+        if ($this->clearing) {
+            throw new RuntimeException('Cannot forget pools while PoolManager is being cleared.');
+        }
+
         if (!isset($this->pools[$name])) {
             return;
         }
@@ -49,16 +58,25 @@ final class PoolManager
 
     public function clear(): void
     {
+        if ($this->clearing) {
+            return;
+        }
+
+        $this->clearing = true;
         $pools = $this->pools;
         $this->pools = [];
         $failure = null;
 
-        foreach ($pools as $pool) {
-            try {
-                $pool->clear();
-            } catch (Throwable $exception) {
-                $failure ??= $exception;
+        try {
+            foreach ($pools as $pool) {
+                try {
+                    $pool->clear();
+                } catch (Throwable $exception) {
+                    $failure ??= $exception;
+                }
             }
+        } finally {
+            $this->clearing = false;
         }
 
         if ($failure !== null) {
