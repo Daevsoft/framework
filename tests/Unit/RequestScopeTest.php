@@ -46,8 +46,8 @@ final class RequestScopeTest extends TestCase
     public function testRequestLifecyclePreservesOtherContextValues(): void
     {
         $container = new Container();
-        $context = new \\Ds\\Context\\Context();
-        $container->instance(\\Ds\\Context\\Context::class, $context);
+        $context = new \Ds\Context\Context();
+        $container->instance(\Ds\Context\Context::class, $context);
         $context->set('trace_id', 'trace-123');
 
         $container->beginRequest();
