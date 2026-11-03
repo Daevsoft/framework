@@ -18,9 +18,6 @@ final class RequestDispatcher
     /** @var array<string, ReflectionMethod> */
     private array $methodReflectionCache = [];
 
-    /** @var array<int, ReflectionFunction> */
-    private array $closureReflectionCache = [];
-
     public function __construct(
         protected Router $router,
         protected ?Container $container = null
@@ -97,7 +94,7 @@ final class RequestDispatcher
         }
 
         $key = $controller::class . '::' . $method;
-        $reflection = $this->methodReflectionCache[$key] ??= new ReflectionMethod($controller, $method);
+        $reflection = $this->methodReflectionCache[$key] ??= new ReflectionMethod($controller::class, $method);
 
         return $controller->{$method}(...$this->buildArguments($reflection, $request, $params));
     }
@@ -108,7 +105,7 @@ final class RequestDispatcher
             $targetClass = is_object($handler[0]) ? $handler[0]::class : (string) $handler[0];
             $key = $targetClass . '::' . $handler[1];
             $reflection = $this->methodReflectionCache[$key]
-                ??= new ReflectionMethod($handler[0], $handler[1]);
+                ??= new ReflectionMethod($targetClass, $handler[1]);
         } else {
             $closure = \Closure::fromCallable($handler);
             $closure = $handler instanceof \Closure ? $handler : $closure;
