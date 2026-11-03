@@ -40,15 +40,14 @@ return new class extends Migration {
 };
 PHP
         );
-    }
 
         file_put_contents(
             $this->directory . '/2026_01_02_000001_create_legacy_items.php',
             <<<'PHP'
 <?php
 
-use Ds\\Foundations\\Migrate\\Migrations;
-use Ds\\Foundations\\Migrate\\Scheme;
+use Ds\Foundations\Migrate\Migrations;
+use Ds\Foundations\Migrate\Scheme;
 
 return new class implements Migrations {
     public function up(Scheme $scheme)
@@ -67,6 +66,7 @@ return new class implements Migrations {
 };
 PHP
         );
+    }
 
     protected function tearDown(): void
     {
@@ -79,7 +79,7 @@ PHP
         rmdir($this->directory);
     }
 
-    public function testRunsTracksAndRollsBackLegacySchemeMigrations(): void
+    public function testRunsTracksAndRollsBackBothMigrationContracts(): void
     {
         $migrator = new Migrator($this->database);
         self::assertSame([
@@ -87,21 +87,11 @@ PHP
             '2026_01_02_000001_create_legacy_items',
         ], $migrator->migrate($this->directory));
 
+        self::assertTrue($migrator->status($this->directory)[0]['applied']);
         self::assertTrue($this->database->schema()->hasTable('legacy_items'));
+
         self::assertSame('2026_01_02_000001_create_legacy_items', $migrator->rollback($this->directory));
         self::assertFalse($this->database->schema()->hasTable('legacy_items'));
-        self::assertSame('2026_01_01_000001_create_notes', $migrator->rollback($this->directory));
-    }
-
-    public function testRunsTracksAndRollsBackMigrations(): void
-    {
-        $migrator = new Migrator($this->database);
-        $ran = $migrator->migrate($this->directory);
-
-        self::assertSame(['2026_01_01_000001_create_notes'], $ran);
-        self::assertSame(1, $this->database->select("SELECT COUNT(*) AS aggregate FROM sqlite_master WHERE type = 'table' AND name = 'notes'")[0]['aggregate']);
-        self::assertTrue($migrator->status($this->directory)[0]['applied']);
-
         self::assertSame('2026_01_01_000001_create_notes', $migrator->rollback($this->directory));
         self::assertFalse($migrator->status($this->directory)[0]['applied']);
     }
