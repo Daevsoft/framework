@@ -34,33 +34,37 @@ final class QueryBuilder
         return $this;
     }
 
-    public function join(string $table, string $first, string $operator, string $second): self
+    public function join(string $table, string $first, string $operator, string $second, ?string $alias = null): self
     {
-        return $this->addJoin('INNER', $table, $first, $operator, $second);
+        return $this->addJoin('INNER', $table, $first, $operator, $second, $alias);
     }
 
-    public function innerJoin(string $table, string $first, string $operator, string $second): self
+    public function innerJoin(string $table, string $first, string $operator, string $second, ?string $alias = null): self
     {
-        return $this->addJoin('INNER', $table, $first, $operator, $second);
+        return $this->addJoin('INNER', $table, $first, $operator, $second, $alias);
     }
 
-    public function leftJoin(string $table, string $first, string $operator, string $second): self
+    public function leftJoin(string $table, string $first, string $operator, string $second, ?string $alias = null): self
     {
-        return $this->addJoin('LEFT', $table, $first, $operator, $second);
+        return $this->addJoin('LEFT', $table, $first, $operator, $second, $alias);
     }
 
-    public function rightJoin(string $table, string $first, string $operator, string $second): self
+    public function rightJoin(string $table, string $first, string $operator, string $second, ?string $alias = null): self
     {
-        return $this->addJoin('RIGHT', $table, $first, $operator, $second);
+        return $this->addJoin('RIGHT', $table, $first, $operator, $second, $alias);
     }
 
-    private function addJoin(string $type, string $table, string $first, string $operator, string $second): self
+    private function addJoin(string $type, string $table, string $first, string $operator, string $second, ?string $alias = null): self
     {
         $operator = strtoupper(trim($operator));
         if (!in_array($operator, ['=', '!=', '<>', '>', '>=', '<', '<='], true)) {
             throw new \InvalidArgumentException("Unsupported SQL join operator [{$operator}].");
         }
-        $this->joins[] = $type . ' JOIN ' . $this->database->quoteIdentifier($table)
+        $joinedTable = $this->database->quoteIdentifier($table);
+        if ($alias !== null) {
+            $joinedTable .= ' AS ' . $this->database->quoteIdentifier($alias);
+        }
+        $this->joins[] = $type . ' JOIN ' . $joinedTable
             . ' ON ' . $this->database->quoteIdentifier($first) . " {$operator} "
             . $this->database->quoteIdentifier($second);
         return $this;
@@ -130,6 +134,119 @@ final class QueryBuilder
             $this->conditions[$before] = 'OR ' . $this->conditions[$before];
         }
         return $this;
+    }
+
+    /**
+     * Add a parenthesized set of predicates joined with AND.
+     *
+     * The callback receives an isolated builder so its bindings can be
+     * merged safely into the parent query.
+     */
+    public function whereGroup(callable $callback): self
+    {
+        return $this->addWhereGroup($callback, 'AND');
+    }
+
+    public function orWhereGroup(callable $callback): self
+    {
+        return $this->addWhereGroup($callback, 'OR');
+    }
+
+    private function addWhereGroup(callable $callback, string $boolean): self
+    {
+        $nested = new self($this->database, $this->table);
+        $callback($nested);
+        $nestedSql = $nested->whereSql();
+
+        if ($nestedSql === '') {
+            return $this;
+        }
+
+        $predicate = substr($nestedSql, 7);
+        $renamed = [];
+        foreach ($nested->bindings as $name => $value) {
+            $newName = ':where_' . count($this->bindings);
+            $renamed[$name] = $newName;
+            $this->bindings[$newName] = $value;
+        }
+        if ($renamed !== []) {
+            $predicate = preg_replace_callback(
+                '/:where_\\d+/',
+                static fn (array $match): string => $renamed[$match[0]] ?? $match[0],
+                $predicate
+            ) ?? $predicate;
+        }
+
+        $this->conditions[] = ($boolean === 'OR' ? 'OR ' : '') . '(' . $predicate . ')';
+        return $this;
+    }
+
+    public function whereInSubquery(string $column, self $subquery): self
+    {
+        return $this->addSubqueryPredicate($column, $subquery, 'IN');
+    }
+
+    public function whereNotInSubquery(string $column, self $subquery): self
+    {
+        return $this->addSubqueryPredicate($column, $subquery, 'NOT IN');
+    }
+
+    private function addSubqueryPredicate(string $column, self $subquery, string $operator): self
+    {
+        [$sql, $bindings] = $subquery->toSubquery();
+        $renamed = [];
+        foreach ($bindings as $name => $value) {
+            $newName = ':where_' . count($this->bindings);
+            $renamed[$name] = $newName;
+            $this->bindings[$newName] = $value;
+        }
+        if ($renamed !== []) {
+            $sql = preg_replace_callback(
+                '/:[A-Za-z_][A-Za-z0-9_]*/',
+                static fn (array $match): string => $renamed[$match[0]] ?? $match[0],
+                $sql
+            ) ?? $sql;
+        }
+        $this->conditions[] = $this->database->quoteIdentifier($column)
+            . ' ' . $operator . ' (' . $sql . ')';
+        return $this;
+    }
+
+    /**
+     * Return SQL and bindings for safe composition as a subquery.
+     *
+     * Only a single selected column is valid for IN/NOT IN composition.
+     *
+     * @return array{0: string, 1: array<string, mixed>}
+     */
+    public function toSubquery(): array
+    {
+        if (count($this->columns) !== 1) {
+            throw new \\InvalidArgumentException('A subquery used with IN must select exactly one column.');
+        }
+
+        $sql = 'SELECT ' . ($this->distinctValue ? 'DISTINCT ' : '') . implode(', ', $this->columns)
+            . ' FROM ' . $this->database->quoteIdentifier($this->table)
+            . ($this->joins === [] ? '' : ' ' . implode(' ', $this->joins))
+            . $this->whereSql();
+
+        if ($this->groups !== []) {
+            $sql .= ' GROUP BY ' . implode(', ', $this->groups);
+        }
+        if ($this->havingConditions !== []) {
+            $sql .= ' HAVING ' . implode(' AND ', $this->havingConditions);
+        }
+        if ($this->orders !== []) {
+            $sql .= ' ORDER BY ' . implode(', ', $this->orders);
+        }
+        if ($this->limitValue !== null) {
+            $sql .= ' LIMIT ' . $this->limitValue;
+        }
+        if ($this->offsetValue !== null) {
+            $sql .= ' OFFSET ' . $this->offsetValue;
+        }
+
+        return [$sql, $this->bindings];
     }
 
     public function whereNotIn(string $column, array $values): self
