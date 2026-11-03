@@ -166,6 +166,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
+| 2026-11-03 | PERF-03 | Request-scope invalidation and context preservation; WeakReference cleanup test; weakly-held scheduler callbacks; deferred database pool closure and regression coverage | CI run `41570274744` passed | `aaca977`, `b2f90bf`, `3933794`, `709dac2`, `caa0832`, `be69215`, `e0e8542`, `9c6a5ca`, `8794373`, `be9a174`, `68067b0`, `8cd9488` |
 | 2026-11-03 | PERF-02 | WeakReference/GC tests for dispatcher, event and lifecycle retention; worker cleanup documentation | CI passed in run `41569612807` | `1ff5466`, `eac474e`, `4409f56`, `ce46aad`, `1b8529e`, `5b8b9f9` |
 | 2026-11-03 | PERF-01 | Reflection retention fix, listener cleanup APIs, pool shutdown hardening and regression tests | CI passed on final batch commit `a328d1c` after correcting intermediate syntax typos | `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f`, `452d666`, `825ea16`, `42b24d7`, `95445b7` |
 | 2026-11-03 | DB-07 | PDO cursor release, pool lifecycle isolation, credential-aware pool keys, linear WHERE assembly and lifecycle regression tests | CI verification pending | `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49` |
@@ -179,6 +180,6 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - DatabaseManager now tracks in-flight leases and defers channel closure until callbacks have returned connections, avoiding premature close during manager shutdown.
 - README documents the new lifecycle guarantees and explicit cleanup practices.
 - Regression tests added for scoped rebinding, context preservation, WeakReference/GC release after request end, and deferred pool closure while a lease is active.
-- Two intermediate CI runs failed on doubled namespace separators in newly added test files; the affected files were corrected and a fresh full CI run is in progress.
+- Three intermediate CI runs failed on doubled namespace separators in newly added test files; the affected files were corrected and the complete run `41570274744` passed all jobs.
 - Commits: `aaca977`, `b2f90bf`, `3933794`, `709dac2`, `caa0832`, `be69215`, `81a50ee`.
-- CI: pending on the corrected test set; real concurrent Swoole shutdown/lease stress remains a required follow-up.
+- CI: full run `41570274744` passed (syntax, unit/routing, CLI, Swoole HTTP, FPM, and config-cache checks). Real concurrent Swoole shutdown/lease stress remains a required follow-up.
