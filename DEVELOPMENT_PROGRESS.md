@@ -79,7 +79,10 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Make DatabaseManager pool-channel shutdown cleanup tolerant of already-closed runtime channels.
 - [x] Add regression coverage for EventManager and LifecycleManager listener removal.
 - [x] Add WeakReference/GC regression tests proving dispatcher reflection cache and listener registries release controllers/captured objects.
-- [ ] Extend the audit to request-scoped container bindings, coroutine context, timers and active database leases.
+- [x] Audit request-scoped container bindings and context cleanup; add invalidation and context-preservation regression tests.
+- [x] Harden scheduler callback ownership and timer cancellation/clear behavior.
+- [x] Defer database pool closure until active connection leases have returned.
+- [ ] Verify timer cancellation and active-lease shutdown under concurrent real Swoole workers.
 
 ### PERF-02 — Verify object collection and document worker cleanup
 - [x] Add WeakReference tests proving `RequestDispatcher` does not retain controller instances after dispatch.
@@ -87,12 +90,25 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Add WeakReference tests proving `LifecycleManager::unregister()` / `clear()` release captured callback objects.
 - [x] Document listener lifecycle cleanup and warn against capturing request-scoped data in process-wide callbacks.
 - [x] Inspect static middleware alias registry; it stores class-name strings only and has a reset method, so it does not retain service instances.
-- [ ] Audit active coroutine leases and timer callback cleanup under real Swoole workers.
+- [x] Add active-lease accounting so pool shutdown waits for in-flight callbacks before closing the channel.
+- [x] Ensure scheduler timer closures do not strongly retain the Scheduler instance; make cancellation/clear exception-safe.
+- [ ] Run sustained real-Swoole concurrency tests for simultaneous shutdown, waiters, and lease return.
 
 ### DB-06 — Documentation and compatibility audit
 - [ ] Document supported query-builder APIs and examples.
 - [ ] Document remaining v3 migration gaps with concrete alternatives.
 - [ ] Audit README claims against implementation and tests.
+
+
+### PERF-03 — Request scope, context and timer/database lifecycle
+- [x] Invalidate cached request-scoped instances when a binding is rebound or replaced by an explicit instance.
+- [x] Make container request start/end remove only the container-owned request cache instead of clearing unrelated context values.
+- [x] Add regression tests for request-scope rebinding and preservation of unrelated context values.
+- [x] Change scheduler timer callbacks to hold a WeakReference to the Scheduler, allowing the scheduler to be collected and its destructor to clear timers.
+- [x] Make timer cancellation and bulk clear tolerant of stale/throwing timer IDs while continuing cleanup.
+- [x] Track active database connection leases and defer closing an unused pool channel until all in-flight callbacks have returned their connections.
+- [x] Document request-scope, scheduler and database pool lifecycle behavior.
+- [ ] Validate simultaneous pool shutdown/lease return and timer callback cancellation under real Swoole load; CI unit coverage cannot fully emulate those runtime races.
 
 ## Completed work log
 
@@ -149,8 +165,18 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
-| 2026-11-03 | PERF-02 | WeakReference/GC tests for dispatcher, event and lifecycle retention; worker cleanup documentation | Pending | `1ff5466`, `eac474e`, `4409f56`, `ce46aad`, `1b8529e`, `5b8b9f9` |
+| 2026-11-03 | PERF-02 | WeakReference/GC tests for dispatcher, event and lifecycle retention; worker cleanup documentation | CI passed in run `41569612807` | `1ff5466`, `eac474e`, `4409f56`, `ce46aad`, `1b8529e`, `5b8b9f9` |
 | 2026-11-03 | PERF-01 | Reflection retention fix, listener cleanup APIs, pool shutdown hardening and regression tests | CI passed on final batch commit `a328d1c` after correcting intermediate syntax typos | `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f`, `452d666`, `825ea16`, `42b24d7`, `95445b7` |
 | 2026-11-03 | DB-07 | PDO cursor release, pool lifecycle isolation, credential-aware pool keys, linear WHERE assembly and lifecycle regression tests | CI verification pending | `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49` |
 | 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`, `762bc11` |
 | 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
+
+### 2026-11-03 — Request scope, context and timer/database lifecycle
+- Container rebinding now invalidates request-scoped cache entries, preventing stale instances from surviving a changed binding.
+- Container request start/end now clear only `container.request_instances`, preserving unrelated context values managed by middleware and services.
+- Scheduler callbacks now weakly reference their Scheduler so timer registrations do not keep the scheduler object alive; scheduler destruction clears timers, and cancellation/clear continue safely around stale timer IDs.
+- DatabaseManager now tracks in-flight leases and defers channel closure until callbacks have returned connections, avoiding premature close during manager shutdown.
+- README documents the new lifecycle guarantees and explicit cleanup practices.
+- Regression tests added for scoped rebinding and context preservation.
+- Commits: `aaca977`, `b2f90bf`, `3933794`, `709dac2`, `caa0832`, `be69215`, `81a50ee`.
+- CI: pending; real concurrent Swoole shutdown/lease stress remains a required follow-up.
