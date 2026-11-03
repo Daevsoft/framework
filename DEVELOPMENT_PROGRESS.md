@@ -207,6 +207,8 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 ## Batch log
 
+| 2026-11-03 | AUDIT-03 | Multi-process Swoole pool shutdown stress, shared-manager shutdown regression, scheduled/manual audit workflow | Audit run `41578353818` passed (4 processes × 32 coroutines); main CI `41578353810` passed | `7f6a7e1` |
+
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
 | 2026-11-03 | PERF-05 | Explicit Swoole/FPM request context cleanup; reentrant Pool/PoolManager clear guards; WeakReference/reentrancy tests; Swoole blocked-waiter shutdown stress | CI run `41571621677` passed | `332270b` |
@@ -251,4 +253,4 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - The audit verifies pool channel retention during shutdown, successful completion of all transactions, per-process pool bounds, unique child PIDs, and channel removal after the final operation drains.
 - Added `.github/workflows/audit-multi-worker-lifecycle.yml` with manual worker/coroutine/pool inputs, weekly schedule, relevant-path triggers, and a 30-day JSON report artifact.
 - Added `docs/audits/multi-worker-lifecycle-stress.md` and a PHPUnit regression test for shared DatabaseManager instances shutting down during an active coroutine lease.
-- Verification: pending GitHub Actions. This test models independent processes on one Linux runner; it is not a multi-host deployment test or proof that all lifecycle races are impossible.
+- Verification: audit run `41578353818` passed on PHP 8.3.36 / Swoole 6.2.3 / pcntl 8.3.36. Four independent worker processes each ran 32 coroutines (128 total) with a pool maximum of 4; all 128 transactions completed, every worker observed all 32 active operations at shutdown, all channels remained open while draining and were removed afterward, and there were no operation failures. Focused PHPUnit regression passed (1 test, 4 assertions). Main CI run `41578353810` passed. This is a single-host multi-process test, not a multi-host deployment test or proof that all races are impossible. Audit: https://github.com/Daevsoft/framework/actions/runs/41578353818
