@@ -30,6 +30,7 @@ $lifecycle->emit('booting');
 $lifecycle->emit('booted');
 $kernel = new AppKernel($router, $container);
 $container->beginRequest();
+$context = null;
 
 try {
     $context = $container->make(Context::class);
