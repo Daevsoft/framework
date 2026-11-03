@@ -120,20 +120,20 @@ This document is the durable work log and implementation roadmap for the v4 bran
   - Grouped COUNT now counts result groups via a derived table.
   - Empty NOT IN currently adds no predicate, which is intentional for a no-op but needs explicit tests/documentation.
 
-### 2026-11-03 — Worker retention and listener lifecycle
+### 2026-11-03 — Worker retention and listener lifecycle (CI passed)
 - Dispatcher method reflection is cached by class/method, not controller instance; transient closure reflection is no longer cached.
 - EventManager supports listener removal and per-event/global clearing.
 - LifecycleManager supports unregistering and clearing callbacks.
 - DatabaseManager pool cleanup tolerates already-closed runtime channels.
 - Added EventManager and LifecycleManager regression tests.
-- CI: intermediate commits failed on a test-file namespace escaping typo; corrected in `452d666` and closure type escaping normalized in `95445b7`; latest run pending.
+- CI: final run `41569309754` passed after correcting intermediate syntax issues.
 - Commits: `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f`, `452d666`, `825ea16`, `42b24d7`, `95445b7`.
 
 ## Batch log
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
-| 2026-11-03 | PERF-01 | Reflection retention fix, listener cleanup APIs, pool shutdown hardening and regression tests | Latest CI run pending; earlier intermediate commits failed on syntax typo and were corrected | `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f`, `452d666`, `825ea16`, `42b24d7`, `95445b7` |
+| 2026-11-03 | PERF-01 | Reflection retention fix, listener cleanup APIs, pool shutdown hardening and regression tests | CI passed on final batch commit `a328d1c` after correcting intermediate syntax typos | `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f`, `452d666`, `825ea16`, `42b24d7`, `95445b7` |
 | 2026-11-03 | DB-07 | PDO cursor release, pool lifecycle isolation, credential-aware pool keys, linear WHERE assembly and lifecycle regression tests | CI verification pending | `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49` |
 | 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`, `762bc11` |
 | 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
