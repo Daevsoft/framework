@@ -1,0 +1,81 @@
+name: Long-running Worker Memory Stability Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: Number of worker-style request cycles
+        required: false
+        default: '50000'
+        type: string
+      gc_interval:
+        description: Garbage collection interval
+        required: false
+        default: '500'
+        type: string
+  schedule:
+    - cron: '17 4 * * 2'
+  push:
+    branches: [v4]
+    paths:
+      - 'core/Context/**'
+      - 'core/Lifecycle/**'
+      - 'core/Pool/**'
+      - 'core/Container/**'
+      - 'benchmarks/long-running-worker-stability.php'
+      - 'tests/Unit/LongRunningWorkerStabilityTest.php'
+      - '.github/workflows/audit-long-running-worker.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: long-running-worker-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  long-running-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      AUDIT_ITERATIONS: ${{ inputs.iterations || '50000' }}
+      AUDIT_GC_INTERVAL: ${{ inputs.gc_interval || '500' }}
+      AUDIT_POOL_MAX: '32'
+      AUDIT_MEMORY_GROWTH_LIMIT_BYTES: '16777216'
+      AUDIT_REPORT_PATH: long-running-worker-report.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: swoole, sqlite3, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer configuration
+        run: composer validate --no-check-publish
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run focused stability regression
+        run: ./vendor/bin/phpunit tests/Unit/LongRunningWorkerStabilityTest.php
+
+      - name: Validate audit harness syntax
+        run: php -l benchmarks/long-running-worker-stability.php
+
+      - name: Run long-running worker stability audit
+        run: php benchmarks/long-running-worker-stability.php
+
+      - name: Upload JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: long-running-worker-report-${{ github.run_id }}
+          path: long-running-worker-report.json
+          if-no-files-found: warn
+          retention-days: 30
