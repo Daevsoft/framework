@@ -7,10 +7,14 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Ds\Container\Container;
 use Ds\Context\Context;
 use Ds\Lifecycle\LifecycleManager;
-use RuntimeException;
-
-if (!class_exists(\Swoole\Coroutine::class) || !method_exists(\Swoole\Coroutine::class, 'run')) {
-    fwrite(STDERR, "Swoole Coroutine::run is required for this audit.\n");
+if (!class_exists(\\Swoole\\Coroutine::class)) {
+    fwrite(STDERR, "Swoole coroutine runtime is required for this audit.\\n");
+    exit(2);
+}
+$hasRun = method_exists(\\Swoole\\Coroutine::class, 'run');
+$hasScheduler = class_exists(\\Swoole\\Coroutine\\Scheduler::class);
+if (!$hasRun && !$hasScheduler) {
+    fwrite(STDERR, "No supported Swoole coroutine scheduler is available.\\n");
     exit(2);
 }
 
