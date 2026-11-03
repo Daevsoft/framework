@@ -14,7 +14,7 @@ final class DatabaseManager
     private static array $created = [];
     private static ?self $defaultManager = null;
     private static array $poolUsers = [];
-    private static array $activeLeases = [];
+    private static array $activeOperations = [];
 
     private ?PDO $localConnection = null;
     private bool $shutdown = false;
@@ -143,12 +143,12 @@ final class DatabaseManager
     }
 
     /**
-     * Close a pool only after its final manager and in-flight lease are gone.
+     * Close a pool only after its final manager and in-flight operation are gone.
      * An active callback may still need to return its connection to the channel.
      */
     private function closePoolIfUnused(string $key): void
     {
-        if ((self::$poolUsers[$key] ?? 0) > 0 || (self::$activeLeases[$key] ?? 0) > 0) {
+        if ((self::$poolUsers[$key] ?? 0) > 0 || (self::$activeOperations[$key] ?? 0) > 0) {
             return;
         }
 
@@ -160,7 +160,7 @@ final class DatabaseManager
         } catch (Throwable) {
             // Destructors and worker shutdown must tolerate runtime-closed channels.
         } finally {
-            unset(self::$channels[$key], self::$created[$key], self::$activeLeases[$key]);
+            unset(self::$channels[$key], self::$created[$key], self::$activeOperations[$key]);
         }
     }
 
@@ -189,9 +189,9 @@ final class DatabaseManager
         }
 
         $key = $this->poolKey();
-        // Reserve the pool before any potentially blocking pop/create operation.
+        // Reserve the pool for the entire operation, including any potentially blocking pop/create wait.
         // This prevents shutdown from closing the channel while a coroutine waits.
-        self::$activeLeases[$key] = (self::$activeLeases[$key] ?? 0) + 1;
+        self::$activeOperations[$key] = (self::$activeOperations[$key] ?? 0) + 1;
 
         try {
             $channelClass = 'Swoole\\Coroutine\\Channel';
@@ -226,11 +226,11 @@ final class DatabaseManager
 
             return $this->runAndRelease($connection, $callback, $channel, $key);
         } finally {
-            $remainingLeases = max(0, (self::$activeLeases[$key] ?? 1) - 1);
+            $remainingLeases = max(0, (self::$activeOperations[$key] ?? 1) - 1);
             if ($remainingLeases > 0) {
-                self::$activeLeases[$key] = $remainingLeases;
+                self::$activeOperations[$key] = $remainingLeases;
             } else {
-                unset(self::$activeLeases[$key]);
+                unset(self::$activeOperations[$key]);
             }
 
             $this->closePoolIfUnused($key);
