@@ -10,6 +10,22 @@ use PHPUnit\Framework\TestCase;
 
 final class EventManagerTest extends TestCase
 {
+    public function testClearingListenersReleasesCapturedObjects(): void
+    {
+        $manager = new EventManager();
+        $target = new \\stdClass();
+        $reference = \\WeakReference::create($target);
+        $listener = static function () use ($target): void {};
+
+        $manager->on('retained', $listener);
+        unset($target, $listener);
+
+        $manager->clear('retained');
+        gc_collect_cycles();
+
+        self::assertNull($reference->get());
+    }
+
     public function testCanRemoveListenerAndClearEventOrAllListeners(): void
     {
         $manager = new EventManager();
