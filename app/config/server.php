@@ -18,7 +18,7 @@ return [
     'websocket' => [
         'enabled' => (bool) env('WEBSOCKET_ENABLED', true),
         'host' => (string) env('WEBSOCKET_HOST', '127.0.0.1'),
-        'port' => (int) env('WEBSOCKET_PORT', 6001),
+        'port' => (int) env('WEBSOCKET_PORT', env('SERVER_PORT', 8000)),
         'path' => (string) env('WEBSOCKET_PATH', '/ws'),
     ],
 ];
