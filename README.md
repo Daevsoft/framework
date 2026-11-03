@@ -219,7 +219,7 @@ The v3-compatible `asset('images/logo.svg')` helper is also available. Set `ASSE
 Event and lifecycle listeners remain registered until explicitly removed or their manager is released. In persistent Swoole workers, unregister callbacks when a module or resource is no longer needed so closures do not retain captured services or request data:
 
 ```php
-$listener = function (\\Ds\\Events\\Event $event): void {
+$listener = function (\Ds\Events\Event $event): void {
     // Handle the event.
 };
 
@@ -369,11 +369,11 @@ The `session` and `csrf` route middleware aliases are also available. Legacy v3 
 
 `Ds\Support\Collection` provides dependency-free map/filter/pluck/groupBy/iteration helpers. `Ds\Support\FileCache` provides JSON-serializable values, TTL, atomic replacement, `remember()`, and explicit invalidation. Both are opt-in; no collection or cache object is created per request unless your application uses it.
 
-For v3 model migration, extend `Ds\\Foundations\\Connection\\Models\\DsModel` to keep the legacy base-class namespace while using the v4 PDO model/query builder. The adapter covers table inference, `all`, `find`, `findBy`, `findsBy`, `findsWhere`, `findIsNull`, fillable filtering, `save`, and `remove`. Raw SQL, grouped OR expressions, and cursor/result-object APIs are not implicitly supported and must be migrated explicitly. Query-builder joins are available through the v4 API and require validated table/column identifiers.
+For v3 model migration, extend `Ds\Foundations\Connection\Models\DsModel` to keep the legacy base-class namespace while using the v4 PDO model/query builder. The adapter covers table inference, `all`, `find`, `findBy`, `findsBy`, `findsWhere`, `findIsNull`, fillable filtering, `save`, and `remove`. Raw SQL, grouped OR expressions, and cursor/result-object APIs are not implicitly supported and must be migrated explicitly. Query-builder joins are available through the v4 API and require validated table/column identifiers.
 
 For v3 migration, `Ds\Foundations\Common\Collection` and the `collect()` helper are available as compatibility APIs. The legacy collection keeps array-returning helper methods where practical; new v4 code should use `Ds\Support\Collection` for fluent immutable-style transformations. The compatibility layer has no Illuminate dependency.
 
-The v4 schema API is available through `db()->schema()` or `schema()`. It currently supports safe table creation/deletion and common column definitions (`id`, `string`, `integer`, `boolean`, `text`, `date`, `datetime`, `timestamp`), nullable/default/unique attributes, and table-existence checks. A compatibility bridge supports legacy migration classes implementing `Ds\\Foundations\\Migrate\\Migrations` with `up(Scheme)` and `down(Scheme)` for create/drop table operations and common column definitions. Legacy `Scheme::alter()` and column types without a tested cross-driver mapping remain unsupported; use a driver-specific v4 `Migration` for those operations.
+The v4 schema API is available through `db()->schema()` or `schema()`. It currently supports safe table creation/deletion and common column definitions (`id`, `string`, `integer`, `boolean`, `text`, `date`, `datetime`, `timestamp`), nullable/default/unique attributes, and table-existence checks. A compatibility bridge supports legacy migration classes implementing `Ds\Foundations\Migrate\Migrations` with `up(Scheme)` and `down(Scheme)` for create/drop table operations and common column definitions. Legacy `Scheme::alter()` and column types without a tested cross-driver mapping remain unsupported; use a driver-specific v4 `Migration` for those operations.
 
 ## Dependency lifetimes
 
