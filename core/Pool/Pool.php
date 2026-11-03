@@ -81,6 +81,15 @@ final class Pool
         }
     }
 
+    public function __destruct()
+    {
+        try {
+            $this->clear();
+        } catch (Throwable) {
+            // Destructors must not throw during worker shutdown.
+        }
+    }
+
     public function size(): int
     {
         return count($this->items);
