@@ -20,7 +20,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 |---|---|---|
 | Core query builder CRUD and bindings | Done | Existing parameterized SELECT/INSERT/UPDATE/DELETE |
 | IN/null/OR filters, grouping and HAVING | Done, audit pending | Existing implementation needs edge-case coverage |
-| Validated INNER/LEFT/RIGHT joins | Done | Four-argument join API; aliases not yet supported |
+| Validated INNER/LEFT/RIGHT joins | Done | Validated optional alias argument added in DB-03 |
 | Legacy DsModel query compatibility | Done, audit pending | Safe adapters added in prior commits |
 | Grouped WHERE expressions | Implemented | Nested AND/OR groups with collision-safe binding renaming |
 | JOIN aliases | Implemented | Optional fifth alias argument with strict identifier validation |
@@ -39,8 +39,8 @@ This document is the durable work log and implementation roadmap for the v4 bran
 ### DB-02 — Grouped WHERE / nested boolean expressions
 - [x] Add nested WHERE groups with AND/OR composition.
 - [x] Ensure nested bindings are unique and ordered correctly.
-- [ ] Cover empty groups, nested groups, and first-condition OR behavior.
-- [ ] Verify SELECT, UPDATE, DELETE and COUNT use identical predicates.
+- [x] Cover empty groups, nested groups, and first-condition OR behavior.
+- [x] Verify SELECT, UPDATE, DELETE and COUNT use shared predicate composition.
 
 ### DB-03 — JOIN aliases
 - [x] Support validated table aliases through an optional fifth argument.
@@ -70,10 +70,10 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added nested `whereGroup()` / `orWhereGroup()` predicates with isolated child builders and parent-safe binding renaming.
 - Added optional JOIN aliases to all four join methods; table and alias identifiers use the existing strict identifier validator.
 - Added `whereInSubquery()` / `whereNotInSubquery()` with binding renaming and a one-column subquery guard.
-- Added regression tests for grouped predicates, nested groups, aliased LEFT JOINs, IN/NOT IN subqueries, and invalid multi-column subqueries.
+- Added regression tests for grouped predicates, empty groups, first-condition OR, grouped UPDATE/DELETE, aliased LEFT JOINs, IN/NOT IN subqueries, invalid aliases, and multi-column subqueries.
 - Updated README query-builder and compatibility documentation.
 - Additional hardening: grouped COUNT now counts grouped result rows; subqueries must share the exact DatabaseManager instance.
-- Commits in this batch: `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`.
+- Commits in this batch: `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`, `762bc11`.
 
 ### 2026-11-03 — Progress tracking initialized
 - Added this roadmap so task status, decisions, commits, and CI results are tracked in-repository.
@@ -93,5 +93,5 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
-| 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc` |
+| 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`, `762bc11` |
 | 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
