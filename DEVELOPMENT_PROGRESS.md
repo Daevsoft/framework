@@ -200,7 +200,9 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Captures PHP/Swoole versions, elapsed time, operations per second, created/returned connection counts, memory baseline/current/peak, and bounded failure details in a JSON report.
 - Added `.github/workflows/audit-database-pool.yml`: GitHub-hosted Ubuntu runner, PHP 8.3 + Swoole + SQLite, manual parameters, weekly schedule, and automatic runs on relevant database/audit changes.
 - Added `docs/audits/database-pool-stress.md` with execution instructions, pass criteria, and limitations.
-- Verification: pending GitHub Actions execution. The stress report is uploaded as a 30-day artifact even when the job fails.
+- Verification: GitHub Actions stress run `41575014351` passed on PHP 8.3.36 / Swoole 6.2.3; 64 coroutines × 20 transactions = 1,280 completed operations, 0 failures, 8/8 connections returned, 0 active leases, pool closed after shutdown. Observed throughput: 3,771.95 operations/second; PHP allocator memory delta: 0 bytes and peak: 4 MiB for this short run. These are runner-specific measurements, not production performance guarantees or proof of no memory leak.
+- Main CI run `41575014240` also passed, including syntax, unit/routing, CLI, Swoole HTTP, fallback Context, FPM, and config-cache checks.
+- The harness includes a compatibility fallback for the Swoole Scheduler API used by the CI image; earlier draft runs exposed and corrected runner API/assembly issues before the passing run. The final run report is retained as a 30-day artifact.
 - Scope: single runner/process coroutine contention; not yet multi-worker production stress or a long-duration memory-leak proof.
 
 ## Batch log
