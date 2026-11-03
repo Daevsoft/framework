@@ -8,6 +8,7 @@ use Ds\Tasks\Scheduler;
 use Ds\Tasks\Task;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use WeakReference;
 
 final class SchedulerTest extends TestCase
 {
@@ -28,6 +29,50 @@ final class SchedulerTest extends TestCase
 
         self::assertTrue($scheduler->cancel($timerId));
         self::assertSame(0, $scheduler->count());
+    }
+
+
+    public function testCancelReleasesTaskCapturedByTimer(): void
+    {
+        if (!class_exists(\Swoole\Timer::class)) {
+            self::markTestSkipped('Swoole timer extension is unavailable.');
+        }
+
+        $task = new class extends Task {
+            public function handle(): void
+            {
+            }
+        };
+        $reference = WeakReference::create($task);
+        $scheduler = new Scheduler();
+        $timerId = $scheduler->schedule($task, 60000);
+        unset($task);
+
+        self::assertNotNull($reference->get());
+        self::assertTrue($scheduler->cancel($timerId));
+        gc_collect_cycles();
+
+        self::assertNull($reference->get());
+    }
+
+    public function testSchedulerDestructionClearsTimerAndReleasesTask(): void
+    {
+        if (!class_exists(\Swoole\Timer::class)) {
+            self::markTestSkipped('Swoole timer extension is unavailable.');
+        }
+
+        $task = new class extends Task {
+            public function handle(): void
+            {
+            }
+        };
+        $reference = WeakReference::create($task);
+        $scheduler = new Scheduler();
+        $scheduler->schedule($task, 60000);
+        unset($task, $scheduler);
+        gc_collect_cycles();
+
+        self::assertNull($reference->get());
     }
 
     public function testRejectsInvalidTimerCapacity(): void
