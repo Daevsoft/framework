@@ -1,0 +1,78 @@
+name: Database Pool Stress Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      workers:
+        description: Number of concurrent coroutines
+        required: false
+        default: '64'
+        type: string
+      iterations:
+        description: Operations per coroutine
+        required: false
+        default: '20'
+        type: string
+      pool_max:
+        description: Maximum pooled connections
+        required: false
+        default: '8'
+        type: string
+  schedule:
+    - cron: '17 3 * * 1'
+  push:
+    branches: [v4]
+    paths:
+      - 'core/Database/**'
+      - 'tests/Database/**'
+      - 'benchmarks/database-pool-stress.php'
+      - '.github/workflows/audit-database-pool.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-pool-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  database-pool-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      AUDIT_WORKERS: ${{ inputs.workers || '64' }}
+      AUDIT_ITERATIONS: ${{ inputs.iterations || '20' }}
+      AUDIT_POOL_MAX: ${{ inputs.pool_max || '8' }}
+      AUDIT_HOLD_MS: '2'
+      AUDIT_TIMEOUT: '15'
+      AUDIT_REPORT_PATH: database-pool-stress-report.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP with Swoole and SQLite
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: swoole, sqlite3, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer configuration
+        run: composer validate --no-check-publish
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run database pool contention audit
+        run: php benchmarks/database-pool-stress.php
+
+      - name: Upload stress report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-pool-stress-report-${{ github.run_id }}
+          path: database-pool-stress-report.json
+          if-no-files-found: warn
+          retention-days: 30
