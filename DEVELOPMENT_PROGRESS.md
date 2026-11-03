@@ -111,6 +111,17 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Document request-scope, scheduler and database pool lifecycle behavior.
 - [ ] Validate simultaneous pool shutdown/lease return and timer callback cancellation under real Swoole load; CI unit coverage cannot fully emulate those runtime races.
 
+
+### PERF-05 — Unverified request and pool cleanup paths
+- [x] Explicitly clear the request Context after Swoole request handling, including the non-coroutine fallback path.
+- [x] Explicitly clear the FPM request Context after response handling and exception paths.
+- [x] Guard Pool::clear() against reentrant acquire/release while disposer callbacks are executing.
+- [x] Guard PoolManager::clear() against reentrant pool creation/forget while managed pools are being disposed.
+- [x] Ensure cleanup state is restored even when a disposer throws, and preserve the existing behavior of attempting every disposer.
+- [x] Add regression tests for context object release and pool/manager reentrancy.
+- [ ] Verify request isolation with Swoole `enable_coroutine=false` integration test on a real Swoole runtime.
+- [ ] Run multi-coroutine pool clear/forget contention with yielding disposers and resource counters under real Swoole.
+
 ## Completed work log
 
 ### 2026-11-03 — Resource lifecycle and query performance (CI passed)
@@ -165,6 +176,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 ## Batch log
 
 | Date | Batch | Changes | Tests / CI | Commit |
+| 2026-11-03 | PERF-05 | Explicit Swoole/FPM request context cleanup; reentrant Pool/PoolManager clear guards; WeakReference and reentrancy regression tests | Pending | Pending |
 |---|---|---|---|---|
 | 2026-11-03 | PERF-03 | Request-scope invalidation and context preservation; WeakReference cleanup test; weakly-held scheduler callbacks; deferred database pool closure and regression coverage | CI run `41570274744` passed | `aaca977`, `b2f90bf`, `3933794`, `709dac2`, `caa0832`, `be69215`, `e0e8542`, `9c6a5ca`, `8794373`, `be9a174`, `68067b0`, `8cd9488` |
 | 2026-11-03 | PERF-02 | WeakReference/GC tests for dispatcher, event and lifecycle retention; worker cleanup documentation | CI passed in run `41569612807` | `1ff5466`, `eac474e`, `4409f56`, `ce46aad`, `1b8529e`, `5b8b9f9` |
@@ -183,3 +195,11 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Three intermediate CI runs failed on doubled namespace separators in newly added test files; the affected files were corrected and the complete run `41570274744` passed all jobs.
 - Commits: `aaca977`, `b2f90bf`, `3933794`, `709dac2`, `caa0832`, `be69215`, `81a50ee`.
 - CI: full run `41570274744` passed (syntax, unit/routing, CLI, Swoole HTTP, FPM, and config-cache checks). Real concurrent Swoole shutdown/lease stress remains a required follow-up.
+
+### 2026-11-03 — Request context and reentrant pool cleanup audit
+- Swoole request handling now clears Context after lifecycle completion and container request-scope cleanup, preventing fallback-store request objects from remaining in a long-lived worker when coroutine mode is disabled.
+- FPM bootstrap also clears Context explicitly in its finally block, including exception handling.
+- Pool clear now enters a guarded clearing state and rejects reentrant acquire/release from disposer callbacks; state is restored in finally.
+- PoolManager clear now rejects reentrant get/forget while it is disposing managed pools, preventing a newly created pool from escaping the in-progress clear. Nested clear is idempotent.
+- Added WeakReference/GC coverage for Context::clear and regression tests for Pool and PoolManager reentrancy.
+- CI: pending.
