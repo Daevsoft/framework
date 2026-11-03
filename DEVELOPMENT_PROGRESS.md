@@ -235,3 +235,12 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - PoolManager clear now rejects reentrant get/forget while it is disposing managed pools, preventing a newly created pool from escaping the in-progress clear. `forget(name)` also prevents re-creating that same name until disposal finishes. Nested clear is idempotent.
 - Added WeakReference/GC coverage for Context::clear and Scheduler timer task release, plus regression tests for Pool/PoolManager clear and forget reentrancy.
 - CI: full run `41572245645` passed, including Swoole HTTP with coroutine mode enabled and disabled, FPM compatibility, blocked database waiter shutdown, yielding disposer/validator races, Scheduler timer task WeakReference release, PoolManager clear/forget races, syntax, unit/routing, CLI and config-cache checks. The CI Swoole extension was active; these coroutine tests executed rather than being skipped.
+
+
+### 2026-11-03 — AUDIT-02: Context & Lifecycle Stress
+- Added `benchmarks/context-lifecycle-stress.php`, a configurable sequential worker-style workload (default 10,000 request cycles) that exercises request Context, middleware pipeline execution, lifecycle callbacks, deliberate exception paths, and finally-based cleanup.
+- Added WeakReference checks for every request object, deterministic exception counters for `request.received`, `request.handled`, and middleware, Context-empty assertion, and a bounded retained-memory growth check.
+- Added `.github/workflows/audit-context-lifecycle.yml` with manual iteration/GC inputs, weekly schedule, and automatic runs for relevant Context/container/HTTP/middleware/lifecycle/event changes.
+- Added `docs/audits/context-lifecycle-stress.md` documenting workload, configuration, pass criteria, and limitations.
+- Added a PHPUnit regression test covering sequential request cleanup when middleware and lifecycle listeners throw.
+- Verification: pending GitHub Actions execution. This audit is sequential and does not claim multi-process coverage or prove absence of memory leaks.
