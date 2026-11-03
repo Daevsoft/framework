@@ -95,6 +95,78 @@ final class DatabaseManagerTest extends TestCase
             ->count());
     }
 
+    public function testGroupedWherePredicatesPreserveBooleanPrecedenceAndBindings(): void
+    {
+        $this->database->table('users')->insert(['name' => 'Ada', 'active' => 1]);
+        $this->database->table('users')->insert(['name' => 'Lin', 'active' => 0]);
+        $this->database->table('users')->insert(['name' => 'Mia', 'active' => 1]);
+
+        $rows = $this->database->table('users')
+            ->where('active', 1)
+            ->whereGroup(static function ($query): void {
+                $query->where('name', 'Ada')->orWhere('name', 'Mia');
+            })
+            ->get();
+
+        self::assertCount(2, $rows);
+        self::assertSame(['Ada', 'Mia'], array_column($rows, 'name'));
+
+        $nested = $this->database->table('users')
+            ->where('active', 0)
+            ->orWhereGroup(static function ($query): void {
+                $query->whereGroup(static function ($inner): void {
+                    $inner->where('name', 'Ada')->orWhere('name', 'Mia');
+                });
+            })
+            ->get();
+
+        self::assertCount(3, $nested);
+    }
+
+    public function testJoinAliasesAndParameterizedSubqueries(): void
+    {
+        $this->database->execute('CREATE TABLE profiles (id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL, city TEXT NOT NULL)');
+        $this->database->table('users')->insert(['name' => 'Ada', 'active' => 1]);
+        $this->database->table('users')->insert(['name' => 'Lin', 'active' => 0]);
+        $this->database->table('profiles')->insert(['id' => 1, 'user_id' => 1, 'city' => 'London']);
+
+        $joined = $this->database->table('users')
+            ->select(['users.name', 'p.city'])
+            ->leftJoin('profiles', 'users.id', '=', 'p.user_id', 'p')
+            ->where('p.city', 'London')
+            ->get();
+
+        self::assertCount(1, $joined);
+        self::assertSame('London', $joined[0]['city']);
+
+        $profileUsers = $this->database->table('profiles')
+            ->select('user_id')
+            ->where('city', 'London');
+
+        $matched = $this->database->table('users')
+            ->where('active', 1)
+            ->whereInSubquery('id', $profileUsers)
+            ->get();
+
+        self::assertCount(1, $matched);
+        self::assertSame('Ada', $matched[0]['name']);
+
+        $notMatched = $this->database->table('users')
+            ->whereNotInSubquery('id', $profileUsers)
+            ->get();
+
+        self::assertCount(1, $notMatched);
+        self::assertSame('Lin', $notMatched[0]['name']);
+    }
+
+    public function testSubqueryRequiresExactlyOneSelectedColumn(): void
+    {
+        $subquery = $this->database->table('users')->select(['id', 'name']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->database->table('users')->whereInSubquery('id', $subquery)->get();
+    }
+
     public function testTransactionRollsBackOnFailure(): void
     {
         try {
