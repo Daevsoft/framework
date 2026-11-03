@@ -194,7 +194,7 @@ final class QueryBuilder
     private function addSubqueryPredicate(string $column, self $subquery, string $operator): self
     {
         if ($subquery->database !== $this->database) {
-            throw new \\InvalidArgumentException('Subqueries must use the same DatabaseManager instance.');
+            throw new \InvalidArgumentException('Subqueries must use the same DatabaseManager instance.');
         }
 
         [$sql, $bindings] = $subquery->toSubquery();
