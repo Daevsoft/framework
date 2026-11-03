@@ -107,7 +107,7 @@ final class RequestDispatcher
             $reflection = $this->methodReflectionCache[$key]
                 ??= new ReflectionMethod($targetClass, $handler[1]);
         } else {
-            $closure = $handler instanceof \\Closure ? $handler : \\Closure::fromCallable($handler);
+            $closure = $handler instanceof \Closure ? $handler : \Closure::fromCallable($handler);
             // ReflectionFunction retains its closure. Do not keep transient
             // closures in a process-lifetime dispatcher cache.
             $reflection = new ReflectionFunction($closure);
