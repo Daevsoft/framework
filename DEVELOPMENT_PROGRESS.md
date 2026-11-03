@@ -192,6 +192,17 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added a worker-stop regression test verifying timer cancellation, generic pool clearing and terminal database shutdown after a listener failure.
 - Verification scope: regression tests are included in CI. The sequential Context test exercises the same extracted request handler and fallback Context path; it is not a multi-process production load test. Unexpected channel-close recovery while other managers still own the pool remains open for further audit.
 
+
+### 2026-11-03 — AUDIT-01: Database Pool Stress Harness
+- Added `benchmarks/database-pool-stress.php`, a standalone Swoole coroutine workload using a temporary SQLite file shared by all pooled PDO connections.
+- The workload runs concurrent transactions and deliberately suspends inside the transaction callback, forcing real connection lease contention and channel waiters.
+- Added deterministic checks for operation completion, exception/timeout count, configured pool maximum, zero active leases, all connections returned, and channel removal after shutdown.
+- Captures PHP/Swoole versions, elapsed time, operations per second, created/returned connection counts, memory baseline/current/peak, and bounded failure details in a JSON report.
+- Added `.github/workflows/audit-database-pool.yml`: GitHub-hosted Ubuntu runner, PHP 8.3 + Swoole + SQLite, manual parameters, weekly schedule, and automatic runs on relevant database/audit changes.
+- Added `docs/audits/database-pool-stress.md` with execution instructions, pass criteria, and limitations.
+- Verification: pending GitHub Actions execution. The stress report is uploaded as a 30-day artifact even when the job fails.
+- Scope: single runner/process coroutine contention; not yet multi-worker production stress or a long-duration memory-leak proof.
+
 ## Batch log
 
 | Date | Batch | Changes | Tests / CI | Commit |
