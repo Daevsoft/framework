@@ -70,6 +70,15 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [ ] Add coroutine-enabled pool lifecycle tests and benchmark before/after under representative load.
 - [ ] Audit all long-lived static registries and coroutine-owned resources across the framework.
 
+### PERF-01 — Long-lived worker retention and listener lifecycle
+- [x] Cache controller reflection by class and method rather than object instance, preventing request-scoped controller retention.
+- [x] Stop caching ReflectionFunction instances for transient closures, avoiding process-lifetime closure retention and object-ID reuse hazards.
+- [x] Add EventManager::off() and clear() to release listener closures and captured object graphs.
+- [x] Add LifecycleManager::unregister() and clear() for long-lived callback cleanup.
+- [x] Make DatabaseManager pool-channel shutdown cleanup tolerant of already-closed runtime channels.
+- [x] Add regression coverage for EventManager and LifecycleManager listener removal.
+- [ ] Add WeakReference/GC regression tests for controller and listener collection under a long-lived worker.
+
 ### DB-06 — Documentation and compatibility audit
 - [ ] Document supported query-builder APIs and examples.
 - [ ] Document remaining v3 migration gaps with concrete alternatives.
@@ -77,7 +86,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 ## Completed work log
 
-### 2026-11-03 — Resource lifecycle and query performance (CI verification pending)
+### 2026-11-03 — Resource lifecycle and query performance (CI passed)
 - PDO statements now close their cursors in `finally` blocks for SELECT and execute paths.
 - DatabaseManager shutdown is idempotent and terminal; a shut-down manager cannot create another connection.
 - Swoole pool cleanup is scoped by connection-pool key and uses manager reference counts so one manager does not close a pool still shared by another.
@@ -85,7 +94,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - DatabaseManager cloning is disabled to protect pool reference accounting.
 - WHERE SQL assembly now collects fragments and joins them once, avoiding repeated string copying as conditions grow.
 - Added tests for manager shutdown isolation/idempotence, use-after-shutdown, and empty IN/NOT IN semantics.
-- Commits: `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49`.
+- Commits: `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49`, `b27a964`.
 
 ### 2026-11-03 — Query composition and count semantics (CI verification pending)
 - Added nested `whereGroup()` / `orWhereGroup()` predicates with isolated child builders and parent-safe binding renaming.
@@ -110,9 +119,19 @@ This document is the durable work log and implementation roadmap for the v4 bran
   - Grouped COUNT now counts result groups via a derived table.
   - Empty NOT IN currently adds no predicate, which is intentional for a no-op but needs explicit tests/documentation.
 
+### 2026-11-03 — Worker retention and listener lifecycle
+- Dispatcher method reflection is cached by class/method, not controller instance; transient closure reflection is no longer cached.
+- EventManager supports listener removal and per-event/global clearing.
+- LifecycleManager supports unregistering and clearing callbacks.
+- DatabaseManager pool cleanup tolerates already-closed runtime channels.
+- Added EventManager and LifecycleManager regression tests.
+- CI: pending.
+- Commits: `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f`.
+
 ## Batch log
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
+| 2026-11-03 | PERF-01 | Reflection retention fix, listener cleanup APIs, pool shutdown hardening and regression tests | Pending | `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f` |
 | 2026-11-03 | DB-07 | PDO cursor release, pool lifecycle isolation, credential-aware pool keys, linear WHERE assembly and lifecycle regression tests | CI verification pending | `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49` |\n| 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`, `762bc11` |
 | 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
