@@ -5,8 +5,6 @@ declare(strict_types=1);
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Ds\Database\DatabaseManager;
-use RuntimeException;
-use Throwable;
 
 $workers = max(1, min(16, (int) (getenv('AUDIT_WORKERS') ?: 4)));
 $coroutines = max(2, min(512, (int) (getenv('AUDIT_COROUTINES') ?: 32)));
@@ -142,8 +140,7 @@ if (!mkdir($tempDirectory, 0700, true) && !is_dir($tempDirectory)) {
 $children = [];
 $startedAt = hrtime(true);
 
-try {
-    for ($workerId = 1; $workerId <= $workers; $workerId++) {
+for ($workerId = 1; $workerId <= $workers; $workerId++) {
         $resultPath = $tempDirectory . '/worker-' . $workerId . '.json';
         $pid = pcntl_fork();
 
@@ -168,12 +165,12 @@ try {
         }
 
         $children[$workerId] = ['pid' => $pid, 'path' => $resultPath];
-    }
+}
 
-    $workerReports = [];
+$workerReports = [];
     $processFailures = [];
 
-    foreach ($children as $workerId => $child) {
+foreach ($children as $workerId => $child) {
         $status = 0;
         pcntl_waitpid($child['pid'], $status);
         $report = is_file($child['path'])
@@ -190,14 +187,14 @@ try {
             $processFailures[] = $report;
         }
         $workerReports[] = $report;
-    }
+}
 
-    $elapsedSeconds = (hrtime(true) - $startedAt) / 1_000_000_000;
-    $pids = array_column($workerReports, 'pid');
+$elapsedSeconds = (hrtime(true) - $startedAt) / 1_000_000_000;
+$pids = array_column($workerReports, 'pid');
     $allPidsUnique = count(array_unique($pids)) === $workers;
     $allWorkersPassed = count($workerReports) === $workers && $processFailures === [] && $allPidsUnique;
 
-    $report = [
+$report = [
         'audit' => 'AUDIT-03 Multi-worker Lifecycle & Concurrent Shutdown',
         'status' => $allWorkersPassed ? 'passed' : 'failed',
         'runtime' => [
@@ -228,17 +225,10 @@ try {
         'process_failures' => $processFailures,
     ];
 
-    echo json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL;
-    file_put_contents($reportPath, json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL);
-    exit($allWorkersPassed ? 0 : 1);
-} finally {
-    foreach ($children as $child) {
-        if (function_exists('posix_kill')) {
-            @posix_kill($child['pid'], SIGTERM);
-        }
-    }
-    foreach (glob($tempDirectory . '/*') ?: [] as $path) {
-        @unlink($path);
-    }
-    @rmdir($tempDirectory);
+echo json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL;
+file_put_contents($reportPath, json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL);
+foreach (glob($tempDirectory . '/*') ?: [] as $path) {
+    @unlink($path);
 }
+@rmdir($tempDirectory);
+exit($allWorkersPassed ? 0 : 1);
