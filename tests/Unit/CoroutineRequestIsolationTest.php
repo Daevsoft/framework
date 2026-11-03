@@ -42,20 +42,22 @@ final class CoroutineRequestIsolationTest extends TestCase
         });
 
         $runner = static function (callable $callback) use ($hasRun): void {
-            if ($hasRun) {
-                \Swoole\Coroutine::run($callback);
-                return;
-            }
-            $scheduler = new \Swoole\Coroutine\Scheduler();
-            $scheduler->add($callback);
-            $scheduler->start();
-        };
+    if ($hasRun) {
+        \\Swoole\\Coroutine::run(static function () use ($callback): void {
+            $callback(static fn (callable $task) => \\Swoole\\Coroutine::create($task));
+        });
+        return;
+    }
+    $scheduler = new \\Swoole\\Coroutine\\Scheduler();
+    $callback(static fn (callable $task) => $scheduler->add($task));
+    $scheduler->start();
+};
 
         $results = [];
         $coroutineCount = 32;
         $cyclesPerCoroutine = 100;
 
-        $runner(static function () use (
+        $runner(static function (callable $spawn) use (
             $context,
             $container,
             $lifecycle,
@@ -64,7 +66,7 @@ final class CoroutineRequestIsolationTest extends TestCase
             $cyclesPerCoroutine
         ): void {
             for ($coroutine = 0; $coroutine < $coroutineCount; $coroutine++) {
-                \Swoole\Coroutine::create(static function () use (
+                $spawn(static function () use (
                     $coroutine,
                     $cyclesPerCoroutine,
                     $context,
