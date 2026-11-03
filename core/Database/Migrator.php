@@ -32,7 +32,7 @@ final class Migrator
             }
 
             $migration = require $file;
-            if (!$migration instanceof Migration && !$migration instanceof \\Ds\\Foundations\\Migrate\\Migrations) {
+            if (!$migration instanceof Migration && !$migration instanceof \Ds\Foundations\Migrate\Migrations) {
                 throw new RuntimeException("Migration file {$file} must return a v4 Migration or a legacy Migrations instance.");
             }
 
@@ -40,7 +40,7 @@ final class Migrator
                 if ($migration instanceof Migration) {
                     $migration->up($connection);
                 } else {
-                    $migration->up(new \\Ds\\Foundations\\Migrate\\Scheme($this->database, $connection));
+                    $migration->up(new \Ds\Foundations\Migrate\Scheme($this->database, $connection));
                 }
                 $statement = $connection->prepare(
                     'INSERT INTO migrations (name, batch) VALUES (:name, :batch)'
@@ -71,7 +71,7 @@ final class Migrator
         }
 
         $migration = require $file;
-        if (!$migration instanceof Migration && !$migration instanceof \\Ds\\Foundations\\Migrate\\Migrations) {
+        if (!$migration instanceof Migration && !$migration instanceof \Ds\Foundations\Migrate\Migrations) {
             throw new RuntimeException("Migration file {$file} must return a v4 Migration or a legacy Migrations instance.");
         }
 
@@ -79,7 +79,7 @@ final class Migrator
             if ($migration instanceof Migration) {
                 $migration->down($connection);
             } else {
-                $migration->down(new \\Ds\\Foundations\\Migrate\\Scheme($this->database, $connection));
+                $migration->down(new \Ds\Foundations\Migrate\Scheme($this->database, $connection));
             }
             $statement = $connection->prepare('DELETE FROM migrations WHERE name = :name');
             $statement->execute(['name' => $latest]);

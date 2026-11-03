@@ -64,7 +64,7 @@ abstract class Model
         $localKey ??= (string) $this->primaryKey;
         $value = $this->getAttribute($localKey);
         if ($value === null) {
-            throw new \\LogicException("Cannot resolve hasMany relation without local key [{$localKey}].");
+            throw new \LogicException("Cannot resolve hasMany relation without local key [{$localKey}].");
         }
         return $relatedModel::query()->where($foreignKey, $value);
     }
@@ -79,7 +79,7 @@ abstract class Model
         $ownerKey ??= 'id';
         $value = $this->getAttribute($foreignKey);
         if ($value === null) {
-            throw new \\LogicException("Cannot resolve belongsTo relation without foreign key [{$foreignKey}].");
+            throw new \LogicException("Cannot resolve belongsTo relation without foreign key [{$foreignKey}].");
         }
         return $relatedModel::query()->where($ownerKey, $value);
     }

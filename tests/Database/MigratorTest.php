@@ -42,6 +42,32 @@ PHP
         );
     }
 
+        file_put_contents(
+            $this->directory . '/2026_01_02_000001_create_legacy_items.php',
+            <<<'PHP'
+<?php
+
+use Ds\\Foundations\\Migrate\\Migrations;
+use Ds\\Foundations\\Migrate\\Scheme;
+
+return new class implements Migrations {
+    public function up(Scheme $scheme)
+    {
+        $scheme->createTable('legacy_items', function ($table): void {
+            $table->id();
+            $table->string('label', 80)->notNull();
+            $table->text('description')->nullable();
+        });
+    }
+
+    public function down(Scheme $scheme)
+    {
+        $scheme->dropIfExist('legacy_items');
+    }
+};
+PHP
+        );
+
     protected function tearDown(): void
     {
         $this->database->shutdown();
@@ -51,6 +77,20 @@ PHP
             }
         }
         rmdir($this->directory);
+    }
+
+    public function testRunsTracksAndRollsBackLegacySchemeMigrations(): void
+    {
+        $migrator = new Migrator($this->database);
+        self::assertSame([
+            '2026_01_01_000001_create_notes',
+            '2026_01_02_000001_create_legacy_items',
+        ], $migrator->migrate($this->directory));
+
+        self::assertTrue($this->database->schema()->hasTable('legacy_items'));
+        self::assertSame('2026_01_02_000001_create_legacy_items', $migrator->rollback($this->directory));
+        self::assertFalse($this->database->schema()->hasTable('legacy_items'));
+        self::assertSame('2026_01_01_000001_create_notes', $migrator->rollback($this->directory));
     }
 
     public function testRunsTracksAndRollsBackMigrations(): void
