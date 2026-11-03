@@ -26,6 +26,8 @@ final class AuthManager
         if (!is_array($guard)) return new Guard();
 
         $provider = (string) ($guard['provider'] ?? '');
-        return new Guard($this->providers[$provider] ?? null);
+        $providerConfig = $config['providers'][$provider] ?? [];
+        $resolver = $this->providers[$provider] ?? ($providerConfig['resolver'] ?? null);
+        return new Guard(is_callable($resolver) ? $resolver : null);
     }
 }
