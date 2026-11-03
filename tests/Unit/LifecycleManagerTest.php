@@ -44,6 +44,22 @@ final class LifecycleManagerTest extends TestCase
         self::assertNull($reference->get());
     }
 
+    public function testClearingLifecycleListenersReleasesCapturedObjects(): void
+    {
+        $manager = new LifecycleManager();
+        $target = new \\stdClass();
+        $reference = \\WeakReference::create($target);
+        $listener = static function () use ($target): void {};
+
+        $manager->register('worker.start', $listener);
+        unset($target, $listener);
+
+        $manager->clear('worker.start');
+        gc_collect_cycles();
+
+        self::assertNull($reference->get());
+    }
+
     public function testCanUnregisterAndClearListeners(): void
     {
         $manager = new LifecycleManager();
