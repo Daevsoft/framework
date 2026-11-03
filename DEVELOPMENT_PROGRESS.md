@@ -316,3 +316,10 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added a live Swoole WebSocket smoke test to CI: a coroutine HTTP client upgrades `/ws`, receives the connect frame, sends a message and receives the echo. Final verification [41598125171](https://github.com/Daevsoft/framework/actions/runs/41598125171) passed with 160 PHPUnit tests plus CLI, Swoole HTTP/WebSocket and FPM checks.
 - A subsequent authorization test was added after that run; its CI verification is pending in the latest run.
 - Still not verified by CI: cross-worker WebSocket delivery, multi-client contention/backpressure, and actual task-worker dispatch against a live Swoole server.
+
+
+## v3 public method declaration sweep — 2026-11-03
+
+- Scanned all 76 tracked PHP files in the v3 tree and recorded principal public/protected methods for core/bootstrap, commands, generators, utilities, collections, database/query/model, HTTP, routing, security, sessions, validation, views and global helpers.
+- Added `V3_PUBLIC_METHOD_INVENTORY.md` and linked it from the documentation index and migration inventory.
+- This closes the broad declaration-discovery baseline, not the method-by-method v4 compatibility audit. The next step remains mapping each listed method to current v4 code and tests, beginning with database/model, request/response, sessions, views and helpers.
