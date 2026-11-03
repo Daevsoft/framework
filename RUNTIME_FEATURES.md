@@ -4,7 +4,7 @@ This document describes the currently implemented v4 runtime surface and its exp
 
 ## WebSocket server
 
-The Swoole runtime uses `Swoole\\WebSocket\\Server` when `server.websocket.enabled` is true. The same listener accepts ordinary HTTP requests and WebSocket upgrades.
+The Swoole runtime uses `Swoole\WebSocket\Server` when `server.websocket.enabled` is true. The same listener accepts ordinary HTTP requests and WebSocket upgrades.
 
 Relevant configuration:
 
@@ -20,7 +20,7 @@ WEBSOCKET_PORT=8000
 Register a WebSocket route in `app/routes/websocket.php`:
 
 ```php
-use App\\Support\\Route;
+use App\Support\Route;
 
 Route::ws('/ws', function ($connection): void {
     $connection->on('connect', static function ($request, $peer): void {
@@ -40,8 +40,8 @@ Route::ws('/ws', function ($connection): void {
 The runtime currently provides Open/Message/Close callbacks, a worker-local connection registry, peer send/close, channel subscriptions and local broadcast delivery. Example broadcast:
 
 ```php
-use Ds\\Broadcasting\\BroadcastManager;
-use Ds\\Broadcasting\\Channels\\Channel;
+use Ds\Broadcasting\BroadcastManager;
+use Ds\Broadcasting\Channels\Channel;
 
 $broadcaster = (new BroadcastManager())->connection();
 $broadcaster->broadcast(
@@ -68,8 +68,8 @@ The HTTP authentication middleware is fail-closed: it returns 401 unless a token
 A provider resolver can be configured in `app/config/auth.php`:
 
 ```php
-use Ds\\Auth\\Identity;
-use Ds\\Http\\Request;
+use Ds\Auth\Identity;
+use Ds\Http\Request;
 
 return [
     'default' => 'token',
@@ -111,7 +111,7 @@ SWOOLE_TASK_WORKERS=2
 Implement a serializable task:
 
 ```php
-use Ds\\Tasks\\Task;
+use Ds\Tasks\Task;
 
 final class GenerateReportTask extends Task
 {
@@ -127,7 +127,7 @@ final class GenerateReportTask extends Task
 Dispatch it from a worker process:
 
 ```php
-use Ds\\Tasks\\TaskDispatcher;
+use Ds\Tasks\TaskDispatcher;
 
 $taskId = (new TaskDispatcher())->dispatch(new GenerateReportTask(42));
 ```
