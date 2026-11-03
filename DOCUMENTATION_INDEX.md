@@ -16,6 +16,7 @@
 |---|---|
 | [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) | v3/v4 compatibility matrix and completion criteria |
 | [V3_API_INVENTORY.md](V3_API_INVENTORY.md) | Tracked v3 source inventory, current v4 feature evidence, CLI/generator comparison and open gaps |
+| [V3_PUBLIC_METHOD_INVENTORY.md](V3_PUBLIC_METHOD_INVENTORY.md) | Declaration-level public/protected method inventory across the v3 PHP source tree |
 | [RUNTIME_FEATURES.md](RUNTIME_FEATURES.md) | WebSocket, broadcast, Bearer authentication, authorization primitives and task-worker usage/limitations |
 | [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md) | Application development, migration and release checklist |
 | [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | Implemented v4 systems and limitations |
