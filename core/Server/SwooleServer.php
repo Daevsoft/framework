@@ -12,9 +12,7 @@ use Ds\Context\Context;
 use Ds\Http\Request;
 use Ds\Lifecycle\LifecycleManager;
 use Ds\Pool\PoolManager;
-use Ds\Routing\Route;
 use Ds\Tasks\Scheduler;
-use Ds\Tasks\Task;
 use Ds\Tasks\TaskDispatcher;
 use App\Support\RouteRegistry;
 use RuntimeException;
@@ -61,8 +59,8 @@ final class SwooleServer
 
         $server->on('Start', static function () use ($bindHost, $bindPort, $lifecycle, $websocketEnabled): void {
             $lifecycle->emit('booted');
-            $scheme = $websocketEnabled ? 'ws' : 'http';
-            echo "Ds Framework Swoole server listening on {$scheme}://{$bindHost}:{$bindPort}\n";
+            $features = $websocketEnabled ? ' (HTTP + WebSocket)' : ' (HTTP)';
+            echo "Ds Framework Swoole server listening on http://{$bindHost}:{$bindPort}{$features}\n";
         });
 
         $server->on('Shutdown', static function () use ($lifecycle): void {
