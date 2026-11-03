@@ -11,12 +11,15 @@ final class Guard
 {
     private ?Identity $identity = null;
 
-    public function __construct(private readonly mixed $resolver = null) {}
+    public function __construct(
+        private readonly mixed $resolver = null,
+        private readonly string $driver = 'token'
+    ) {}
 
     public function check(?Request $request = null): bool
     {
         $this->identity = null;
-        if ($request === null || !is_callable($this->resolver)) return false;
+        if ($this->driver !== 'token' || $request === null || !is_callable($this->resolver)) return false;
 
         $header = trim((string) $request->getHeader('authorization', ''));
         if (preg_match('/^Bearer\s+(.+)$/i', $header, $matches) !== 1) return false;
