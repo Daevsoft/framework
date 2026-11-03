@@ -25,6 +25,7 @@ on:
       - 'core/Lifecycle/**'
       - 'core/Events/**'
       - 'tests/Unit/ContextTest.php'
+      - 'tests/Unit/ContextLifecycleStressTest.php'
       - 'tests/Unit/LifecycleManagerTest.php'
       - 'benchmarks/context-lifecycle-stress.php'
       - '.github/workflows/audit-context-lifecycle.yml'
