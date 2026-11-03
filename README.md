@@ -348,6 +348,8 @@ The `session` and `csrf` route middleware aliases are also available. Legacy v3 
 
 `Ds\Support\Collection` provides dependency-free map/filter/pluck/groupBy/iteration helpers. `Ds\Support\FileCache` provides JSON-serializable values, TTL, atomic replacement, `remember()`, and explicit invalidation. Both are opt-in; no collection or cache object is created per request unless your application uses it.
 
+For v3 model migration, extend `Ds\\Foundations\\Connection\\Models\\DsModel` to keep the legacy base-class namespace while using the v4 PDO model/query builder. The adapter covers table inference, `all`, `find`, `findBy`, `findsBy`, `findsWhere`, `findIsNull`, fillable filtering, `save`, and `remove`. Raw SQL, joins, grouped OR expressions, and cursor/result-object APIs are not implicitly supported and must be migrated explicitly.
+
 For v3 migration, `Ds\Foundations\Common\Collection` and the `collect()` helper are available as compatibility APIs. The legacy collection keeps array-returning helper methods where practical; new v4 code should use `Ds\Support\Collection` for fluent immutable-style transformations. The compatibility layer has no Illuminate dependency.
 
 ## Dependency lifetimes
