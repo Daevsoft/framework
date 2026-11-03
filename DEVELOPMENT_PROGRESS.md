@@ -254,3 +254,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added `.github/workflows/audit-multi-worker-lifecycle.yml` with manual worker/coroutine/pool inputs, weekly schedule, relevant-path triggers, and a 30-day JSON report artifact.
 - Added `docs/audits/multi-worker-lifecycle-stress.md` and a PHPUnit regression test for shared DatabaseManager instances shutting down during an active coroutine lease.
 - Verification: audit run `41578353818` passed on PHP 8.3.36 / Swoole 6.2.3 / pcntl 8.3.36. Four independent worker processes each ran 32 coroutines (128 total) with a pool maximum of 4; all 128 transactions completed, every worker observed all 32 active operations at shutdown, all channels remained open while draining and were removed afterward, and there were no operation failures. Focused PHPUnit regression passed (1 test, 4 assertions). Main CI run `41578353810` passed. This is a single-host multi-process test, not a multi-host deployment test or proof that all races are impossible. Audit: https://github.com/Daevsoft/framework/actions/runs/41578353818
+
+
+### 2026-11-03 — AUDIT-04: Long-Running Worker & Memory Stability
+- Added a configurable 50,000-cycle default worker-style harness covering Context cleanup, lifecycle callback exceptions, WeakReference retention checks, bounded Pool reuse/disposal, periodic GC, and memory trend samples.
+- Added a focused PHPUnit regression for 2,000 repeated request/resource cycles and deterministic exception cleanup.
+- Added a weekly/manual GitHub Actions workflow with relevant path triggers and a 30-day JSON report artifact.
+- Added audit documentation describing pass criteria and limits; retained-memory bounds are measurements, not proof that all PHP/native/coroutine leaks are absent.
+- Initial implementation is pushed. CI/audit execution results are pending.
+
+| 2026-11-03 | AUDIT-04 | Sustained worker-style lifecycle/memory harness, resource disposal regression, scheduled/manual workflow, audit documentation | Pending GitHub Actions | Pending |
