@@ -19,7 +19,7 @@ $cycles = max(10, min(10000, (int) (getenv('AUDIT_CYCLES') ?: 250)));
 $context = new Context();
 $container = new Container();
 $container->instance(Context::class, $context);
-$container->scoped('audit.request_service', static fn (): object => (object) [
+$container->scoped('audit.request_service', static fn () => (object) [
     'request_id' => $context->get('request_id'),
 ]);
 $lifecycle = new LifecycleManager();
