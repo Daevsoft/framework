@@ -295,6 +295,38 @@ final class DatabaseManagerTest extends TestCase
         }
     }
 
+
+    public function testPoolShutdownWaitsUntilActiveLeasesAreReleased(): void
+    {
+        $channel = new class {
+            public bool $closed = false;
+
+            public function close(): void
+            {
+                $this->closed = true;
+            }
+        };
+
+        $channels = new \\ReflectionProperty(DatabaseManager::class, 'channels');
+        $created = new \\ReflectionProperty(DatabaseManager::class, 'created');
+        $users = new \\ReflectionProperty(DatabaseManager::class, 'poolUsers');
+        $leases = new \\ReflectionProperty(DatabaseManager::class, 'activeLeases');
+        $channels->setValue(null, ['lease-test' => $channel]);
+        $created->setValue(null, ['lease-test' => 1]);
+        $users->setValue(null, []);
+        $leases->setValue(null, ['lease-test' => 1]);
+
+        $closePool = new \\ReflectionMethod(DatabaseManager::class, 'closePoolIfUnused');
+        $closePool->invoke($this->database, 'lease-test');
+        self::assertFalse($channel->closed);
+
+        $leases->setValue(null, []);
+        $closePool->invoke($this->database, 'lease-test');
+
+        self::assertTrue($channel->closed);
+        self::assertSame([], $channels->getValue());
+    }
+
     public function testRejectsUnsafeIdentifiersAndOperators(): void
     {
         $this->expectException(InvalidArgumentException::class);
