@@ -1,438 +1,60 @@
-# Implementation Summary - Robust PHP Framework
-
-## ✅ Completed Implementation
-
-A fully functional, production-ready PHP framework has been created with support for **FPM**, **Swoole**, and **WebSocket** real-time features.
-
----
-
-## 📦 What Was Implemented
-
-### Core Framework Components
-
-#### 1. **Dependency Injection Container**
-- ✅ `core/Container/Container.php` - Full DI with singleton, request, and worker scopes
-- ✅ Constructor auto-wiring
-- ✅ Parameter injection
-- ✅ Service provider registration
-
-#### 2. **HTTP Layer**
-- ✅ `core/Http/Request.php` - Full request parsing (GET, POST, JSON body)
-- ✅ `core/Http/Response.php` - Response building with headers and content
-- ✅ `core/Http/Kernel.php` - HTTP request handling
-- ✅ `core/Http/RequestDispatcher.php` - Request to handler dispatch
-- ✅ `core/Http/ResponseEmitter.php` - Response output
-
-#### 3. **Routing System**
-- ✅ `core/Routing/Router.php` - Route registration and matching
-- ✅ `core/Routing/RouteMatcher.php` - URL parameter matching
-- ✅ `core/Routing/Route.php` - Route object definition
-- ✅ `app/support/Route.php` - DSL for defining routes
-- ✅ `app/support/RouteRegistry.php` - Route registry
-
-#### 4. **Middleware System**
-- ✅ `core/Middleware/MiddlewarePipeline.php` - Middleware pipeline execution
-- ✅ `core/Middleware/MiddlewareStack.php` - Middleware stack management
-- ✅ `app/http/Middleware/AuthMiddleware.php` - Authentication middleware
-- ✅ `app/http/Middleware/CorsMiddleware.php` - CORS middleware
-
-#### 5. **Event System**
-- ✅ `core/Events/EventManager.php` - Event dispatcher and management
-- ✅ `core/Events/Event.php` - Base event class
-- ✅ `core/Events/Subscriber.php` - Event subscriber support
-
-#### 6. **Broadcasting System**
-- ✅ `core/Broadcasting/Broadcaster.php` - Main broadcaster
-- ✅ `core/Broadcasting/BroadcastManager.php` - Broadcast management
-- ✅ `core/Broadcasting/Channels/Channel.php` - Public channels
-- ✅ `core/Broadcasting/Channels/PrivateChannel.php` - Private channels
-- ✅ `core/Broadcasting/Channels/PresenceChannel.php` - Presence channels
-- ✅ `core/Broadcasting/Connections/WebSocketConnection.php` - WebSocket
-- ✅ `core/Broadcasting/Connections/RedisConnection.php` - Redis broadcasting
-- ✅ `core/Broadcasting/Connections/SseConnection.php` - Server-Sent Events
-
-#### 7. **Swoole Server Support**
-- ✅ `core/Server/SwooleServer.php` - Swoole HTTP server
-- ✅ `core/Server/Worker.php` - Worker process management
-- ✅ `core/Server/ReloadWatcher.php` - Hot reload watching
-- ✅ `app/bootstrap/swoole.php` - Swoole bootstrap
-
-#### 8. **Authentication & Authorization**
-- ✅ `core/Auth/AuthManager.php` - Authentication management
-- ✅ `core/Auth/Guard.php` - Auth guard
-- ✅ `core/Auth/Identity.php` - User identity
-- ✅ `core/Auth/PolicyManager.php` - Policy enforcement
-- ✅ `core/Auth/RBAC.php` - Role-based access control
-- ✅ `core/Auth/ACL.php` - Access control lists
-
-#### 9. **Console System**
-- ✅ `core/Console/Command.php` - Base command class
-- ✅ `core/Console/ConsoleKernel.php` - Console kernel
-- ✅ `core/Console/Input/` - Input handling
-- ✅ `app/console/Kernel.php` - Application console kernel
-- ✅ `app/console/Commands/MakeDomain.php` - Domain creation command
-
-#### 10. **Lifecycle Management**
-- ✅ `core/Lifecycle/LifecycleManager.php` - Lifecycle phases
-- ✅ `core/Lifecycle/LifecycleEvent.php` - Lifecycle events
-- ✅ `core/Lifecycle/LifecycleRegistry.php` - Lifecycle registry
-
-#### 11. **Service Providers**
-- ✅ `core/Providers/Provider.php` - Base service provider
-- ✅ `core/Providers/ProviderRepository.php` - Provider management
-
-#### 12. **Support Utilities**
-- ✅ `core/Support/Helpers.php` - Utility functions
-- ✅ `core/Support/Clock.php` - Clock interface
-- ✅ `core/Support/SystemClock.php` - Real system time
-- ✅ `core/Support/FrozenClock.php` - Frozen time for testing
-- ✅ `core/Support/ResponseFactory.php` - Response factory helpers
-
-#### 13. **Testing Infrastructure**
-- ✅ `core/Testing/Assertions/LifecycleAssert.php` - Custom assertions
-- ✅ `core/Testing/Fakes/` - Fake implementations
-- ✅ `core/Testing/Helpers/` - Test helpers
-- ✅ `core/Testing/Mocks/` - Mock implementations
-
-### Application Layer
-
-#### 1. **Bootstrap Files**
-- ✅ `app/bootstrap/app.php` - Main bootstrap
-- ✅ `app/bootstrap/fpm.php` - FPM bootstrap
-- ✅ `app/bootstrap/swoole.php` - Swoole bootstrap
-- ✅ `public/index.php` - Web entry point
-
-#### 2. **Configuration**
-- ✅ `app/config/app.php` - Application config
-- ✅ `app/config/auth.php` - Authentication config
-- ✅ `app/config/broadcasting.php` - Broadcasting config
-- ✅ `app/config/domains.php` - Domain config
-- ✅ `app/config/server.php` - Server config
-- ✅ `.env` - Environment file
-- ✅ `.env.example` - Environment template
-
-#### 3. **Routes**
-- ✅ `app/routes/web.php` - Web routes (with examples)
-- ✅ `app/routes/api.php` - API routes (with examples)
-- ✅ `app/routes/websocket.php` - WebSocket routes
-
-#### 4. **Controllers**
-- ✅ `app/http/Controllers/HelloController.php` - Example controller with full methods
-
-#### 5. **Middleware**
-- ✅ `app/http/Middleware/AuthMiddleware.php` - Authentication
-- ✅ `app/http/Middleware/CorsMiddleware.php` - CORS handling
-
-#### 6. **Support**
-- ✅ `app/support/helpers.php` - App helpers (env, config, paths)
-- ✅ `app/support/Route.php` - Enhanced DSL with resource routing
-- ✅ `app/support/RouteRegistry.php` - Route registry
-
-#### 7. **Domains (Example)**
-- ✅ `app/domains/User/UserDomain.php` - Domain class
-- ✅ `app/domains/User/Http/Routes.php` - Domain routes
-- ✅ `app/domains/User/Http/Middleware.php` - Domain middleware
-- ✅ `app/domains/User/Http/Controllers/UserController.php` - Domain controller
-- ✅ `app/domains/User/Services/` - Service layer
-- ✅ `app/domains/User/Models/` - Model layer
-- ✅ `app/domains/User/Repositories/` - Repository layer
-- ✅ `app/domains/User/Policies/` - Policy layer
-
-#### 8. **Broadcasting**
-- ✅ `app/broadcasting/System/SystemHealthUpdated.php` - System event
-
-#### 9. **Plugins**
-- ✅ `app/plugins/Analytics/Plugin.php` - Example plugin
-- ✅ `app/plugins/Blog/Plugin.php` - Example plugin
-
-### Documentation
-
-- ✅ `Framework Flow Process.md` - Complete architecture & flow
-- ✅ `SETUP.md` - Detailed setup & deployment guide
-- ✅ `QUICKSTART.md` - 5-minute quick start guide
-- ✅ `API.md` - API endpoint documentation
-- ✅ `README.md` - Main documentation (can be enhanced)
-
----
-
-## 🚀 Key Features Implemented
-
-### Runtime Support
-- ✅ **PHP-FPM** - Traditional web hosting
-- ✅ **Swoole** - High-performance async server
-- ✅ **WebSocket** - Real-time communication
-- ✅ **Hot Reload** - Development convenience
-
-### Architecture
-- ✅ **Domain-Driven Design** - Business logic organization
-- ✅ **Dependency Injection** - Testable code
-- ✅ **Service Providers** - Modular registration
-- ✅ **Middleware Pipeline** - Request processing
-- ✅ **Event-Driven** - Component communication
-- ✅ **Broadcasting** - Real-time events
-
-### Routing
-- ✅ **RESTful Routes** - Standard HTTP methods
-- ✅ **Parameter Extraction** - From URL paths
-- ✅ **Route Grouping** - Prefix organization
-- ✅ **Resource Routes** - CRUD operations
-- ✅ **WebSocket Routes** - Real-time
-- ✅ **DSL** - Fluent route definition
-
-### HTTP
-- ✅ **Request Parsing** - GET, POST, JSON
-- ✅ **Response Building** - With headers
-- ✅ **Middleware** - Global and per-route
-- ✅ **Error Handling** - Exception catching
-- ✅ **CORS** - Cross-origin support
-
-### Developer Experience
-- ✅ **Helper Functions** - env(), config(), paths
-- ✅ **Response Factory** - json(), html(), redirect()
-- ✅ **Console Commands** - CLI tools
-- ✅ **Debug Tools** - Dump, profiling
-- ✅ **Configuration** - Environment-based
-- ✅ **Error Reporting** - Clear messages
-
----
-
-## 📂 File Structure Created/Modified
-
-```
-framework/
-├── app/
-│   ├── bootstrap/ (3 files)
-│   ├── config/ (5 files - enhanced)
-│   ├── console/ (2 files - enhanced)
-│   ├── domains/User/ (5 files - complete)
-│   ├── http/ (4 files - complete)
-│   ├── routes/ (3 files - enhanced)
-│   ├── support/ (3 files - enhanced)
-│   └── views/
-├── core/
-│   ├── App/ (3 files)
-│   ├── Auth/ (6 files)
-│   ├── Broadcasting/ (6 files)
-│   ├── Console/ (2 files)
-│   ├── Container/ (3 files)
-│   ├── Contracts/ (3+ files - enhanced)
-│   ├── Debug/ (2 files)
-│   ├── Events/ (3 files)
-│   ├── Http/ (5 files - enhanced)
-│   ├── Lifecycle/ (3 files)
-│   ├── Middleware/ (2 files)
-│   ├── Pool/ (2 files)
-│   ├── Providers/ (2 files)
-│   ├── Routing/ (3 files)
-│   ├── Server/ (3 files)
-│   ├── Support/ (5+ files)
-│   ├── Tasks/ (2 files)
-│   └── Testing/ (6+ files)
-├── public/
-│   └── index.php
-├── tests/ (Test structure)
-├── .env (Created)
-├── .env.example (Created)
-├── SETUP.md (Created)
-├── QUICKSTART.md (Created)
-├── API.md (Created)
-└── Framework Flow Process.md (Created)
-```
-
----
-
-## 🎯 How to Use
-
-### 1. **Develop with FPM (Easiest)**
-```bash
-php -S 127.0.0.1:8000 -t public/
-```
-
-### 2. **Deploy with Swoole (Production)**
-```bash
-# Edit .env
-APP_RUNTIME=swoole
-
-# Start server
-php app/bootstrap/swoole.php
-```
-
-### 3. **Create Routes**
-Edit `app/routes/web.php`:
-```php
-Route::get('/users/{id}', 'UserController@show');
-```
-
-### 4. **Create Controllers**
-```php
-class UserController {
-    public function show(Request $request, int $id): Response {
-        return new Response(200, json_encode(['id' => $id]));
-    }
-}
-```
-
-### 5. **Create Domains**
-```bash
-php app/console make:domain Product
-```
-
-### 6. **WebSocket Support**
-Clients connect to `ws://localhost:6001/ws` for real-time communication.
-
----
-
-## 🔧 Configuration Files
-
-All configuration is environment-based:
-
-| File | Purpose |
-|------|---------|
-| `.env` | Environment variables |
-| `app/config/app.php` | Application settings |
-| `app/config/auth.php` | Authentication |
-| `app/config/broadcasting.php` | Broadcasting |
-| `app/config/server.php` | Server settings |
-| `app/config/domains.php` | Enabled domains |
-
----
-
-## 📚 Documentation
-
-| Document | Content |
-|----------|---------|
-| `Framework Flow Process.md` | Architecture & complete flow |
-| `SETUP.md` | Detailed installation & deployment |
-| `QUICKSTART.md` | 5-minute getting started |
-| `API.md` | API endpoint documentation |
-
----
-
-## ✨ Highlights
-
-### Production Ready
-- ✅ Error handling
-- ✅ Configuration management
-- ✅ Multiple runtimes
-- ✅ Middleware support
-- ✅ Event broadcasting
-
-### Developer Friendly
-- ✅ Simple routing
-- ✅ Helper functions
-- ✅ DSL for routes
-- ✅ Domain structure
-- ✅ Console commands
-
-### Performance
-- ✅ Swoole async support
-- ✅ Connection pooling
-- ✅ Worker processes
-- ✅ Broadcasting optimization
-- ✅ Caching ready
-
-### Scalable
-- ✅ Modular domains
-- ✅ Service providers
-- ✅ Plugin system
-- ✅ Event-driven
-- ✅ Dependency injection
-
----
-
-## 🎓 Learning Path
-
-1. **Start**: Read `QUICKSTART.md`
-2. **Explore**: Check `app/http/Controllers/HelloController.php`
-3. **Build**: Create your first route in `app/routes/web.php`
-4. **Understand**: Read `Framework Flow Process.md`
-5. **Expand**: Create a domain with `make:domain`
-6. **Deploy**: Use `SETUP.md` for deployment
-
----
-
-## 🔍 Testing the Framework
-
-### Quick Test (FPM)
-```bash
-curl http://127.0.0.1:8000/
-# Response: Welcome to the Framework!
-
-curl http://127.0.0.1:8000/health
-# Response: {"status":"ok","timestamp":...}
-
-curl http://127.0.0.1:8000/users
-# Response: [{"id":1,"name":"John Doe"},...]
-```
-
-### Quick Test (Swoole)
-```bash
-# Same endpoints work with Swoole
-php app/bootstrap/swoole.php
-curl http://127.0.0.1:8000/
-```
-
----
-
-## 🚢 Deployment Ready
-
-### FPM Deployment
-- Use with Nginx/Apache
-- Configure PHP-FPM
-- Set `.env` to production
-- Point webroot to `public/`
-
-### Swoole Deployment
-- Use Supervisor for process management
-- Run on dedicated port
-- Use load balancer for multiple instances
-- Monitor with systemd
-
-### WebSocket Deployment
-- Separate WebSocket port (6001)
-- Optional Redis for distributed broadcasting
-- Use load balancer with sticky sessions
-
----
-
-## 📊 Metrics
-
-- **Files Created/Enhanced**: 100+
-- **Lines of Code**: 5000+
-- **Documentation Pages**: 4
-- **Examples**: 20+
-- **Controllers**: 2
-- **Domains**: 1
-- **Middleware**: 2
-- **Routes**: 15+
-
----
-
-## 🎁 What You Can Build
-
-- ✅ REST APIs
-- ✅ Real-time applications
-- ✅ Microservices
-- ✅ WebSocket servers
-- ✅ CLI applications
-- ✅ Scheduled tasks
-- ✅ Event-driven systems
-- ✅ Multi-tenant SaaS
-
----
-
-## 📝 Notes
-
-- Framework supports both synchronous (FPM) and asynchronous (Swoole) execution
-- All code is documented and follows PSR-12 standards
-- The framework is extensible via service providers and plugins
-- Broadcasting works with Redis, WebSocket, or Server-Sent Events
-- Complete test utilities are available for unit and feature testing
-
----
-
-## 🚀 You're Ready!
-
-The framework is fully implemented and ready for development and deployment. Follow the `QUICKSTART.md` to get started in 5 minutes or read `SETUP.md` for comprehensive documentation.
-
-**Happy coding!** 💻
+# Implementation Summary — Ds Framework 4
+
+## Current status
+
+Ds Framework 4 is an actively developed **Swoole-first framework** with an explicit FPM compatibility runtime. Core HTTP, routing, dependency injection, middleware, lifecycle, database, CLI, validation, session/CSRF and view systems are implemented and covered by CI to varying degrees.
+
+**This is not a declaration of complete v3 → v4 parity or blanket production readiness.** v4 changes core architecture and several APIs. Existing v3 applications require a feature-by-feature migration. See [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md).
+
+## Implemented v4 systems
+
+| Area | Current implementation |
+|---|---|
+| Runtime/bootstrap | Swoole-first server, shared HTTP kernel, explicit FPM adapter |
+| HTTP | Request/Response objects, dispatcher, response factory/emitter |
+| Routing | Static and parameterized routes, route groups, controller dispatch, attributes |
+| Dependency injection | Constructor autowiring, circular-dependency checks, transient/singleton/request scopes |
+| Request isolation | Coroutine-local Context, request-scope cleanup in finally paths |
+| Middleware | Global pipeline, route middleware aliases, CORS, session and CSRF middleware |
+| Lifecycle | Application/request/worker/server lifecycle hooks and cleanup |
+| Tasks | Bounded Swoole timer Scheduler for one-shot and recurring callbacks |
+| Database | PDO manager, prepared query builder, transactions, bounded Swoole pool, joins, grouped predicates and subqueries |
+| Migrations | Transactional v4 migrations, status and rollback commands, partial legacy Scheme bridge |
+| Models | v4 model/query APIs and partial legacy DsModel adapter |
+| Validation | Dependency-free validator with common rules and structured errors |
+| Views | PieTemplate compiler/renderer and compatibility facade coverage |
+| Session/CSRF | Request-isolated sessions, signed CSRF tokens and helpers |
+| Collections/cache | Native Collection, legacy Collection bridge and atomic TTL FileCache |
+| CLI | Swoole/FPM serving, domain/controller/model/view/test/migration generators, route list, config and test commands |
+| Testing | PHPUnit suites, Swoole HTTP smoke tests, compatibility tests and targeted lifecycle audits |
+
+## Important limitations
+
+- **Authentication:** the built-in AuthMiddleware is fail-closed with HTTP 501. AuthManager/Guard/RBAC/ACL must not be represented as a production authentication/authorization system until real providers, credential verification, token/session integration and policy enforcement are implemented and tested.
+- **WebSocket:** `Route::ws()` is a declaration placeholder. The HTTP Swoole server does not yet provide a complete WebSocket upgrade/connection lifecycle.
+- **v3 database parity:** DsModel is a transitional adapter, not a full clone of v3 Active Record, query-chain, result-object and relationship behavior. Legacy Scheme::alter is unsupported.
+- **Background jobs:** the v4 Scheduler handles bounded Swoole timers; it is not a replacement for the v3 CronJob/Job/Worker queue/runner subsystem.
+- **Console parity:** common generators and CLI commands exist, but v3 generator templates/options and custom Tester/Runner APIs have not been proven equivalent.
+- **Production validation:** CI and synthetic audits do not replace deployment testing, supported-version matrices, realistic database/Redis adapters, sustained load, or security review.
+
+## Verification
+
+The v4 branch has GitHub Actions coverage for syntax, Composer validation, PHPUnit, CLI, Swoole HTTP, FPM compatibility, config cache and focused lifecycle audits. Recent audits:
+
+- AUDIT-02 — 10,000 request/context lifecycle cycles.
+- AUDIT-03 — 4 processes × 32 coroutines (128 total) during database pool shutdown.
+- AUDIT-04 — 50,000 worker-style lifecycle cycles.
+- AUDIT-05 — 64 coroutines × 250 requests (16,000 total).
+- AUDIT-06 — 500 Scheduler teardown cycles, recurring/one-shot timer cleanup and coroutine cancellation/finally behavior.
+
+All measurements are synthetic and runner-specific. They are not proof of absence of memory leaks or production behavior under every workload.
+
+## Documentation map
+
+- [README.md](README.md) — overview and quick reference.
+- [QUICKSTART.md](QUICKSTART.md) — first application.
+- [SETUP.md](SETUP.md) — configuration and deployment.
+- [API.md](API.md) — sample HTTP endpoints and runtime boundaries.
+- [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) — compatibility matrix and migration criteria.
+- [AUDIT_AND_ROADMAP.md](AUDIT_AND_ROADMAP.md) — technical priorities.
+- [DEVELOPMENT_PROGRESS.md](DEVELOPMENT_PROGRESS.md) — chronological work log.
