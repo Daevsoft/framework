@@ -26,6 +26,23 @@ final class EventManagerTest extends TestCase
         self::assertNull($reference->get());
     }
 
+    public function testRemovingListenerReleasesCapturedObjects(): void
+    {
+        $manager = new EventManager();
+        $target = new \\stdClass();
+        $reference = \\WeakReference::create($target);
+        $listener = static function () use ($target): void {};
+
+        $manager->on('retained', $listener);
+        unset($target);
+
+        self::assertTrue($manager->off('retained', $listener));
+        unset($listener);
+        gc_collect_cycles();
+
+        self::assertNull($reference->get());
+    }
+
     public function testCanRemoveListenerAndClearEventOrAllListeners(): void
     {
         $manager = new EventManager();
