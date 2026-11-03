@@ -14,11 +14,11 @@ final class CoroutineRequestIsolationTest extends TestCase
 {
     public function testContextAndRequestScopedServicesRemainIsolatedAcrossConcurrentCoroutines(): void
     {
-        if (!class_exists(\\Swoole\\Coroutine::class)) {
+        if (!class_exists(\Swoole\Coroutine::class)) {
             self::markTestSkipped('Swoole coroutine runtime is unavailable.');
         }
-        $hasRun = method_exists(\\Swoole\\Coroutine::class, 'run');
-        $hasScheduler = class_exists(\\Swoole\\Coroutine\\Scheduler::class);
+        $hasRun = method_exists(\Swoole\Coroutine::class, 'run');
+        $hasScheduler = class_exists(\Swoole\Coroutine\Scheduler::class);
         if (!$hasRun && !$hasScheduler) {
             self::markTestSkipped('No supported Swoole coroutine scheduler is available.');
         }
@@ -43,10 +43,10 @@ final class CoroutineRequestIsolationTest extends TestCase
 
         $runner = static function (callable $callback) use ($hasRun): void {
             if ($hasRun) {
-                \\Swoole\\Coroutine::run($callback);
+                \Swoole\Coroutine::run($callback);
                 return;
             }
-            $scheduler = new \\Swoole\\Coroutine\\Scheduler();
+            $scheduler = new \Swoole\Coroutine\Scheduler();
             $scheduler->add($callback);
             $scheduler->start();
         };
@@ -55,7 +55,7 @@ final class CoroutineRequestIsolationTest extends TestCase
         $coroutineCount = 32;
         $cyclesPerCoroutine = 100;
 
-        \Swoole\Coroutine::run(static function () use (
+        $runner(static function () use (
             $context,
             $container,
             $lifecycle,
