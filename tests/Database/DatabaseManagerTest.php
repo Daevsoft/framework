@@ -451,6 +451,54 @@ final class DatabaseManagerTest extends TestCase
         self::assertSame([], $channels->getValue());
     }
 
+    public function testChannelPushFailureDoesNotLeakPoolCapacityOrMaskCallbackFailure(): void
+    {
+        $connection = new \\PDO('sqlite::memory:');
+        $channel = new class {
+            public function push(mixed $value, float $timeout = 0): bool
+            {
+                throw new \\RuntimeException('channel already closed');
+            }
+        };
+
+        $key = 'push-failure-test';
+        $created = new \\ReflectionProperty(DatabaseManager::class, 'created');
+        $created->setValue(null, [$key => 1]);
+        $runAndRelease = new \\ReflectionMethod(DatabaseManager::class, 'runAndRelease');
+
+        $result = $runAndRelease->invoke(
+            $this->database,
+            $connection,
+            static fn (\\PDO $pdo): string => 'callback-result',
+            $channel,
+            $key
+        );
+
+        self::assertSame('callback-result', $result);
+        self::assertSame(0, $created->getValue()[$key] ?? 0);
+
+        $created->setValue(null, [$key => 1]);
+        try {
+            $runAndRelease->invoke(
+                $this->database,
+                $connection,
+                static function (): never {
+                    throw new \\LogicException('original callback failure');
+                },
+                $channel,
+                $key
+            );
+            self::fail('The callback exception should be preserved.');
+        } catch (\\ReflectionException $exception) {
+            throw $exception;
+        } catch (\\LogicException $exception) {
+            self::assertSame('original callback failure', $exception->getMessage());
+        }
+
+        self::assertSame(0, $created->getValue()[$key] ?? 0);
+        $created->setValue(null, []);
+    }
+
     public function testRejectsUnsafeIdentifiersAndOperators(): void
     {
         $this->expectException(InvalidArgumentException::class);
