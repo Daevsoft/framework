@@ -41,14 +41,16 @@ final class CoroutineRequestIsolationTest extends TestCase
             }
         });
 
-        $runner = static function (callable $callback) use ($hasRun): void {
+        $coroutineClass = \Swoole\Coroutine::class;
+$schedulerClass = \Swoole\Coroutine\Scheduler::class;
+$runner = static function (callable $callback) use ($hasRun, $coroutineClass, $schedulerClass): void {
     if ($hasRun) {
-        \Swoole\Coroutine::run(static function () use ($callback): void {
-            $callback(static fn (callable $task) => \Swoole\Coroutine::create($task));
+        $coroutineClass::run(static function () use ($callback, $coroutineClass): void {
+            $callback(static fn (callable $task) => $coroutineClass::create($task));
         });
         return;
     }
-    $scheduler = new \Swoole\Coroutine\Scheduler();
+    $scheduler = new $schedulerClass();
     $callback(static fn (callable $task) => $scheduler->add($task));
     $scheduler->start();
 };
