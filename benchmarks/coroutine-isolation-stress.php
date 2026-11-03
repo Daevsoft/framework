@@ -7,10 +7,13 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Ds\Container\Container;
 use Ds\Context\Context;
 use Ds\Lifecycle\LifecycleManager;
+use RuntimeException;
+
 if (!class_exists(\Swoole\Coroutine::class)) {
     fwrite(STDERR, "Swoole coroutine runtime is required for this audit.\n");
     exit(2);
 }
+
 $hasRun = method_exists(\Swoole\Coroutine::class, 'run');
 $hasScheduler = class_exists(\Swoole\Coroutine\Scheduler::class);
 if (!$hasRun && !$hasScheduler) {
@@ -46,56 +49,74 @@ $lifecycle->register('request.received', static function ($event) use (
     }
 });
 
-$started = hrtime(true);
-$coroutineClass = \Swoole\Coroutine::class;
-$schedulerClass = \Swoole\Coroutine\Scheduler::class;
-$runner = static function (callable $callback) use ($hasRun, $coroutineClass, $schedulerClass): void {
-    if ($hasRun) {
-        $coroutineClass::run(static function () use ($callback, $coroutineClass): void {
-            $callback(static fn (callable $task) => $coroutineClass::create($task));
-        });
-        return;
-    }
-    $scheduler = new $schedulerClass();
-    $callback(static fn (callable $task) => $scheduler->add($task));
-    $scheduler->start();
-};
+$tasks = [];
+for ($coroutine = 0; $coroutine < $coroutines; $coroutine++) {
+    $tasks[] = static function () use (
+        $coroutine,
+        $cycles,
+        $context,
+        $container,
+        $lifecycle,
+        &$completed,
+        &$intentionalExceptions,
+        &$contextViolations,
+        &$scopeViolations
+    ): void {
+        for ($sequence = 1; $sequence <= $cycles; $sequence++) {
+            $requestId = sprintf('co-%03d-req-%05d', $coroutine, $sequence);
+            $container->beginRequest();
+            try {
+                $context->set('request_id', $requestId);
+                \Swoole\Coroutine::sleep(0);
+                $first = $container->make('audit.request_service');
+                \Swoole\Coroutine::sleep(0);
+                $second = $container->make('audit.request_service');
 
-                    $first = $container->make('audit.request_service');
-                    \Swoole\Coroutine::sleep(0);
-                    $second = $container->make('audit.request_service');
-
-                    if ($first !== $second || $first->request_id !== $requestId) {
-                        $scopeViolations++;
-                    }
-
-                    try {
-                        $lifecycle->emit('request.received', [
-                            'request_id' => $requestId,
-                            'sequence' => $sequence,
-                        ]);
-                    } catch (RuntimeException $exception) {
-                        if ($exception->getMessage() !== 'intentional isolation audit exception') {
-                            throw $exception;
-                        }
-                        $intentionalExceptions++;
-                    }
-
-                    \Swoole\Coroutine::sleep(0);
-                    if ($context->get('request_id') !== $requestId) {
-                        $contextViolations++;
-                    }
-                    $completed++;
-                } finally {
-                    $container->endRequest();
-                    $context->clear();
+                if ($first !== $second || $first->request_id !== $requestId) {
+                    $scopeViolations++;
                 }
-            }
-        });
-    }
-});
 
+                try {
+                    $lifecycle->emit('request.received', [
+                        'request_id' => $requestId,
+                        'sequence' => $sequence,
+                    ]);
+                } catch (RuntimeException $exception) {
+                    if ($exception->getMessage() !== 'intentional isolation audit exception') {
+                        throw $exception;
+                    }
+                    $intentionalExceptions++;
+                }
+
+                \Swoole\Coroutine::sleep(0);
+                if ($context->get('request_id') !== $requestId) {
+                    $contextViolations++;
+                }
+                $completed++;
+            } finally {
+                $container->endRequest();
+                $context->clear();
+            }
+        }
+    };
+}
+
+$started = hrtime(true);
+if ($hasRun) {
+    \Swoole\Coroutine::run(static function () use ($tasks): void {
+        foreach ($tasks as $task) {
+            \Swoole\Coroutine::create($task);
+        }
+    });
+} else {
+    $scheduler = new \Swoole\Coroutine\Scheduler();
+    foreach ($tasks as $task) {
+        $scheduler->add($task);
+    }
+    $scheduler->start();
+}
 $elapsed = (hrtime(true) - $started) / 1_000_000_000;
+
 $expected = $coroutines * $cycles;
 $expectedExceptions = $coroutines * intdiv($cycles, 29);
 $checks = [
@@ -106,6 +127,7 @@ $checks = [
     'expected_exceptions_caught' => $intentionalExceptions === $expectedExceptions,
     'context_empty_after_all_coroutines' => $context->all() === [],
 ];
+
 $report = [
     'audit' => 'AUDIT-05 Coroutine Isolation & Cross-Request State Leakage',
     'status' => !in_array(false, $checks, true) ? 'passed' : 'failed',
@@ -126,6 +148,7 @@ $report = [
     ],
     'checks' => $checks,
 ];
+
 $reportPath = getenv('AUDIT_REPORT_PATH') ?: 'coroutine-isolation-report.json';
 file_put_contents($reportPath, json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL);
 echo json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
