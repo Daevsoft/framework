@@ -1,451 +1,70 @@
-# API Documentation - Ds Framework
+# Sample HTTP API — Ds Framework 4
 
-Complete API endpoints for the framework.
+This document describes the example routes currently included in the repository. It is **not** a complete API specification for every application built with the framework.
 
 ## Base URL
 
-```
-http://localhost:8000
-```
+`http://127.0.0.1:8000`
 
-## Response Format
+Start the Swoole runtime with `php ds serve`. For the FPM compatibility runtime, see [SETUP.md](SETUP.md).
 
-All responses are JSON:
+## Routes in the sample application
 
-```json
-{
-  "status": "success",
-  "data": {},
-  "error": null
-}
-```
+The repository's sample route files define:
 
-## Status Codes
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/` | Sample home response |
+| GET | `/health` | Health check |
+| GET | `/api/ping` | Ping response |
+| GET | `/users` | Example user list |
+| POST | `/users` | Example user creation |
+| GET | `/users/{id}` | Example user lookup |
+| PUT | `/users/{id}` | Example user update |
+| DELETE | `/users/{id}` | Example user deletion |
+| GET | `/api/users` | User-domain list route |
+| POST | `/api/users` | User-domain create route |
+| GET | `/api/users/{id}` | User-domain detail route |
+| PUT | `/api/users/{id}` | User-domain update route |
+| DELETE | `/api/users/{id}` | User-domain delete route |
 
-- `200` OK - Request successful
-- `201` Created - Resource created
-- `204` No Content - Request successful, no content
-- `400` Bad Request - Invalid request
-- `401` Unauthorized - Not authenticated
-- `403` Forbidden - Not authorized
-- `404` Not Found - Resource not found
-- `500` Internal Server Error - Server error
+These are demonstration handlers/controllers, not a promise of persistent user storage, pagination, authentication or production business behavior. Check `app/routes/web.php`, `app/routes/api.php` and their controllers for the exact current implementation.
 
----
-
-## Endpoints
-
-### Home
-
-#### GET /
-
-Get homepage.
-
-**Response:**
-```
-HTTP/1.1 200 OK
-
-Welcome to the Framework!
-```
-
----
-
-### Health Check
-
-#### GET /health
-
-Check application health.
-
-**Response:**
-```json
-{
-  "status": "ok",
-  "timestamp": 1640000000
-}
-```
-
----
-
-### Users
-
-#### GET /users
-
-List all users.
-
-**Query Parameters:**
-- `page` (integer, optional) - Page number (default: 1)
-- `limit` (integer, optional) - Items per page (default: 10)
-- `sort` (string, optional) - Sort field (default: id)
-- `order` (string, optional) - Sort order: asc or desc (default: asc)
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john@example.com"
-  },
-  {
-    "id": 2,
-    "name": "Jane Smith",
-    "email": "jane@example.com"
-  }
-]
-```
-
-#### POST /users
-
-Create a new user.
-
-**Request Body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "secret123"
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "id": 3,
-  "name": "John Doe",
-  "email": "john@example.com"
-}
-```
-
-#### GET /users/{id}
-
-Get a specific user.
-
-**URL Parameters:**
-- `id` (integer, required) - User ID
-
-**Response:**
-```json
-{
-  "id": 1,
-  "name": "John Doe",
-  "email": "john@example.com"
-}
-```
-
-**Error Response (404):**
-```json
-{
-  "error": "User not found"
-}
-```
-
-#### PUT /users/{id}
-
-Update a user.
-
-**URL Parameters:**
-- `id` (integer, required) - User ID
-
-**Request Body:**
-```json
-{
-  "name": "Jane Doe",
-  "email": "jane@example.com"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "name": "Jane Doe",
-  "email": "jane@example.com"
-}
-```
-
-#### DELETE /users/{id}
-
-Delete a user.
-
-**URL Parameters:**
-- `id` (integer, required) - User ID
-
-**Response (204 No Content):**
-```
-HTTP/1.1 204 No Content
-```
-
----
-
-### API Routes (with /api prefix)
-
-#### GET /api/ping
-
-Simple ping endpoint.
-
-**Response:**
-```json
-{
-  "message": "pong"
-}
-```
-
----
-
-## Example Requests
-
-### Using cURL
+## Example requests
 
 ```bash
-# GET request
-curl http://localhost:8000/users
-
-# GET with query parameters
-curl "http://localhost:8000/users?page=2&limit=5"
-
-# POST request
-curl -X POST http://localhost:8000/users \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John","email":"john@example.com"}'
-
-# PUT request
-curl -X PUT http://localhost:8000/users/1 \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Jane"}'
-
-# DELETE request
-curl -X DELETE http://localhost:8000/users/1
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/api/ping
+curl http://127.0.0.1:8000/users
+curl http://127.0.0.1:8000/users/42
 ```
 
-### Using JavaScript/Fetch
+## Response behavior
 
-```javascript
-// GET
-fetch('http://localhost:8000/users')
-  .then(r => r.json())
-  .then(data => console.log(data));
+The framework can emit JSON, text, HTML, redirects, status codes and headers through the v4 Response API and response helpers. Exact payloads are determined by the route/controller implementation, not by a global envelope contract.
 
-// POST
-fetch('http://localhost:8000/users', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    name: 'John',
-    email: 'john@example.com'
-  })
-})
-.then(r => r.json())
-.then(data => console.log(data));
+## Authentication and authorization
 
-// PUT
-fetch('http://localhost:8000/users/1', {
-  method: 'PUT',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ name: 'Jane' })
-})
-.then(r => r.json())
-.then(data => console.log(data));
-
-// DELETE
-fetch('http://localhost:8000/users/1', { method: 'DELETE' })
-.then(r => r.status === 204 ? null : r.json())
-.then(() => console.log('Deleted'));
-```
-
-### Using Python
-
-```python
-import requests
-import json
-
-# GET
-response = requests.get('http://localhost:8000/users')
-users = response.json()
-print(users)
-
-# POST
-new_user = {
-    'name': 'John',
-    'email': 'john@example.com'
-}
-response = requests.post('http://localhost:8000/users', json=new_user)
-user = response.json()
-print(user)
-
-# PUT
-updated_data = {'name': 'Jane'}
-response = requests.put('http://localhost:8000/users/1', json=updated_data)
-user = response.json()
-print(user)
-
-# DELETE
-response = requests.delete('http://localhost:8000/users/1')
-print(response.status_code)  # 204
-```
-
----
-
-## Error Handling
-
-### Common Errors
-
-#### 404 Not Found
-```json
-{
-  "error": "Not Found"
-}
-```
-
-#### 400 Bad Request
-```json
-{
-  "error": "Invalid input",
-  "details": {
-    "email": "Email is required"
-  }
-}
-```
-
-#### 500 Internal Server Error
-```json
-{
-  "error": "Internal Server Error",
-  "message": "Something went wrong"
-}
-```
-
----
-
-## Headers
-
-### Request Headers
-
-```
-Content-Type: application/json
-Authorization: Bearer {token}
-```
-
-### Response Headers
-
-```
-Content-Type: application/json; charset=utf-8
-X-Response-Time: 0.042
-X-Request-ID: abc123
-```
-
----
-
-## Authentication (Coming Soon)
-
-### Login
-
-```bash
-POST /auth/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "secret123"
-}
-```
-
-Response:
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": 1,
-    "name": "John",
-    "email": "john@example.com"
-  }
-}
-```
-
-### Protected Routes
-
-Use token in Authorization header:
-
-```bash
-GET /api/users
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
----
+The built-in AuthMiddleware intentionally fails closed with HTTP 501. AuthManager/Guard/RBAC/ACL should not be treated as a completed production authentication system. Implement and test a real guard/provider and authorization policy before exposing protected endpoints.
 
 ## WebSocket
 
-**Not available in the current v4 runtime yet.** The `Route::ws()` declaration and broadcasting classes are scaffolding only; the HTTP Swoole server does not currently implement a WebSocket upgrade lifecycle or connection manager.
+**Not operational in the current v4 runtime.** `Route::ws()` and broadcasting classes are declarations/abstractions only; the Swoole HTTP server does not yet implement WebSocket upgrade handling, connection lifecycle, heartbeat, backpressure or worker-safe connection management.
 
-A future implementation must include handshake validation, connection lifecycle, heartbeat/timeouts, per-connection state, backpressure, worker-safe broadcasting, and integration tests before this feature is documented as operational.
+## Rate limiting, pagination and filtering
 
----
+No built-in rate-limit policy or universal pagination/filtering contract is promised by this sample API document. Implement these at the application layer or use a framework feature only after confirming it exists in the current branch and has tests.
 
-## Rate Limiting (Coming Soon)
+## CLI
 
-Requests are limited to:
-- 60 requests per minute (per IP)
-- 1000 requests per hour (per user)
-
-Response headers:
-```
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 45
-X-RateLimit-Reset: 1640000060
-```
-
----
-
-## Pagination
-
-List endpoints support pagination:
+Useful framework commands include:
 
 ```bash
-GET /users?page=2&limit=10
+php ds
+php ds route:list
+php ds test
+php ds migrate --status
+php ds config
 ```
 
-Response:
-```json
-{
-  "data": [...],
-  "pagination": {
-    "page": 2,
-    "limit": 10,
-    "total": 150,
-    "pages": 15
-  }
-}
-```
-
----
-
-## Sorting & Filtering
-
-List endpoints support sorting:
-
-```bash
-# Sort by name, ascending
-GET /users?sort=name&order=asc
-
-# Sort by created date, descending
-GET /users?sort=created_at&order=desc
-
-# Filter by status
-GET /users?status=active
-```
-
----
-
-## Changelog
-
-### v4 (Swoole-first development line)
-- ✅ User management
-- ✅ REST API
-- 🔄 Swoole-first HTTP runtime and routing
-- 🔄 WebSocket server and real-time broadcasting remain in development
-
-### Upcoming
-- 🔄 Authentication (OAuth2)
-- 🔄 Database migrations
-- 🔄 Advanced filtering
-- 🔄 File uploads
-- 🔄 Notifications
+See [README.md](README.md) and [SETUP.md](SETUP.md) for full usage and limitations.
