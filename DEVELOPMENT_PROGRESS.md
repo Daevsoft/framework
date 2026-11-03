@@ -270,6 +270,6 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added concurrent Swoole regression coverage for Context, Container request-scoped services, lifecycle callbacks, interleaved request cycles and deterministic callback exceptions.
 - Added a configurable stress harness, weekly/manual GitHub Actions workflow, and audit documentation.
 - The default audit workload is 64 coroutines × 250 requests. It measures context/scope mismatches, lifecycle context mismatches, completion and exception counts.
-- This synthetic single-process test does not prove isolation for arbitrary globals or every cancellation/shutdown interleaving. CI and audit verification pending.
+- Verification: audit run `41582105329` passed on PHP 8.3/Swoole. All 16,000 requests completed across 64 coroutines × 250 cycles; 512/512 intentional lifecycle exceptions were caught; Context, request-scope and lifecycle-context mismatches were all zero. Throughput measured 33,740.68 requests/second on this runner. Focused regression and full Main CI run `41582105311` passed. These are synthetic single-process measurements, not proof of isolation for arbitrary globals or every cancellation/shutdown interleaving.
 
-| 2026-11-03 | AUDIT-05 | Coroutine isolation regression, stress harness, workflow and docs | Pending | Pending |
+| 2026-11-03 | AUDIT-05 | Coroutine isolation regression, stress harness, workflow and docs | Audit `41582105329` passed; CI `41582105311` passed | In progress |
