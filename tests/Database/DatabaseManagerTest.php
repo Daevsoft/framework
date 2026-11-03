@@ -385,12 +385,19 @@ final class DatabaseManagerTest extends TestCase
                     \Swoole\Coroutine::sleep(0.01);
                     $results['waiter_result'] = $manager->select('SELECT 42 AS answer');
                 });
+
+                \\Swoole\\Coroutine::create(static function () use ($activeOperations, &$results): void {
+                    \\Swoole\\Coroutine::sleep(0.03);
+                    $counts = $activeOperations->getValue();
+                    $results['blocked_waiter_reserved'] = max($counts);
+                });
             });
         } finally {
             $manager->shutdown();
         }
 
         self::assertTrue($results['holder_finished'] ?? false);
+        self::assertSame(2, $results['blocked_waiter_reserved'] ?? null, 'The blocked waiter must count as an active pool operation.');
         self::assertSame(42, $results['waiter_result'][0]['answer'] ?? null);
         self::assertArrayNotHasKey($key, $channels->getValue());
     }
