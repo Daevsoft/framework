@@ -52,6 +52,20 @@ final class RequestDispatcherTest extends TestCase
         self::assertSame('{"id":7,"method":"GET"}', $response->body());
     }
 
+    public function testControllerInstancesAreNotRetainedByReflectionCache(): void
+    {
+        RetentionTestController::$lastInstance = null;
+        $router = new Router();
+        $router->get('/retention', [RetentionTestController::class, 'show']);
+        $dispatcher = new RequestDispatcher($router);
+
+        $dispatcher->dispatch(new Request([], [], 'GET', '/retention'));
+        gc_collect_cycles();
+
+        self::assertNotNull(RetentionTestController::$lastInstance);
+        self::assertNull(RetentionTestController::$lastInstance->get());
+    }
+
     public function testUnknownRouteReturnsNotFound(): void
     {
         $response = (new RequestDispatcher(new Router()))->dispatch(
@@ -67,5 +81,20 @@ final class DispatcherTestController
     public function show(Request $request, int $id): Response
     {
         return Response::json(['id' => $id, 'method' => $request->getMethod()]);
+    }
+}
+
+final class RetentionTestController
+{
+    public static ?\\WeakReference $lastInstance = null;
+
+    public function __construct()
+    {
+        self::$lastInstance = \\WeakReference::create($this);
+    }
+
+    public function show(): string
+    {
+        return 'ok';
     }
 }
