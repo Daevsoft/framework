@@ -6,8 +6,6 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Ds\Tasks\Scheduler;
 use Ds\Tasks\Task;
-use RuntimeException;
-use WeakReference;
 
 if (!class_exists(\Swoole\Timer::class) || !class_exists(\Swoole\Coroutine::class)) {
     fwrite(STDERR, "Swoole timers and coroutine runtime are required for this audit.\n");
@@ -17,7 +15,6 @@ if (!class_exists(\Swoole\Timer::class) || !class_exists(\Swoole\Coroutine::clas
 $cycles = max(10, min(5000, (int) (getenv('AUDIT_WORKER_CYCLES') ?: 500)));
 $timerTasksReleased = 0;
 $recurringCallbacks = 0;
-$oneShotCallbacks = 0;
 $checks = [];
 
 $runner = static function (callable $callback): void {
