@@ -19,6 +19,7 @@ final class Pool
 {
     protected array $items = [];
     protected array $pooledIds = [];
+    private bool $clearing = false;
     protected ?Closure $validator;
     protected ?Closure $disposer;
 
@@ -37,6 +38,10 @@ final class Pool
 
     public function acquire(): mixed
     {
+        if ($this->clearing) {
+            throw new LogicException('Cannot acquire resources while the pool is being cleared.');
+        }
+
         while ($this->items !== []) {
             $item = array_pop($this->items);
             $id = $this->identity($item);
@@ -56,6 +61,10 @@ final class Pool
 
     public function release(mixed $item): void
     {
+        if ($this->clearing) {
+            throw new LogicException('Cannot release resources while the pool is being cleared.');
+        }
+
         if ($item === null) {
             return;
         }
@@ -102,17 +111,26 @@ final class Pool
 
     public function clear(): void
     {
+        if ($this->clearing) {
+            return;
+        }
+
+        $this->clearing = true;
         $items = $this->items;
         $this->items = [];
         $this->pooledIds = [];
 
         $failure = null;
-        foreach ($items as $item) {
-            try {
-                $this->dispose($item);
-            } catch (Throwable $exception) {
-                $failure ??= $exception;
+        try {
+            foreach ($items as $item) {
+                try {
+                    $this->dispose($item);
+                } catch (Throwable $exception) {
+                    $failure ??= $exception;
+                }
             }
+        } finally {
+            $this->clearing = false;
         }
 
         if ($failure !== null) {
