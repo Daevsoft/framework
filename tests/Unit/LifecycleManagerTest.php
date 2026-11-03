@@ -27,6 +27,31 @@ final class LifecycleManagerTest extends TestCase
         self::assertSame(['worker_id' => 3], $received->payload);
     }
 
+    public function testCanUnregisterAndClearListeners(): void
+    {
+        $manager = new LifecycleManager();
+        $calls = 0;
+        $listener = static function () use (&$calls): void {
+            $calls++;
+        };
+
+        $manager->register('worker.start', $listener);
+        self::assertTrue($manager->unregister('worker.start', $listener));
+        $manager->emit('worker.start');
+        self::assertSame(0, $calls);
+        self::assertFalse($manager->unregister('worker.start', $listener));
+
+        $manager->register('worker.start', $listener);
+        $manager->clear('worker.start');
+        $manager->emit('worker.start');
+        self::assertSame(0, $calls);
+
+        $manager->register('worker.start', $listener);
+        $manager->clear();
+        $manager->emit('worker.start');
+        self::assertSame(0, $calls);
+    }
+
     public function testRejectsUnknownLifecycleNames(): void
     {
         $this->expectException(InvalidArgumentException::class);
