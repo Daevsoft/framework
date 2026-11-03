@@ -104,6 +104,8 @@ $runner(static function () use ($cycles, &$timerTasksReleased, &$recurringCallba
                 while (true) {
                     \Swoole\Coroutine::sleep(0.01);
                 }
+            } catch (Throwable) {
+                // Coroutine cancellation is surfaced as CanceledException on supported Swoole versions.
             } finally {
                 $cancelFinallyRan = true;
             }
