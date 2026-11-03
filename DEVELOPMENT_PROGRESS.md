@@ -22,11 +22,11 @@ This document is the durable work log and implementation roadmap for the v4 bran
 | IN/null/OR filters, grouping and HAVING | Done, audit pending | Existing implementation needs edge-case coverage |
 | Validated INNER/LEFT/RIGHT joins | Done | Four-argument join API; aliases not yet supported |
 | Legacy DsModel query compatibility | Done, audit pending | Safe adapters added in prior commits |
-| Grouped WHERE expressions | In progress | Nested AND/OR groups with isolated bindings |
-| JOIN aliases | Planned | Alias parsing must remain identifier-safe |
-| Subquery support | Planned | Parameterized subquery composition; no raw SQL escape hatch |
+| Grouped WHERE expressions | Implemented, CI pending | Nested AND/OR groups with isolated bindings and nested-group coverage |
+| JOIN aliases | Implemented, CI pending | Optional fifth alias argument; alias validated with quoteIdentifier() |
+| Subquery support | Implemented, CI pending | `whereInSubquery()` / `whereNotInSubquery()`; one selected column enforced |
 | Query semantics and edge cases | Planned | Count with joins/groups, empty IN lists, binding collisions |
-| Documentation and migration guide | In progress | Keep README and this log aligned |
+| Documentation and migration guide | In progress | README updated for grouped predicates, aliases and subqueries |
 | Full compatibility/security audit | Planned | Review v3 surface without restoring unsafe behavior |
 
 ## Task breakdown
@@ -66,7 +66,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 ## Completed work log
 
-### 2026-11-03 — Progress tracking initialized
+### 2026-11-03 — Query composition improvements (CI pending)\n- Added nested `whereGroup()` / `orWhereGroup()` predicates with isolated child builders and parent-safe binding renaming.\n- Added optional JOIN aliases to all four join methods; table and alias identifiers use the existing strict identifier validator.\n- Added `whereInSubquery()` / `whereNotInSubquery()` with binding renaming and a one-column subquery guard.\n- Added regression tests for grouped predicates, nested groups, aliased LEFT JOINs, IN/NOT IN subqueries, and invalid multi-column subqueries.\n- Updated README query-builder and compatibility documentation.\n- Commits in this batch: `e08cb42eb035e53fab24fce4ebd54151aa310974`, `828da078db7acaef837d0132eda10ca232a58a3d`, `0a4f3f42300fb98399588da6d187c7c6b3d4f2e2`, `cecd73950d3c9910d3663b2ac20d49e33481d985`.\n\n### 2026-11-03 — Progress tracking initialized
 - Added this roadmap so task status, decisions, commits, and CI results are tracked in-repository.
 - Baseline branch: `v4`.
 - Baseline commit before this log: `8e9527bb862d9e5a1dc524dc845638ccf40eef3c`.
@@ -84,4 +84,4 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
-| 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Pending | Pending |
+| 2026-11-03 | DB-02 to DB-04 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI pending | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739` |\n| 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
