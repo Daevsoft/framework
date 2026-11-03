@@ -23,6 +23,22 @@ final class ContextTest extends TestCase
         self::assertNull($context->get('request_id'));
     }
 
+
+    public function testClearReleasesRequestObjectsFromFallbackContext(): void
+    {
+        $context = new Context();
+        $request = new \stdClass();
+        $reference = WeakReference::create($request);
+
+        $context->set('request', $request);
+        unset($request);
+        $context->clear();
+        gc_collect_cycles();
+
+        self::assertNull($reference->get());
+        self::assertSame([], $context->all());
+    }
+
     public function testValuesAreIsolatedBetweenSwooleCoroutines(): void
     {
         if (!class_exists(\Swoole\Coroutine::class)) {
