@@ -92,7 +92,7 @@ abstract class DsModel extends Model
             $affected = 0;
             foreach ($attributes as $row) {
                 if (!is_array($row)) {
-                    throw new \\InvalidArgumentException('Bulk model save expects arrays of attributes.');
+                    throw new \InvalidArgumentException('Bulk model save expects arrays of attributes.');
                 }
                 $affected += static::save($row);
             }
