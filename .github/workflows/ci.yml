@@ -78,6 +78,28 @@ jobs:
           curl --silent --fail http://127.0.0.1:8123/users/42 > user.json
           php -r '$data = json_decode(file_get_contents("user.json"), true); if (($data["id"] ?? null) !== 42) { fwrite(STDERR, "Parameterized route failed\n"); exit(1); }'
 
+          php -r '
+          Swoole\\Coroutine\\run(function (): void {
+              $client = new Swoole\\Coroutine\\Http\\Client("127.0.0.1", 8123);
+              $client->set(["timeout" => 3]);
+              if (!$client->upgrade("/ws")) {
+                  throw new RuntimeException("WebSocket upgrade failed: " . $client->errMsg);
+              }
+              $connected = $client->recv();
+              if (!$connected || !str_contains((string) $connected->data, "connected")) {
+                  throw new RuntimeException("WebSocket connect frame was not received.");
+              }
+              if (!$client->push("ci-websocket-smoke")) {
+                  throw new RuntimeException("WebSocket client could not send a frame.");
+              }
+              $echo = $client->recv();
+              if (!$echo || !str_contains((string) $echo->data, "ci-websocket-smoke")) {
+                  throw new RuntimeException("WebSocket echo frame was not received.");
+              }
+              $client->close();
+          });
+          '
+
       - name: Swoole HTTP fallback-context smoke test
         shell: bash
         run: |
