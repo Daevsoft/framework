@@ -272,4 +272,16 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - The default audit workload is 64 coroutines × 250 requests. It measures context/scope mismatches, lifecycle context mismatches, completion and exception counts.
 - Verification: audit run `41582105329` passed on PHP 8.3/Swoole. All 16,000 requests completed across 64 coroutines × 250 cycles; 512/512 intentional lifecycle exceptions were caught; Context, request-scope and lifecycle-context mismatches were all zero. Throughput measured 33,740.68 requests/second on this runner. Focused regression and full Main CI run `41582105311` passed. These are synthetic single-process measurements, not proof of isolation for arbitrary globals or every cancellation/shutdown interleaving.
 
-| 2026-11-03 | AUDIT-05 | Coroutine isolation regression, stress harness, workflow and docs | Audit `41582105329` passed; CI `41582105311` passed | In progress |
+| 2026-11-03 | AUDIT-05 | Coroutine isolation regression, stress harness, workflow and docs | Audit `41582195792` passed; CI `41582208461` passed | Completed |
+
+
+### 2026-11-03 — AUDIT-06: Timer, Scheduler & Coroutine Cancellation Lifecycle
+- Added a focused Scheduler regression suite covering recurring timer cancellation, bulk clear, task WeakReference release, and 100 repeated worker-style teardown cycles.
+- Added a standalone Swoole stress harness that verifies one-shot timer self-removal, recurring timer execution/cancellation, exception-safe one-shot cleanup, and native coroutine cancellation.
+- The coroutine cancellation check confirms the target coroutine exits and its finally cleanup executes on runtimes exposing the extended cancellation API.
+- Added a weekly/manual GitHub Actions workflow with PHP 8.3 + Swoole and a 30-day JSON report artifact.
+- Verification: audit run `41586660849` passed on PHP 8.3.36 / Swoole 6.2.3. All checks passed; 500/500 worker-style Scheduler shutdown cycles released their timer tasks; the recurring timer fired 4 times before cancellation and did not fire afterward; the one-shot callback and throwing callback both left Scheduler bookkeeping empty; coroutine cancellation succeeded, the coroutine was removed, and its finally block ran.
+- Main CI run `41586660797` passed. Report artifact: https://github.com/Daevsoft/framework/actions/runs/41586660849/artifacts/13209280114
+- Scope limitation: single-process synthetic test. It does not trigger OS-level worker reload or multi-process worker shutdown and does not cover every native I/O, third-party extension, or cancellation/shutdown interleaving.
+
+| 2026-11-03 | AUDIT-06 | Scheduler/timer lifecycle regression, 500-cycle teardown harness, native coroutine cancellation check, workflow and docs | Audit `41586660849` passed; CI `41586660797` passed | Completed |
