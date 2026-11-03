@@ -1,0 +1,79 @@
+name: Coroutine Isolation and Cross-Request State Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      coroutines:
+        description: Concurrent coroutines
+        required: false
+        default: '64'
+        type: string
+      cycles:
+        description: Requests per coroutine
+        required: false
+        default: '250'
+        type: string
+  schedule:
+    - cron: '37 4 * * 3'
+  push:
+    branches: [v4]
+    paths:
+      - 'core/Context/**'
+      - 'core/Container/**'
+      - 'core/Lifecycle/**'
+      - 'core/Events/**'
+      - 'benchmarks/coroutine-isolation-stress.php'
+      - 'tests/Unit/CoroutineRequestIsolationTest.php'
+      - '.github/workflows/audit-coroutine-isolation.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coroutine-isolation-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      AUDIT_COROUTINES: ${{ inputs.coroutines || '64' }}
+      AUDIT_CYCLES: ${{ inputs.cycles || '250' }}
+      AUDIT_REPORT_PATH: coroutine-isolation-report.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: swoole, sqlite3, pdo_sqlite
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer configuration
+        run: composer validate --no-check-publish
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run focused coroutine isolation regression
+        run: ./vendor/bin/phpunit tests/Unit/CoroutineRequestIsolationTest.php
+
+      - name: Validate audit harness syntax
+        run: php -l benchmarks/coroutine-isolation-stress.php
+
+      - name: Run coroutine isolation audit
+        run: php benchmarks/coroutine-isolation-stress.php
+
+      - name: Upload JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coroutine-isolation-report-${{ github.run_id }}
+          path: coroutine-isolation-report.json
+          if-no-files-found: warn
+          retention-days: 30
