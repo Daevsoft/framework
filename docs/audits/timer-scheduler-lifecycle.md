@@ -23,9 +23,9 @@ The GitHub Actions workflow runs the focused PHPUnit regression and the standalo
 - A throwing one-shot callback was still removed from Scheduler bookkeeping.
 - Native coroutine cancellation succeeded; the coroutine exited, and its finally block ran.
 - All report checks passed.
-- Audit workflow: [run 41586842060](https://github.com/Daevsoft/framework/actions/runs/41586660849).
+- Audit workflow: [run 41586986503](https://github.com/Daevsoft/framework/actions/runs/41586660849).
 - Main CI: [run 41586870786](https://github.com/Daevsoft/framework/actions/runs/41586660797).
-- JSON report artifact: [download](https://github.com/Daevsoft/framework/actions/runs/41586660849/artifacts/13208003135).
+- JSON report artifact: [download](https://github.com/Daevsoft/framework/actions/runs/41586660849/artifacts/13208396662).
 
 These are synthetic single-process measurements on a GitHub-hosted runner, not production throughput or memory-leak guarantees.
 
