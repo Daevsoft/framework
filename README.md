@@ -2,7 +2,7 @@
 
 A lightweight PHP application framework designed around **Swoole-first execution**. FPM remains available as an explicit compatibility runtime, while the primary architecture targets persistent workers, predictable request isolation, and low per-request overhead.
 
-> **v3 migration status:** v4 includes several compatibility adapters, but migration is not complete and v4 is not a drop-in replacement. Review [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) before upgrading an existing v3 application. Authentication and WebSocket runtime are not production-ready.
+> **v3 migration status:** v4 includes several compatibility adapters, but migration is not complete and v4 is not a drop-in replacement. Review [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) before upgrading an existing v3 application. Authentication is pluggable but requires an application token provider. WebSocket supports a worker-local broadcast path; cross-worker delivery, channel authorization, heartbeat/backpressure and durable queues are not yet complete.
 
 ## Design priorities
 
