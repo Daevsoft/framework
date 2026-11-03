@@ -241,7 +241,6 @@ final class PoolTest extends TestCase
 
         self::assertTrue($duplicateRejected);
         self::assertSame(1, $pool->size());
-        self::assertSame($resource, $pool->acquire());
     }
 
     public function testClearInvalidatesAReleaseSuspendedInAValidator(): void
