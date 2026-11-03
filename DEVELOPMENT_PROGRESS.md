@@ -22,10 +22,10 @@ This document is the durable work log and implementation roadmap for the v4 bran
 | IN/null/OR filters, grouping and HAVING | Done, audit pending | Existing implementation needs edge-case coverage |
 | Validated INNER/LEFT/RIGHT joins | Done | Four-argument join API; aliases not yet supported |
 | Legacy DsModel query compatibility | Done, audit pending | Safe adapters added in prior commits |
-| Grouped WHERE expressions | Implemented, CI verification pending | Nested AND/OR groups with isolated bindings and nested-group coverage |
-| JOIN aliases | Implemented, CI pending | Optional fifth alias argument; alias validated with quoteIdentifier() |
-| Subquery support | Implemented, CI pending | `whereInSubquery()` / `whereNotInSubquery()`; one selected column enforced |
-| Query semantics and edge cases | Planned | Count with joins/groups, empty IN lists, binding collisions |
+| Grouped WHERE expressions | Implemented | Nested AND/OR groups with collision-safe binding renaming |
+| JOIN aliases | Implemented | Optional fifth alias argument with strict identifier validation |
+| Subquery support | Implemented | Parameterized IN/NOT IN; same-manager and one-column checks |
+| Query semantics and edge cases | In progress | Grouped count fixed; empty-list and mutation predicate coverage remains |
 | Documentation and migration guide | In progress | README updated for grouped predicates, aliases and subqueries |
 | Full compatibility/security audit | Planned | Review v3 surface without restoring unsafe behavior |
 
@@ -37,24 +37,24 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [ ] Expand test coverage for edge cases as features are added.
 
 ### DB-02 — Grouped WHERE / nested boolean expressions
-- [ ] Add nested WHERE groups with AND/OR composition.
-- [ ] Ensure nested bindings are unique and ordered correctly.
+- [x] Add nested WHERE groups with AND/OR composition.
+- [x] Ensure nested bindings are unique and ordered correctly.
 - [ ] Cover empty groups, nested groups, and first-condition OR behavior.
 - [ ] Verify SELECT, UPDATE, DELETE and COUNT use identical predicates.
 
 ### DB-03 — JOIN aliases
-- [ ] Support validated table aliases without accepting arbitrary SQL fragments.
-- [ ] Keep qualified column identifiers validated.
-- [ ] Test alias selection, join predicates, and injection rejection.
+- [x] Support validated table aliases through an optional fifth argument.
+- [x] Keep qualified column identifiers validated.
+- [x] Test alias selection, join predicates, and rejection of invalid aliases.
 
 ### DB-04 — Parameterized subqueries
-- [ ] Add a safe subquery composition API for IN/NOT IN or derived predicates.
-- [ ] Merge bindings without collisions.
-- [ ] Reject incompatible builders / unsafe SQL fragments.
+- [x] Add safe IN/NOT IN subquery composition.
+- [x] Merge bindings without collisions.
+- [x] Reject different DatabaseManager instances and multi-column subqueries.
 - [ ] Test empty and nested subquery cases.
 
 ### DB-05 — Query semantics and regression hardening
-- [ ] Verify COUNT behavior with joins and grouped queries.
+- [x] Verify grouped COUNT behavior; joined COUNT remains covered by existing tests.
 - [ ] Verify empty whereIn/whereNotIn semantics.
 - [ ] Verify update/delete predicates and binding order.
 - [ ] Run full suite and all CI smoke tests.
@@ -66,13 +66,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 ## Completed work log
 
-### 2026-11-03 — Query composition improvements (CI pending)
+### 2026-11-03 — Query composition and count semantics (CI verification pending)
 - Added nested `whereGroup()` / `orWhereGroup()` predicates with isolated child builders and parent-safe binding renaming.
 - Added optional JOIN aliases to all four join methods; table and alias identifiers use the existing strict identifier validator.
 - Added `whereInSubquery()` / `whereNotInSubquery()` with binding renaming and a one-column subquery guard.
 - Added regression tests for grouped predicates, nested groups, aliased LEFT JOINs, IN/NOT IN subqueries, and invalid multi-column subqueries.
 - Updated README query-builder and compatibility documentation.
-- Commits in this batch: `e08cb42eb035e53fab24fce4ebd54151aa310974`, `828da078db7acaef837d0132eda10ca232a58a3d`, `0a4f3f42300fb98399588da6d187c7c6b3d4f2e2`, `cecd73950d3c9910d3663b2ac20d49e33481d985`.
+- Additional hardening: grouped COUNT now counts grouped result rows; subqueries must share the exact DatabaseManager instance.\n- Commits in this batch: `e08cb42eb035e53fab24fce4ebd54151aa310974`, `828da078db7acaef837d0132eda10ca232a58a3d`, `0a4f3f42300fb98399588da6d187c7c6b3d4f2e2`, `cecd73950d3c9910d3663b2ac20d49e33481d985`.
 
 ### 2026-11-03 — Progress tracking initialized
 - Added this roadmap so task status, decisions, commits, and CI results are tracked in-repository.
@@ -92,5 +92,5 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
-| 2026-11-03 | DB-02 to DB-04 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI pending | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739` |
+| 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI pending | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739` |
 | 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
