@@ -2,6 +2,8 @@
 
 A lightweight PHP application framework designed around **Swoole-first execution**. FPM remains available as an explicit compatibility runtime, while the primary architecture targets persistent workers, predictable request isolation, and low per-request overhead.
 
+> **v3 migration status:** v4 includes several compatibility adapters, but migration is not complete and v4 is not a drop-in replacement. Review [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) before upgrading an existing v3 application. Authentication and WebSocket runtime are not production-ready.
+
 ## Design priorities
 
 - **Swoole first:** long-running HTTP workers, coroutine-aware integrations, graceful worker lifecycle, and controlled memory growth.
@@ -416,3 +418,8 @@ New behavior should include unit or regression tests. Load tests should measure 
 ## License
 
 MIT
+
+
+## v3 → v4 migration
+
+v4 reimplements the runtime and core APIs around Swoole, a new HTTP kernel, dependency container and PDO database layer. Selected v3 namespaces and helpers have compatibility bridges, but database/model/schema, CronJob, console generator and other behaviors are not all equivalent. Review the [migration matrix](V3_TO_V4_MIGRATION.md) and add regression tests for the APIs your application uses before switching branches.
