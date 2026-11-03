@@ -43,12 +43,12 @@ final class CoroutineRequestIsolationTest extends TestCase
 
         $runner = static function (callable $callback) use ($hasRun): void {
     if ($hasRun) {
-        \\Swoole\\Coroutine::run(static function () use ($callback): void {
-            $callback(static fn (callable $task) => \\Swoole\\Coroutine::create($task));
+        \Swoole\Coroutine::run(static function () use ($callback): void {
+            $callback(static fn (callable $task) => \Swoole\Coroutine::create($task));
         });
         return;
     }
-    $scheduler = new \\Swoole\\Coroutine\\Scheduler();
+    $scheduler = new \Swoole\Coroutine\Scheduler();
     $callback(static fn (callable $task) => $scheduler->add($task));
     $scheduler->start();
 };
