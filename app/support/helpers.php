@@ -237,6 +237,18 @@ if (!function_exists('js_source')) {
     }
 }
 
+if (!function_exists('collect')) {
+    /**
+     * Create a v3-compatible collection. New code may use Ds\Support\Collection::make().
+     */
+    function collect(iterable $items = []): \Ds\Foundations\Common\Collection
+    {
+        return new \Ds\Foundations\Common\Collection(
+            is_array($items) ? $items : iterator_to_array($items)
+        );
+    }
+}
+
 if (!function_exists('dd')) {
     function dd(mixed ...$args): never
     {

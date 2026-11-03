@@ -348,6 +348,8 @@ The `session` and `csrf` route middleware aliases are also available. Legacy v3 
 
 `Ds\Support\Collection` provides dependency-free map/filter/pluck/groupBy/iteration helpers. `Ds\Support\FileCache` provides JSON-serializable values, TTL, atomic replacement, `remember()`, and explicit invalidation. Both are opt-in; no collection or cache object is created per request unless your application uses it.
 
+For v3 migration, `Ds\Foundations\Common\Collection` and the `collect()` helper are available as compatibility APIs. The legacy collection keeps array-returning helper methods where practical; new v4 code should use `Ds\Support\Collection` for fluent immutable-style transformations. The compatibility layer has no Illuminate dependency.
+
 ## Dependency lifetimes
 
 The container supports transient, singleton, and request-scoped services:
