@@ -62,7 +62,8 @@ jobs:
           tools: composer:v2
 
       - name: Verify required runtime extensions
-        run: php -r 'foreach (["swoole", "pdo_sqlite", "pcntl"] as $extension) { if (!extension_loaded($extension)) { fwrite(STDERR, "Missing extension: {$extension}\n"); exit(1); } }'
+        run: |
+          php -r 'foreach (["swoole", "pdo_sqlite", "pcntl"] as $extension) { if (!extension_loaded($extension)) { fwrite(STDERR, "Missing extension {$extension}\\n"); exit(1); } }'
 
       - name: Validate Composer configuration
         run: composer validate --no-check-publish
