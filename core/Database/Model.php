@@ -9,6 +9,32 @@ abstract class Model
     protected $table = null;
     protected $primaryKey = 'id';
     protected $fillable = null;
+    protected array $attributes = [];
+
+    public function __construct(array $attributes = [])
+    {
+        $this->attributes = $attributes;
+    }
+
+    public function getAttribute(string $key): mixed
+    {
+        return $this->attributes[$key] ?? null;
+    }
+
+    public function setAttribute(string $key, mixed $value): self
+    {
+        $this->attributes[$key] = $value;
+        return $this;
+    }
+
+    public function toArray(): array
+    {
+        return $this->attributes;
+    }
+
+    public function __get(string $key): mixed { return $this->getAttribute($key); }
+    public function __set(string $key, mixed $value): void { $this->attributes[$key] = $value; }
+    public function __isset(string $key): bool { return isset($this->attributes[$key]); }
 
     public static function query(): QueryBuilder
     {
@@ -19,6 +45,43 @@ abstract class Model
     public static function all(): array
     {
         return static::query()->get();
+    }
+
+    /** @return static[] Hydrated models; all() remains array-compatible. */
+    public static function allModels(): array
+    {
+        return array_map(static fn (array $row): static => new static($row), static::all());
+    }
+
+    public static function findModel(int|string $id): ?static
+    {
+        $row = static::find($id);
+        return $row === null ? null : new static($row);
+    }
+
+    public function hasMany(string $relatedModel, string $foreignKey, ?string $localKey = null): QueryBuilder
+    {
+        $localKey ??= (string) $this->primaryKey;
+        $value = $this->getAttribute($localKey);
+        if ($value === null) {
+            throw new \\LogicException("Cannot resolve hasMany relation without local key [{$localKey}].");
+        }
+        return $relatedModel::query()->where($foreignKey, $value);
+    }
+
+    public function hasOne(string $relatedModel, string $foreignKey, ?string $localKey = null): QueryBuilder
+    {
+        return $this->hasMany($relatedModel, $foreignKey, $localKey)->limit(1);
+    }
+
+    public function belongsTo(string $relatedModel, string $foreignKey, ?string $ownerKey = null): QueryBuilder
+    {
+        $ownerKey ??= 'id';
+        $value = $this->getAttribute($foreignKey);
+        if ($value === null) {
+            throw new \\LogicException("Cannot resolve belongsTo relation without foreign key [{$foreignKey}].");
+        }
+        return $relatedModel::query()->where($ownerKey, $value);
     }
 
     public static function where(string $column, mixed $value): QueryBuilder

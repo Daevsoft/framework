@@ -10,6 +10,9 @@ final class QueryBuilder
     private array $conditions = [];
     private array $bindings = [];
     private array $orders = [];
+    private array $groups = [];
+    private array $havingConditions = [];
+    private bool $distinctValue = false;
     private ?int $limitValue = null;
     private ?int $offsetValue = null;
 
@@ -30,6 +33,12 @@ final class QueryBuilder
         return $this;
     }
 
+    public function distinct(bool $distinct = true): self
+    {
+        $this->distinctValue = $distinct;
+        return $this;
+    }
+
     public function where(string $column, mixed $operatorOrValue, mixed $value = null): self
     {
         if (func_num_args() === 2) {
@@ -41,6 +50,12 @@ final class QueryBuilder
 
         if (!in_array($operator, ['=', '!=', '<>', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE'], true)) {
             throw new \InvalidArgumentException("Unsupported SQL comparison operator [{$operator}].");
+        }
+
+        if ($value === null && in_array($operator, ['=', '!=', '<>'], true)) {
+            $this->conditions[] = $this->database->quoteIdentifier($column)
+                . (in_array($operator, ['!=', '<>'], true) ? ' IS NOT NULL' : ' IS NULL');
+            return $this;
         }
 
         $parameter = ':where_' . count($this->bindings);
@@ -67,6 +82,73 @@ final class QueryBuilder
         $this->conditions[] = $this->database->quoteIdentifier($column)
             . ' IN (' . implode(', ', $parameters) . ')';
 
+        return $this;
+    }
+
+    public function orWhere(string $column, mixed $operatorOrValue, mixed $value = null): self
+    {
+        $before = count($this->conditions);
+        if (func_num_args() === 2) {
+            $this->where($column, $operatorOrValue);
+        } else {
+            $this->where($column, $operatorOrValue, $value);
+        }
+        if (count($this->conditions) > $before) {
+            $this->conditions[$before] = 'OR ' . $this->conditions[$before];
+        }
+        return $this;
+    }
+
+    public function whereNotIn(string $column, array $values): self
+    {
+        if ($values === []) {
+            return $this;
+        }
+        $parameters = [];
+        foreach ($values as $value) {
+            $parameter = ':where_' . count($this->bindings);
+            $parameters[] = $parameter;
+            $this->bindings[$parameter] = $value;
+        }
+        $this->conditions[] = $this->database->quoteIdentifier($column)
+            . ' NOT IN (' . implode(', ', $parameters) . ')';
+        return $this;
+    }
+
+    public function orWhereIn(string $column, array $values): self
+    {
+        $before = count($this->conditions);
+        $this->whereIn($column, $values);
+        if (count($this->conditions) > $before) {
+            $this->conditions[$before] = 'OR ' . $this->conditions[$before];
+        }
+        return $this;
+    }
+
+    public function whereNotNull(string $column): self
+    {
+        $this->conditions[] = $this->database->quoteIdentifier($column) . ' IS NOT NULL';
+        return $this;
+    }
+
+    public function groupBy(array|string $columns): self
+    {
+        $columns = is_array($columns) ? $columns : explode(',', $columns);
+        foreach ($columns as $column) {
+            $this->groups[] = $this->database->quoteIdentifier(trim((string) $column));
+        }
+        return $this;
+    }
+
+    public function having(string $column, string $operator, mixed $value): self
+    {
+        $operator = strtoupper(trim($operator));
+        if (!in_array($operator, ['=', '!=', '<>', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE'], true)) {
+            throw new \\InvalidArgumentException("Unsupported SQL having operator [{$operator}].");
+        }
+        $parameter = ':having_' . count($this->bindings);
+        $this->havingConditions[] = $this->database->quoteIdentifier($column) . " {$operator} {$parameter}";
+        $this->bindings[$parameter] = $value;
         return $this;
     }
 
@@ -107,10 +189,16 @@ final class QueryBuilder
 
     public function get(): array
     {
-        $sql = 'SELECT ' . implode(', ', $this->columns)
+        $sql = 'SELECT ' . ($this->distinctValue ? 'DISTINCT ' : '') . implode(', ', $this->columns)
             . ' FROM ' . $this->database->quoteIdentifier($this->table)
             . $this->whereSql();
 
+        if ($this->groups !== []) {
+            $sql .= ' GROUP BY ' . implode(', ', $this->groups);
+        }
+        if ($this->havingConditions !== []) {
+            $sql .= ' HAVING ' . implode(' AND ', $this->havingConditions);
+        }
         if ($this->orders !== []) {
             $sql .= ' ORDER BY ' . implode(', ', $this->orders);
         }

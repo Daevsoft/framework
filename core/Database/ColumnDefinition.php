@@ -23,6 +23,11 @@ final class ColumnDefinition
         }
     }
 
+    public function notNull(): self
+    {
+        return $this->nullable(false);
+    }
+
     public function nullable(bool $nullable = true): self
     {
         $this->isNullable = $nullable;
