@@ -65,32 +65,7 @@ final class SwooleServer
         });
 
         $server->on('WorkerStop', static function ($server, int $workerId) use ($container, $lifecycle): void {
-            try {
-                $lifecycle->emit('worker.stop', [
-                    'server' => $server,
-                    'worker_id' => $workerId,
-                ]);
-            } catch (Throwable $exception) {
-                error_log((string) $exception);
-            }
-
-            try {
-                $container->make(Scheduler::class)->clear();
-            } catch (Throwable $exception) {
-                error_log((string) $exception);
-            }
-
-            try {
-                $container->make(PoolManager::class)->clear();
-            } catch (Throwable $exception) {
-                error_log((string) $exception);
-            }
-
-            try {
-                $container->make(DatabaseManager::class)->shutdown();
-            } catch (Throwable $exception) {
-                error_log((string) $exception);
-            }
+            self::handleWorkerStop($container, $lifecycle, $server, $workerId);
         });
 
         $server->on('Request', static function ($swooleRequest, $swooleResponse) use ($container, $kernel, $lifecycle): void {
@@ -153,6 +128,39 @@ final class SwooleServer
                 // sequential requests, so it must be cleared after each one.
                 $context?->clear();
                 Context::default()->clear();
+            }
+        }
+    }
+
+    /**
+     * Run every worker cleanup even if an application lifecycle listener fails.
+     * Isolated from the server listener so shutdown ordering is testable.
+     */
+    private static function handleWorkerStop(
+        Container $container,
+        LifecycleManager $lifecycle,
+        mixed $server,
+        int $workerId
+    ): void {
+        try {
+            $lifecycle->emit('worker.stop', [
+                'server' => $server,
+                'worker_id' => $workerId,
+            ]);
+        } catch (Throwable $exception) {
+            error_log((string) $exception);
+        }
+
+        foreach ([Scheduler::class, PoolManager::class, DatabaseManager::class] as $service) {
+            try {
+                $instance = $container->make($service);
+                if ($instance instanceof Scheduler || $instance instanceof PoolManager) {
+                    $instance->clear();
+                } elseif ($instance instanceof DatabaseManager) {
+                    $instance->shutdown();
+                }
+            } catch (Throwable $exception) {
+                error_log((string) $exception);
             }
         }
     }
