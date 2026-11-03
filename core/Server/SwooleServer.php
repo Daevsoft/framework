@@ -95,11 +95,12 @@ final class SwooleServer
 
         $server->on('Request', static function ($swooleRequest, $swooleResponse) use ($container, $kernel, $lifecycle): void {
             $container->beginRequest();
-            $context = $container->make(Context::class);
+            $context = null;
             $request = null;
             $response = null;
 
             try {
+                $context = $container->make(Context::class);
                 $request = Request::fromSwoole($swooleRequest);
                 $context->set('request', $request);
                 $lifecycle->emit('request.received', $request);
@@ -127,11 +128,14 @@ final class SwooleServer
                 } catch (Throwable $exception) {
                     error_log((string) $exception);
                 }
-                $container->endRequest();
-                // Request callbacks may run without coroutine-local storage
-                // (for example when enable_coroutine is disabled). Clear the
-                // fallback store as well so request objects cannot survive.
-                $context->clear();
+                try {
+                    $container->endRequest();
+                } finally {
+                    // Request callbacks may run without coroutine-local storage
+                    // (for example when enable_coroutine is disabled). Clear the
+                    // fallback store as well so request objects cannot survive.
+                    $context?->clear();
+                }
             }
         });
 
