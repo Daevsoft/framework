@@ -6,6 +6,7 @@ namespace Tests\Unit;
 
 use Ds\Context\Context;
 use PHPUnit\Framework\TestCase;
+use WeakReference;
 
 final class ContextTest extends TestCase
 {
