@@ -364,10 +364,26 @@ final class DatabaseManagerTest extends TestCase
         ]);
         $key = (new \ReflectionMethod(DatabaseManager::class, 'poolKey'))->invoke($manager);
         $channels = new \ReflectionProperty(DatabaseManager::class, 'channels');
+        $activeOperations = new \ReflectionProperty(DatabaseManager::class, 'activeOperations');
+        $hasRun = method_exists(\Swoole\Coroutine::class, 'run');
+        $hasScheduler = class_exists(\Swoole\Coroutine\Scheduler::class);
+        if (!$hasRun && !$hasScheduler) {
+            self::markTestSkipped('No supported Swoole coroutine scheduler is available.');
+        }
+        $runner = static function (callable $callback) use ($hasRun): void {
+            if ($hasRun) {
+                \Swoole\Coroutine::run($callback);
+                return;
+            }
+
+            $scheduler = new \Swoole\Coroutine\Scheduler();
+            $scheduler->add($callback);
+            $scheduler->start();
+        };
         $results = [];
 
         try {
-            \Swoole\Coroutine::run(static function () use ($manager, $activeOperations, &$results): void {
+            $runner(static function () use ($manager, $activeOperations, $key, &$results): void {
                 \Swoole\Coroutine::create(static function () use ($manager, &$results): void {
                     $manager->transaction(function (\PDO $pdo) use ($manager, &$results): void {
                         $results['holder_entered'] = true;
@@ -388,10 +404,10 @@ final class DatabaseManagerTest extends TestCase
                     $results['waiter_result'] = $manager->select('SELECT 42 AS answer');
                 });
 
-                \Swoole\Coroutine::create(static function () use ($activeOperations, &$results): void {
+                \Swoole\Coroutine::create(static function () use ($activeOperations, $key, &$results): void {
                     \Swoole\Coroutine::sleep(0.03);
                     $counts = $activeOperations->getValue();
-                    $results['blocked_waiter_reserved'] = max($counts);
+                    $results['blocked_waiter_reserved'] = $counts[$key] ?? 0;
                 });
             });
         } finally {
