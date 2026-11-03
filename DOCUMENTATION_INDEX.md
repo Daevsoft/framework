@@ -14,7 +14,8 @@
 
 | Document | Purpose |
 |---|---|
-| [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) | Authoritative v3/v4 compatibility matrix and completion criteria |
+| [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) | v3/v4 compatibility matrix and completion criteria |
+| [V3_API_INVENTORY.md](V3_API_INVENTORY.md) | Tracked v3 source inventory, current v4 feature evidence, CLI/generator comparison and open gaps |
 | [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md) | Application development, migration and release checklist |
 | [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | Implemented v4 systems and limitations |
 | [COMPLETION.md](COMPLETION.md) | High-level implementation/migration status |
