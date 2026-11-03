@@ -348,6 +348,53 @@ final class DatabaseManagerTest extends TestCase
         self::assertFalse($afterCallback, 'Pool channel should close after the final lease is returned.');
     }
 
+
+    public function testShutdownWaitsForBlockedCoroutinePoolWaiter(): void
+    {
+        if (!class_exists(\Swoole\Coroutine::class) || !class_exists(\Swoole\Coroutine\Channel::class)) {
+            self::markTestSkipped('Swoole coroutine runtime is unavailable.');
+        }
+
+        $manager = new DatabaseManager([
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'pool' => ['max' => 1, 'timeout' => 2],
+        ]);
+        $key = (new \ReflectionMethod(DatabaseManager::class, 'poolKey'))->invoke($manager);
+        $channels = new \ReflectionProperty(DatabaseManager::class, 'channels');
+        $results = [];
+
+        try {
+            \Swoole\Coroutine::run(static function () use ($manager, &$results): void {
+                \Swoole\Coroutine::create(static function () use ($manager, &$results): void {
+                    $manager->transaction(function (\PDO $pdo) use ($manager, &$results): void {
+                        $results['holder_entered'] = true;
+                        \Swoole\Coroutine::sleep(0.08);
+                        $manager->shutdown();
+                    });
+                    $results['holder_finished'] = true;
+                });
+
+                \Swoole\Coroutine::create(static function () use ($manager, &$results): void {
+                    while (!($results['holder_entered'] ?? false)) {
+                        \Swoole\Coroutine::sleep(0.001);
+                    }
+
+                    // Give the holder time to lease the only connection so this
+                    // operation is blocked in Channel::pop when shutdown occurs.
+                    \Swoole\Coroutine::sleep(0.01);
+                    $results['waiter_result'] = $manager->select('SELECT 42 AS answer');
+                });
+            });
+        } finally {
+            $manager->shutdown();
+        }
+
+        self::assertTrue($results['holder_finished'] ?? false);
+        self::assertSame(42, $results['waiter_result'][0]['answer'] ?? null);
+        self::assertArrayNotHasKey($key, $channels->getValue());
+    }
+
     public function testPoolShutdownWaitsUntilActiveOperationsAreReleased(): void
     {
         $channel = new class {
