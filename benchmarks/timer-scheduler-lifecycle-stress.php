@@ -143,7 +143,7 @@ $report = [
     'checks' => $checks,
     'notes' => [
         'This harness verifies Swoole timer callback cleanup and repeated Scheduler clear/destruction in one process.',
-        'It does not simulate OS-level worker reload, forced coroutine termination, or every native Swoole cancellation race.',
+        'It does not simulate OS-level worker reload, multi-process worker shutdown, or every native I/O and timer/coroutine cancellation race.',
     ],
 ];
 $reportPath = getenv('AUDIT_REPORT_PATH') ?: 'timer-scheduler-lifecycle-report.json';
