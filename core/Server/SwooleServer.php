@@ -135,6 +135,7 @@ final class SwooleServer
                     // (for example when enable_coroutine is disabled). Clear the
                     // fallback store as well so request objects cannot survive.
                     $context?->clear();
+                    Context::default()->clear();
                 }
             }
         });
