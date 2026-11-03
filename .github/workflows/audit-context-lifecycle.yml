@@ -65,6 +65,9 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
+      - name: Run context lifecycle regression test
+        run: ./vendor/bin/phpunit tests/Unit/ContextLifecycleStressTest.php
+
       - name: Check stress harness syntax
         run: php -l benchmarks/context-lifecycle-stress.php
 
