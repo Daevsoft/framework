@@ -29,6 +29,7 @@ final class Container
             $shared ? 'singleton' : 'transient'
         );
         unset($this->instances[$abstract]);
+        $this->forgetRequestInstance($abstract);
     }
 
     public function singleton(string $abstract, mixed $concrete = null): void
@@ -39,12 +40,15 @@ final class Container
     public function scoped(string $abstract, mixed $concrete = null): void
     {
         $this->bindings->set($abstract, $concrete ?? $abstract, false, 'request');
+        unset($this->instances[$abstract]);
+        $this->forgetRequestInstance($abstract);
     }
 
     public function instance(string $abstract, mixed $instance): void
     {
         $this->bindings->set($abstract, $instance, true, 'singleton');
         $this->instances[$abstract] = $instance;
+        $this->forgetRequestInstance($abstract);
     }
 
     public function make(string $abstract, array $parameters = []): mixed
@@ -54,12 +58,30 @@ final class Container
 
     public function beginRequest(): void
     {
-        $this->requestContext()->clear();
+        // Clear only container-owned state; other request context values belong
+        // to their respective middleware/services and must remain untouched.
+        $this->requestContext()->remove('container.request_instances');
     }
 
     public function endRequest(): void
     {
-        $this->requestContext()->clear();
+        $this->requestContext()->remove('container.request_instances');
+    }
+
+    private function forgetRequestInstance(string $abstract): void
+    {
+        $context = $this->requestContext();
+        $instances = $context->get('container.request_instances', []);
+        if (!array_key_exists($abstract, $instances)) {
+            return;
+        }
+
+        unset($instances[$abstract]);
+        if ($instances === []) {
+            $context->remove('container.request_instances');
+        } else {
+            $context->set('container.request_instances', $instances);
+        }
     }
 
     private function resolve(
