@@ -253,6 +253,19 @@ final class DatabaseManagerTest extends TestCase
         self::assertSame(0, $this->database->table('users')->count());
     }
 
+    public function testEmptyInAndNotInFiltersHaveExplicitSemantics(): void
+    {
+        $this->database->table('users')->insert(['name' => 'Ada', 'active' => 1]);
+
+        self::assertCount(0, $this->database->table('users')->whereIn('id', [])->get());
+        self::assertCount(1, $this->database->table('users')->whereNotIn('id', [])->get());
+
+        self::assertCount(0, $this->database->table('users')
+            ->where('active', 0)
+            ->orWhereIn('id', [])
+            ->get());
+    }
+
     public function testShutdownIsIdempotentAndPreventsConnectionReuse(): void
     {
         $this->database->shutdown();
