@@ -72,7 +72,8 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added `whereInSubquery()` / `whereNotInSubquery()` with binding renaming and a one-column subquery guard.
 - Added regression tests for grouped predicates, nested groups, aliased LEFT JOINs, IN/NOT IN subqueries, and invalid multi-column subqueries.
 - Updated README query-builder and compatibility documentation.
-- Additional hardening: grouped COUNT now counts grouped result rows; subqueries must share the exact DatabaseManager instance.\n- Commits in this batch: `e08cb42eb035e53fab24fce4ebd54151aa310974`, `828da078db7acaef837d0132eda10ca232a58a3d`, `0a4f3f42300fb98399588da6d187c7c6b3d4f2e2`, `cecd73950d3c9910d3663b2ac20d49e33481d985`.
+- Additional hardening: grouped COUNT now counts grouped result rows; subqueries must share the exact DatabaseManager instance.
+- Commits in this batch: `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`.
 
 ### 2026-11-03 — Progress tracking initialized
 - Added this roadmap so task status, decisions, commits, and CI results are tracked in-repository.
@@ -83,14 +84,14 @@ This document is the durable work log and implementation roadmap for the v4 bran
   - Safe legacy DsModel query helpers.
   - GitHub Actions runs `41554201563` and `41554422145` succeeded.
 - Known risks found during audit:
-  - Current boolean conditions are flat; grouped predicates are missing.
-  - JOIN aliases and subqueries are not implemented.
-  - COUNT currently ignores GROUP BY/HAVING semantics.
+  - Grouped predicates are implemented; additional edge-case coverage remains.
+  - JOIN aliases and parameterized IN/NOT IN subqueries are implemented with identifier and binding validation.
+  - Grouped COUNT now counts result groups via a derived table.
   - Empty NOT IN currently adds no predicate, which is intentional for a no-op but needs explicit tests/documentation.
 
 ## Batch log
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
-| 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI pending | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739` |
+| 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc` |
 | 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
