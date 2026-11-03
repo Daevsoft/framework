@@ -13,11 +13,15 @@ final class DatabaseManager
     private static array $channels = [];
     private static array $created = [];
     private static ?self $defaultManager = null;
+    private static array $poolUsers = [];
 
     private ?PDO $localConnection = null;
+    private bool $shutdown = false;
 
     public function __construct(private readonly array $config)
     {
+        $key = $this->poolKey();
+        self::$poolUsers[$key] = (self::$poolUsers[$key] ?? 0) + 1;
     }
 
     public static function default(): self
@@ -49,8 +53,12 @@ final class DatabaseManager
     {
         return $this->withConnection(static function (PDO $pdo) use ($sql, $bindings): array {
             $statement = $pdo->prepare($sql);
-            $statement->execute($bindings);
-            return $statement->fetchAll();
+            try {
+                $statement->execute($bindings);
+                return $statement->fetchAll();
+            } finally {
+                $statement->closeCursor();
+            }
         });
     }
 
@@ -58,8 +66,12 @@ final class DatabaseManager
     {
         return $this->withConnection(static function (PDO $pdo) use ($sql, $bindings): int {
             $statement = $pdo->prepare($sql);
-            $statement->execute($bindings);
-            return $statement->rowCount();
+            try {
+                $statement->execute($bindings);
+                return $statement->rowCount();
+            } finally {
+                $statement->closeCursor();
+            }
         });
     }
 
@@ -107,17 +119,35 @@ final class DatabaseManager
 
     public function shutdown(): void
     {
+        if ($this->shutdown) {
+            return;
+        }
+
+        $this->shutdown = true;
         $this->localConnection = null;
+
         if (self::$defaultManager === $this) {
             self::$defaultManager = null;
         }
-        foreach (self::$channels as $channel) {
-            if (is_object($channel) && method_exists($channel, 'close')) {
-                $channel->close();
-            }
+
+        $key = $this->poolKey();
+        $remainingUsers = max(0, (self::$poolUsers[$key] ?? 1) - 1);
+        if ($remainingUsers > 0) {
+            self::$poolUsers[$key] = $remainingUsers;
+            return;
         }
-        self::$channels = [];
-        self::$created = [];
+
+        unset(self::$poolUsers[$key]);
+        $channel = self::$channels[$key] ?? null;
+        if (is_object($channel) && method_exists($channel, 'close')) {
+            $channel->close();
+        }
+        unset(self::$channels[$key], self::$created[$key]);
+    }
+
+    public function __destruct()
+    {
+        $this->shutdown();
     }
 
     private function withConnection(callable $callback): mixed
@@ -226,6 +256,7 @@ final class DatabaseManager
             $this->config['port'] ?? null,
             $this->config['database'] ?? null,
             $this->config['username'] ?? null,
+            hash('sha256', (string) ($this->config['password'] ?? '')),
             $this->config['charset'] ?? null,
             $this->config['ssl_cert'] ?? null,
             $this->config['ssl_verify'] ?? true,
