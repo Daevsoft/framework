@@ -242,7 +242,17 @@ final class DatabaseManager
         try {
             return $callback($connection);
         } finally {
-            if (!$channel->push($connection, 0.1)) {
+            // A worker may close the channel while an operation is unwinding.
+            // Do not let a failed push mask the query exception or leave the
+            // pool's connection count permanently inflated.
+            $released = false;
+            try {
+                $released = $channel->push($connection, 0.1) === true;
+            } catch (Throwable) {
+                // The leased connection is discarded when the channel rejects it.
+            }
+
+            if (!$released) {
                 self::$created[$key] = max(0, (self::$created[$key] ?? 1) - 1);
                 $connection = null;
             }
