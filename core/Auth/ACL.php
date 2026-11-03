@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Ds\Auth;
 
-class ACL
+final class ACL
 {
+    public function __construct(private readonly array $permissions = []) {}
+
     public function allows(string $permission): bool
     {
-        return false;
+        return in_array('*', $this->permissions, true)
+            || in_array($permission, $this->permissions, true);
     }
 }
-
-
