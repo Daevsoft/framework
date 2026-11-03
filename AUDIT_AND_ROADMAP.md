@@ -50,16 +50,17 @@ The table below records findings from the initial v4 audit; it is not a statemen
 
 ### P1 — Core framework completeness
 
-- [ ] Implement WebSocket upgrade, connection lifecycle, heartbeat, backpressure and worker-safe broadcasting, or explicitly de-scope the feature.
+- [ ] Implement WebSocket upgrade, connection lifecycle, heartbeat, backpressure and worker-safe broadcasting, or explicitly de-scope the feature. **Confirmed not implemented at current v4 HEAD**; transport classes and broadcast method are stubs. See `V3_API_INVENTORY.md`.
 - [ ] Complete route naming/URL generation, constraints, method-not-allowed handling and HEAD support.
 - [ ] Complete uploaded-file handling, cookie APIs and content negotiation.
-- [ ] Implement queued task-worker execution if asynchronous job queues are in scope; timer Scheduler is not a queue.
+- [ ] Implement queued task-worker execution if asynchronous job queues are in scope; timer Scheduler is not a queue. **Confirmed not implemented as a queue/worker subsystem**; v3 CronJob runner is not equivalent to the v4 timer Scheduler.
 - [ ] Expand pool factories, acquisition timeout behavior and driver-specific integration tests.
 - [ ] Complete or document event/broadcast adapters and supported transports.
 
 ### P2 — v3 migration parity
 
-- [ ] Inventory all public v3 classes, methods, helpers, configuration keys, console commands and generator templates.
+- [x] Build the tracked v3 file/class/subsystem inventory and compare major public surfaces, commands and generator templates against v4 (`V3_API_INVENTORY.md`).
+- [ ] Complete the exhaustive method/signature/return-type/exception/side-effect inventory for every public v3 class and helper.
 - [ ] Finish or explicitly replace v3 Active Record, query-chain, result-object and schema-builder behavior.
 - [ ] Decide and implement v3 CronJob/Job/Worker semantics or document a replacement.
 - [ ] Decide and implement compatibility for v3 Tester/Runner and remaining generator templates/options.
