@@ -10,15 +10,11 @@ use Ds\Http\Response;
 use Ds\Lifecycle\LifecycleManager;
 use Ds\Middleware\MiddlewarePipeline;
 use Ds\Middleware\MiddlewareStack;
-use RuntimeException;
-use WeakReference;
-
 $iterations = max(100, min(1000000, (int) (getenv('AUDIT_ITERATIONS') ?: 10000)));
 $gcInterval = max(10, (int) (getenv('AUDIT_GC_INTERVAL') ?: 100));
 $reportPath = getenv('AUDIT_REPORT_PATH') ?: 'context-lifecycle-stress-report.json';
 $memoryBaseline = memory_get_usage(true);
 $memoryBefore = memory_get_usage(false);
-$peakBefore = memory_get_peak_usage(true);
 $context = new Context();
 $lifecycle = new LifecycleManager();
 
@@ -124,8 +120,6 @@ for ($sequence = 1; $sequence <= $iterations; $sequence++) {
 
 gc_collect_cycles();
 $elapsedSeconds = (hrtime(true) - $startedAt) / 1_000_000_000;
-$memoryAfter = memory_get_usage(false);
-$memoryPeak = memory_get_peak_usage(true);
 $aliveReferences = 0;
 foreach ($weakReferences as $reference) {
     if ($reference->get() !== null) {
@@ -134,6 +128,8 @@ foreach ($weakReferences as $reference) {
 }
 unset($weakReferences);
 gc_collect_cycles();
+$memoryAfter = memory_get_usage(false);
+$memoryPeak = memory_get_peak_usage(true);
 
 $expectedReceivedExceptions = intdiv($iterations, 997);
 $expectedHandledExceptions = intdiv($iterations, 991);
