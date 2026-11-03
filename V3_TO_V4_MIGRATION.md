@@ -35,7 +35,7 @@ v4 has reimplemented the framework around a new Swoole-first runtime, HTTP kerne
 | Tester / Runner | Replaced / partial | PHPUnit-based tests and `php ds test` command | v3 custom Tester/Assert/Runner API is not a drop-in compatibility layer |
 | Debugger | Replaced / partial | v4 Inspector and Profiler | Compare v3 Debug API and exception rendering before claiming parity |
 | Environment helpers / generator | Partial | v4 environment loader and helper functions | v3 EnvGenerator / interactive .env generation is not confirmed as parity |
-| Broadcasting / WebSocket | New v4 direction; incomplete runtime | Broadcasting abstractions and `Route::ws()` declaration exist | WebSocket upgrade/connection lifecycle is not implemented; do not use as operational WebSocket server |
+| Broadcasting / WebSocket | Scaffolding only; not operational | `BroadcastManager` returns an empty `Broadcaster`; `broadcast()` is empty; Redis/SSE/WebSocket connection classes are empty; `Route::ws()` registers method `WS` | Implement configured transport resolution, Swoole WebSocket handshake/open/message/close callbacks, connection registry, heartbeat, backpressure, authorization and worker-safe pub/sub. See `V3_API_INVENTORY.md` |
 
 ## Verified v4 behavior
 
@@ -72,4 +72,4 @@ The v3 → v4 migration should only be marked **complete** after all of the foll
 4. **Views, helpers and configuration:** compare directives, helper signatures, environment keys and return semantics.
 5. **End-to-end upgrade examples:** migrate one representative v3 application/domain and document each required code change.
 
-See [AUDIT_AND_ROADMAP.md](AUDIT_AND_ROADMAP.md) for the v4 engineering roadmap and [DEVELOPMENT_PROGRESS.md](DEVELOPMENT_PROGRESS.md) for the chronological implementation log.
+See [V3_API_INVENTORY.md](V3_API_INVENTORY.md) for the tracked v3 source inventory and current v4 feature evidence, [AUDIT_AND_ROADMAP.md](AUDIT_AND_ROADMAP.md) for the engineering roadmap, and [DEVELOPMENT_PROGRESS.md](DEVELOPMENT_PROGRESS.md) for the chronological implementation log.
