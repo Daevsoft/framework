@@ -193,6 +193,10 @@ final class QueryBuilder
 
     private function addSubqueryPredicate(string $column, self $subquery, string $operator): self
     {
+        if ($subquery->database !== $this->database) {
+            throw new \\InvalidArgumentException('Subqueries must use the same DatabaseManager instance.');
+        }
+
         [$sql, $bindings] = $subquery->toSubquery();
         $renamed = [];
         foreach ($bindings as $name => $value) {
@@ -372,9 +376,19 @@ final class QueryBuilder
 
     public function count(): int
     {
-        $sql = 'SELECT COUNT(*) AS aggregate FROM ' . $this->database->quoteIdentifier($this->table)
-            . ($this->joins === [] ? '' : ' ' . implode(' ', $this->joins))
-            . $this->whereSql();
+        if ($this->groups !== [] || $this->havingConditions !== []) {
+            $inner = 'SELECT 1 FROM ' . $this->database->quoteIdentifier($this->table)
+                . ($this->joins === [] ? '' : ' ' . implode(' ', $this->joins))
+                . $this->whereSql()
+                . ($this->groups === [] ? '' : ' GROUP BY ' . implode(', ', $this->groups))
+                . ($this->havingConditions === [] ? '' : ' HAVING ' . implode(' AND ', $this->havingConditions));
+            $sql = 'SELECT COUNT(*) AS aggregate FROM (' . $inner . ') AS aggregate_rows';
+        } else {
+            $sql = 'SELECT COUNT(*) AS aggregate FROM ' . $this->database->quoteIdentifier($this->table)
+                . ($this->joins === [] ? '' : ' ' . implode(' ', $this->joins))
+                . $this->whereSql();
+        }
+
         $row = $this->database->select($sql, $this->bindings)[0] ?? [];
         return (int) ($row['aggregate'] ?? 0);
     }
