@@ -11,6 +11,25 @@ use PHPUnit\Framework\TestCase;
 
 final class SchedulerTest extends TestCase
 {
+
+    public function testCanCancelSwooleTimerWhenExtensionIsAvailable(): void
+    {
+        if (!class_exists(\\Swoole\\Timer::class)) {
+            self::markTestSkipped('Swoole timer extension is unavailable.');
+        }
+
+        $task = new class extends Task {
+            public function handle(): void
+            {
+            }
+        };
+        $scheduler = new Scheduler();
+        $timerId = $scheduler->schedule($task, 60000);
+
+        self::assertTrue($scheduler->cancel($timerId));
+        self::assertSame(0, $scheduler->count());
+    }
+
     public function testRejectsInvalidTimerCapacity(): void
     {
         $this->expectException(InvalidArgumentException::class);
