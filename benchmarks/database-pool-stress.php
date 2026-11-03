@@ -2,20 +2,16 @@
 
 declare(strict_types=1);
 
-use Ds\\Database\\DatabaseManager;
-use PDO;
-use RuntimeException;
-use Throwable;
-
+use Ds\Database\DatabaseManager;
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-if (!class_exists(\\Swoole\\Coroutine::class) || !class_exists(\\Swoole\\Coroutine\\Channel::class)) {
-    fwrite(STDERR, "Swoole coroutine runtime is required for this audit.\\n");
+if (!class_exists(\Swoole\Coroutine::class) || !class_exists(\Swoole\Coroutine\Channel::class)) {
+    fwrite(STDERR, "Swoole coroutine runtime is required for this audit.\n");
     exit(2);
 }
 
 if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
-    fwrite(STDERR, "PDO SQLite is required for this audit.\\n");
+    fwrite(STDERR, "PDO SQLite is required for this audit.\n");
     exit(2);
 }
 
@@ -51,7 +47,7 @@ $memoryBefore = memory_get_usage(true);
 $startedAt = hrtime(true);
 
 try {
-    \\Swoole\\Coroutine::run(static function () use (
+    \Swoole\Coroutine::run(static function () use (
         $manager,
         $workers,
         $iterations,
@@ -60,7 +56,7 @@ try {
         &$failures
     ): void {
         for ($worker = 0; $worker < $workers; $worker++) {
-            \\Swoole\\Coroutine::create(static function () use (
+            \Swoole\Coroutine::create(static function () use (
                 $manager,
                 $worker,
                 $iterations,
@@ -77,7 +73,7 @@ try {
                             }
 
                             if ($holdMilliseconds > 0) {
-                                \\Swoole\\Coroutine::sleep($holdMilliseconds / 1000);
+                                \Swoole\Coroutine::sleep($holdMilliseconds / 1000);
                             }
                         });
                         $completed++;
