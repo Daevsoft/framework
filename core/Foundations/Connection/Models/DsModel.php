@@ -86,21 +86,35 @@ abstract class DsModel extends Model
     public static function save(array $attributes): int
     {
         $model = new static();
+        $primaryKey = (string) $model->primaryKey;
+
         if (array_is_list($attributes)) {
             $affected = 0;
             foreach ($attributes as $row) {
                 if (!is_array($row)) {
-                    throw new \InvalidArgumentException('Bulk model save expects arrays of attributes.');
+                    throw new \\InvalidArgumentException('Bulk model save expects arrays of attributes.');
                 }
-                $filtered = $model->filterLegacyFillable($row);
-                if ($filtered !== []) {
-                    $affected += parent::save($filtered);
-                }
+                $affected += static::save($row);
             }
             return $affected;
         }
 
-        return parent::save($model->filterLegacyFillable($attributes));
+        $id = $attributes[$primaryKey] ?? null;
+        unset($attributes[$primaryKey]);
+        $filtered = $model->filterLegacyFillable($attributes);
+
+        if ($id !== null) {
+            if ($filtered === []) {
+                return 0;
+            }
+            return static::query()->where($primaryKey, $id)->update($filtered);
+        }
+
+        if ($filtered === []) {
+            return 0;
+        }
+
+        return static::query()->insert($filtered);
     }
 
     public static function remove(int|array $idWhere): int
