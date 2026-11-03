@@ -189,58 +189,62 @@ final class DatabaseManager
         }
 
         $key = $this->poolKey();
-        $channelClass = 'Swoole\\Coroutine\\Channel';
-        $max = max(1, (int) ($this->config['pool']['max'] ?? 10));
-        $timeout = max(0.1, (float) ($this->config['pool']['timeout'] ?? 3.0));
-        $channel = self::$channels[$key] ??= new $channelClass($max);
+        // Reserve the pool before any potentially blocking pop/create operation.
+        // This prevents shutdown from closing the channel while a coroutine waits.
+        self::$activeLeases[$key] = (self::$activeLeases[$key] ?? 0) + 1;
 
-        if ($channel->length() > 0) {
-            $connection = $channel->pop($timeout);
-            if ($connection instanceof PDO) {
+        try {
+            $channelClass = 'Swoole\\\\Coroutine\\\\Channel';
+            $max = max(1, (int) ($this->config['pool']['max'] ?? 10));
+            $timeout = max(0.1, (float) ($this->config['pool']['timeout'] ?? 3.0));
+            $channel = self::$channels[$key] ??= new $channelClass($max);
+
+            if ($channel->length() > 0) {
+                $connection = $channel->pop($timeout);
+                if ($connection instanceof PDO) {
+                    return $this->runAndRelease($connection, $callback, $channel, $key);
+                }
+            }
+
+            $created = self::$created[$key] ?? 0;
+            if ($created < $max) {
+                self::$created[$key] = $created + 1;
+                try {
+                    $connection = $this->createConnection();
+                } catch (Throwable $exception) {
+                    self::$created[$key] = max(0, (self::$created[$key] ?? 1) - 1);
+                    throw $exception;
+                }
+
                 return $this->runAndRelease($connection, $callback, $channel, $key);
             }
-        }
 
-        $created = self::$created[$key] ?? 0;
-        if ($created < $max) {
-            self::$created[$key] = $created + 1;
-            try {
-                $connection = $this->createConnection();
-            } catch (Throwable $exception) {
-                self::$created[$key] = max(0, (self::$created[$key] ?? 1) - 1);
-                throw $exception;
+            $connection = $channel->pop($timeout);
+            if (!$connection instanceof PDO) {
+                throw new RuntimeException('Timed out waiting for a database connection from the Swoole pool.');
             }
+
             return $this->runAndRelease($connection, $callback, $channel, $key);
-        }
+        } finally {
+            $remainingLeases = max(0, (self::$activeLeases[$key] ?? 1) - 1);
+            if ($remainingLeases > 0) {
+                self::$activeLeases[$key] = $remainingLeases;
+            } else {
+                unset(self::$activeLeases[$key]);
+            }
 
-        $connection = $channel->pop($timeout);
-        if (!$connection instanceof PDO) {
-            throw new RuntimeException('Timed out waiting for a database connection from the Swoole pool.');
+            $this->closePoolIfUnused($key);
         }
-
-        return $this->runAndRelease($connection, $callback, $channel, $key);
     }
 
     private function runAndRelease(PDO $connection, callable $callback, object $channel, string $key): mixed
     {
-        self::$activeLeases[$key] = (self::$activeLeases[$key] ?? 0) + 1;
-
         try {
             return $callback($connection);
         } finally {
-            try {
-                if (!$channel->push($connection, 0.1)) {
-                    self::$created[$key] = max(0, (self::$created[$key] ?? 1) - 1);
-                    $connection = null;
-                }
-            } finally {
-                $remainingLeases = max(0, (self::$activeLeases[$key] ?? 1) - 1);
-                if ($remainingLeases > 0) {
-                    self::$activeLeases[$key] = $remainingLeases;
-                } else {
-                    unset(self::$activeLeases[$key]);
-                    $this->closePoolIfUnused($key);
-                }
+            if (!$channel->push($connection, 0.1)) {
+                self::$created[$key] = max(0, (self::$created[$key] ?? 1) - 1);
+                $connection = null;
             }
         }
     }
