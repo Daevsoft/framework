@@ -27,6 +27,23 @@ final class LifecycleManagerTest extends TestCase
         self::assertSame(['worker_id' => 3], $received->payload);
     }
 
+    public function testUnregisteringListenerReleasesCapturedObjects(): void
+    {
+        $manager = new LifecycleManager();
+        $target = new \\stdClass();
+        $reference = \\WeakReference::create($target);
+        $listener = static function () use ($target): void {};
+
+        $manager->register('worker.start', $listener);
+        unset($target);
+
+        self::assertTrue($manager->unregister('worker.start', $listener));
+        unset($listener);
+        gc_collect_cycles();
+
+        self::assertNull($reference->get());
+    }
+
     public function testCanUnregisterAndClearListeners(): void
     {
         $manager = new LifecycleManager();
