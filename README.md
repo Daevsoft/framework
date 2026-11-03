@@ -233,7 +233,7 @@ $events->clear('order.created');
 $events->clear();
 ```
 
-Lifecycle callbacks support the same cleanup pattern with `unregister($event, $listener)` and `clear($event = null)`. Keep process-wide listeners limited to process-wide state; do not capture request objects, authenticated users, or per-request services in callbacks that survive the request. `Ds\\Tasks\\Scheduler` uses weak references from timer callbacks to its scheduler instance; call `cancel()` or `clear()` when recurring tasks are no longer needed. Releasing the scheduler also clears its registered timers.
+Lifecycle callbacks support the same cleanup pattern with `unregister($event, $listener)` and `clear($event = null)`. Swoole and FPM request handlers clear the request `Context` in their `finally` paths; custom server integrations should do the same after request lifecycle callbacks. Keep process-wide listeners limited to process-wide state; do not capture request objects, authenticated users, or per-request services in callbacks that survive the request. `Ds\\Tasks\\Scheduler` uses weak references from timer callbacks to its scheduler instance; call `cancel()` or `clear()` when recurring tasks are no longer needed. Releasing the scheduler also clears its registered timers.
 
 ## Responses
 
