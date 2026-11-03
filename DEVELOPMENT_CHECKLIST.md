@@ -1,270 +1,120 @@
-# Development Checklist - Ds Framework
+# Development & Migration Checklist — Ds Framework 4
 
-Use this checklist as you develop with the Ds Framework.
+This file is the working checklist for developing applications on v4. It is **not** a declaration that v3 → v4 migration is complete. See [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) for the framework compatibility inventory.
 
-## 🚀 Getting Started
+## Framework migration status
 
-- [ ] Read `QUICKSTART.md`
+- [x] Swoole-first HTTP runtime and explicit FPM compatibility adapter
+- [x] Shared HTTP kernel, request/response handling and middleware pipeline
+- [x] Parameterized routing and v3-style controller/attribute routing foundations
+- [x] Request-scoped container/context cleanup and lifecycle hooks
+- [x] PDO query builder, transactions, connection pooling and v4 migrations
+- [x] Partial v3 compatibility bridges for Request, Response, Middleware, DsModel, Collection, sessions, CSRF and views
+- [x] CLI commands for common generators, route listing, config, tests and migrations
+- [x] CI coverage and lifecycle audit workflows through AUDIT-06
+- [ ] Complete public v3 API/method/command/template inventory
+- [ ] Complete and test Active Record/query/schema/migration parity or document each replacement
+- [ ] Port or formally de-scope v3 CronJob/Job/Worker and Tester/Runner APIs
+- [ ] Implement a complete WebSocket server runtime or formally de-scope it
+- [ ] Finish supported PHP/Swoole compatibility matrix and production deployment validation
+
+## Getting started
+
+- [ ] Read `README.md` and `QUICKSTART.md`
 - [ ] Copy `.env.example` to `.env`
-- [ ] Configure `.env` for your environment
-- [ ] Run `php -S 127.0.0.1:8000 -t public/` (FPM) or `php app/bootstrap/swoole.php` (Swoole)
-- [ ] Verify app loads at `http://127.0.0.1:8000`
-- [ ] Test health endpoint: `curl http://127.0.0.1:8000/health`
+- [ ] Configure application, runtime and database environment variables
+- [ ] Install dependencies with `composer install`
+- [ ] Start the primary runtime with `php ds serve`
+- [ ] Verify `GET /health`
+- [ ] If required, test the FPM adapter with `php ds fpm:serve`
 
-## 🏗️ Project Setup
+## Application setup
 
-- [ ] Define application name in `.env`
-- [ ] Set `APP_DEBUG=true` for development
-- [ ] Configure database connection (when needed)
-- [ ] Setup broadcasting configuration
-- [ ] Configure WebSocket settings (if needed)
+- [ ] Set `APP_ENV` and `APP_DEBUG` appropriately
+- [ ] Configure `APP_KEY` with a unique random secret before enabling CSRF
+- [ ] Configure database credentials and connection limits
+- [ ] Configure storage/cache/session permissions
+- [ ] Configure external services only when their adapters are actually installed and supported
 
-## 🛣️ Routing
+## Routing and controllers
 
-- [ ] Define routes in `app/routes/web.php`
-- [ ] Test routes with `curl` or Postman
-- [ ] Use route parameters: `/users/{id}`
-- [ ] Group related routes: `Route::prefix('/api', ...)`
-- [ ] Create resource routes: `Route::resource('posts', 'PostController')`
-- [ ] Setup WebSocket routes in `app/routes/websocket.php`
+- [ ] Define routes in `app/routes/web.php` or `app/routes/api.php`
+- [ ] Use parameterized routes and verify route parameters
+- [ ] Use controller callables or the supported v3-style controller group/attributes
+- [ ] Test 404, invalid parameters, unsupported methods and handler exceptions
+- [ ] Do not assume `Route::ws()` starts a working WebSocket server
 
-## 🎮 Controllers
+## Middleware and request state
 
-- [ ] Create controller classes in `app/http/Controllers/`
-- [ ] Extend base Controller (if applicable)
-- [ ] Accept `Request` parameter in methods
-- [ ] Return `Response` objects
-- [ ] Use type hints for URL parameters: `function show(Request $request, int $id)`
-- [ ] Test each endpoint
+- [ ] Implement middleware using `Ds\\Middleware\\MiddlewareInterface` or the documented callable signature
+- [ ] Register global middleware during bootstrap, not per request
+- [ ] Keep request data in Request/Context/request-scoped services
+- [ ] Never retain request objects or user data in worker singletons/static properties
+- [ ] Verify middleware cleanup on both normal and exception paths
 
-## 🧩 Middleware
+## Domains and services
 
-- [ ] Create middleware in `app/http/Middleware/`
-- [ ] Implement `handle(Request $request, $next)` method
-- [ ] Call `$next($request)` to continue pipeline
-- [ ] Register global middleware in Kernel
-- [ ] Test middleware execution order
+- [ ] Create a domain with `php ds make:domain DomainName`
+- [ ] Keep HTTP controllers thin
+- [ ] Put business logic in services
+- [ ] Keep persistence concerns in models/repositories
+- [ ] Document domain routes, services and dependencies
 
-## 🏛️ Domains
+## Database and migrations
 
-- [ ] Create domain: `php app/console make:domain Users`
-- [ ] Define routes in domain's `Http/Routes.php`
-- [ ] Create domain controller in `Http/Controllers/`
-- [ ] Add services in `Services/`
-- [ ] Add models in `Models/`
-- [ ] Add repositories in `Repositories/`
-- [ ] Add events in `Events/`
-- [ ] Document domain in `README.md`
+- [ ] Use parameterized query-builder values
+- [ ] Validate identifiers; never interpolate untrusted SQL fragments
+- [ ] Create v4 migrations in `database/migrations`
+- [ ] Run `php ds migrate --status` before deployment
+- [ ] Test migration rollback on a disposable database
+- [ ] Review legacy v3 model/schema/migration usage against [the migration matrix](V3_TO_V4_MIGRATION.md)
 
-## 📝 Configuration
+## Authentication, sessions and CSRF
 
-- [ ] Update `app/config/app.php` with app name
-- [ ] Configure `app/config/auth.php` for authentication
-- [ ] Setup `app/config/broadcasting.php`
-- [ ] Configure `app/config/server.php`
-- [ ] Add enabled domains to `app/config/domains.php`
-- [ ] Set environment variables in `.env`
+- [ ] Implement a real authentication guard/provider before protecting production routes
+- [ ] Do not treat the built-in AuthMiddleware placeholder (HTTP 501) as authentication
+- [ ] Add SessionMiddleware before CsrfMiddleware when using sessions and CSRF
+- [ ] Configure a strong APP_KEY and secure cookie settings
+- [ ] Test authorization failures and session isolation
 
-## 🔐 Authentication (when needed)
+## Views, validation and cache
 
-- [ ] Create User domain or controller
-- [ ] Implement login endpoint
-- [ ] Generate and validate tokens
-- [ ] Add auth middleware to protected routes
-- [ ] Test protected endpoints
+- [ ] Use the documented PieTemplate syntax
+- [ ] Escape untrusted output
+- [ ] Validate request input and handle structured validation errors
+- [ ] Configure cache/session storage for the deployment concurrency model
+- [ ] Verify view cache invalidation after changing layouts/components
 
-## 📡 Broadcasting & WebSocket (if needed)
+## Testing and quality
 
-- [ ] Enable WebSocket in `.env`
-- [ ] Define WebSocket routes
-- [ ] Create broadcast event classes
-- [ ] Setup event listeners
-- [ ] Test WebSocket connections
-- [ ] Verify message broadcasting
+- [ ] Add PHPUnit regression tests for every behavior change
+- [ ] Run `composer validate --no-check-publish`
+- [ ] Run `./vendor/bin/phpunit`
+- [ ] Run relevant audit workflows when changing lifecycle, pool, context, timer or coroutine code
+- [ ] Review GitHub Actions; require all relevant jobs to pass
+- [ ] Perform realistic load, security and failure-mode tests before production use
 
-## 🧪 Testing
+## Deployment
 
-- [ ] Create unit tests in `tests/Unit/`
-- [ ] Create feature tests in `app/tests/Feature/`
-- [ ] Test all endpoints
-- [ ] Test middleware
-- [ ] Test domain logic
-- [ ] Run test suite: `./vendor/bin/phpunit`
+### Swoole (primary runtime)
+- [ ] Set `APP_RUNTIME=swoole`, `APP_ENV=production`, `APP_DEBUG=false`
+- [ ] Configure worker count and connection limits for available resources
+- [ ] Run under Supervisor/systemd or an equivalent process manager
+- [ ] Configure reverse proxy and TLS termination
+- [ ] Configure log rotation, monitoring, alerting and backups
+- [ ] Measure worker RSS and memory trends under sustained representative traffic
+- [ ] Verify graceful shutdown and worker restart behavior in the target environment
 
-## 📚 Documentation
+### FPM (compatibility runtime)
+- [ ] Configure Nginx/Apache and PHP-FPM to use `public/index.php`
+- [ ] Set production environment variables
+- [ ] Verify permissions, logs, HTTPS and backups
 
-- [ ] Document API endpoints in comments
-- [ ] Create README for domains
-- [ ] Document environment configuration
-- [ ] Add code comments for complex logic
-- [ ] Update API documentation
+## Release checklist
 
-## 🚀 Optimization
-
-- [ ] Enable caching in production
-- [ ] Use `APP_DEBUG=false` in production
-- [ ] Configure error logging
-- [ ] Optimize database queries
-- [ ] Cache configuration files
-- [ ] Use Swoole for high-performance needs
-
-## 🔧 Deployment - FPM
-
-- [ ] Set `APP_ENV=production`
-- [ ] Set `APP_DEBUG=false`
-- [ ] Configure PHP-FPM with appropriate workers
-- [ ] Setup Nginx/Apache virtual host
-- [ ] Point webroot to `public/`
-- [ ] Ensure `storage/` directories are writable
-- [ ] Setup logging
-- [ ] Configure HTTPS/SSL
-- [ ] Setup backups
-
-## 🚀 Deployment - Swoole
-
-- [ ] Set `APP_RUNTIME=swoole`
-- [ ] Set `APP_ENV=production`
-- [ ] Set `APP_DEBUG=false`
-- [ ] Configure Swoole worker count
-- [ ] Setup Supervisor for process management
-- [ ] Configure systemd service
-- [ ] Setup reverse proxy (Nginx)
-- [ ] Configure HTTPS termination
-- [ ] Monitor memory and performance
-- [ ] Setup log rotation
-
-## 🔍 Quality Assurance
-
-- [ ] Code review for logic errors
-- [ ] Security review for vulnerabilities
-- [ ] Performance testing
-- [ ] Load testing (especially Swoole)
-- [ ] Verify all endpoints
-- [ ] Test error handling
-- [ ] Test edge cases
-- [ ] Test concurrent requests
-
-## 📋 Pre-Launch Checklist
-
-- [ ] All routes tested
-- [ ] All controllers working
-- [ ] Authentication working (if needed)
-- [ ] Broadcasting working (if needed)
-- [ ] Error handling in place
-- [ ] Logging configured
-- [ ] Environment variables set
-- [ ] Database migrations done (if needed)
-- [ ] Tests passing
-- [ ] Documentation complete
-- [ ] Performance acceptable
-- [ ] Security review done
-- [ ] Deployment plan ready
-
-## 🚀 Launch
-
-- [ ] Deploy code to production
-- [ ] Verify all services running
-- [ ] Monitor logs for errors
-- [ ] Test from production environment
-- [ ] Verify performance metrics
-- [ ] Setup monitoring/alerting
-- [ ] Prepare rollback plan
-
-## 📊 Post-Launch
-
-- [ ] Monitor application health
-- [ ] Check error logs regularly
-- [ ] Monitor performance metrics
-- [ ] Gather user feedback
-- [ ] Plan future improvements
-- [ ] Schedule regular backups
-- [ ] Update documentation based on findings
-
-## 📝 Common Tasks
-
-### Add a New Endpoint
-- [ ] Define route in `app/routes/web.php`
-- [ ] Create/update controller
-- [ ] Add business logic
-- [ ] Add validation
-- [ ] Test endpoint
-- [ ] Document in API.md
-
-### Add Authentication
-- [ ] Create auth controller
-- [ ] Create login endpoint
-- [ ] Create middleware
-- [ ] Test authenticated endpoints
-- [ ] Document authentication flow
-
-### Add Database Integration
-- [ ] Setup database configuration
-- [ ] Create migrations (when available)
-- [ ] Create models
-- [ ] Create repositories
-- [ ] Implement queries
-- [ ] Test database operations
-
-### Add Event Broadcasting
-- [ ] Create event class
-- [ ] Create listener
-- [ ] Dispatch event from business logic
-- [ ] Test event dispatch
-- [ ] Test broadcasting
-
-### Add WebSocket Feature
-- [ ] Define WebSocket route
-- [ ] Create event handler
-- [ ] Add client-side code
-- [ ] Test WebSocket connection
-- [ ] Test message delivery
-
-## 🐛 Debugging
-
-- [ ] Check `.env` configuration
-- [ ] Enable `APP_DEBUG=true`
-- [ ] Check error logs in `storage/logs/`
-- [ ] Use `dump()` and `dd()` for debugging
-- [ ] Check request/response with curl or Postman
-- [ ] Verify database queries (if applicable)
-- [ ] Check WebSocket connection (if applicable)
-
-## 🔗 Useful Commands
-
-```bash
-# Start development server (FPM)
-php -S 127.0.0.1:8000 -t public/
-
-# Start Swoole server
-php app/bootstrap/swoole.php
-
-# Create new domain
-php app/console make:domain Domain
-
-# Run tests
-./vendor/bin/phpunit
-
-# Check for errors
-php -l app/http/Controllers/MyController.php
-
-# List routes (coming soon)
-php app/console route:list
-```
-
-## 📞 Quick Reference
-
-| Task | Command/File |
-|------|--------------|
-| Define routes | `app/routes/web.php` |
-| Create controller | `app/http/Controllers/` |
-| Create middleware | `app/http/Middleware/` |
-| Create domain | `php app/console make:domain` |
-| Configure app | `app/config/app.php` |
-| Set env vars | `.env` |
-| Start dev server | `php -S 127.0.0.1:8000 -t public/` |
-| Start Swoole | `php app/bootstrap/swoole.php` |
-| Run tests | `./vendor/bin/phpunit` |
-
----
-
-**Good luck with your project!** 🎉
+- [ ] All relevant CI jobs pass on the release commit
+- [ ] No undocumented compatibility gaps remain for the features used by the application
+- [ ] Security review and dependency review completed
+- [ ] Migration and rollback procedures tested
+- [ ] API and deployment documentation match the release
+- [ ] Rollback plan and operational monitoring are ready
