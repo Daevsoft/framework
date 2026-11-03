@@ -253,6 +253,35 @@ final class DatabaseManagerTest extends TestCase
         self::assertSame(0, $this->database->table('users')->count());
     }
 
+    public function testShutdownIsIdempotentAndPreventsConnectionReuse(): void
+    {
+        $this->database->shutdown();
+        $this->database->shutdown();
+
+        $this->expectException(RuntimeException::class);
+        $this->database->table('users')->count();
+    }
+
+    public function testShuttingDownOneManagerDoesNotInvalidateAnother(): void
+    {
+        $other = new DatabaseManager([
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+        ]);
+
+        try {
+            $other->execute(
+                'CREATE TABLE isolated (id INTEGER PRIMARY KEY, value TEXT NOT NULL)'
+            );
+            $this->database->shutdown();
+
+            self::assertSame(1, $other->table('isolated')->insert(['value' => 'still-open']));
+            self::assertSame(1, $other->table('isolated')->count());
+        } finally {
+            $other->shutdown();
+        }
+    }
+
     public function testRejectsUnsafeIdentifiersAndOperators(): void
     {
         $this->expectException(InvalidArgumentException::class);
