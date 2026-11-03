@@ -6,6 +6,7 @@ namespace Tests\Unit;
 
 use Ds\Container\Container;
 use PHPUnit\Framework\TestCase;
+use WeakReference;
 
 final class RequestScopeTest extends TestCase
 {
