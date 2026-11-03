@@ -1,6 +1,6 @@
 # Setup and Deployment
 
-Ds Framework 4 is **Swoole-first**. The normal installation path runs a persistent Swoole HTTP server. PHP-FPM is an optional compatibility mode that reuses the same router, dispatcher, and HTTP kernel.
+Ds Framework 4 is **Swoole-first**. The normal installation path runs a persistent Swoole HTTP server. PHP-FPM is an optional compatibility mode that reuses the same router, dispatcher, and HTTP kernel. Existing v3 applications are not drop-in compatible; review [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) before upgrading.
 
 ## Requirements
 
