@@ -189,7 +189,7 @@ db()->table('users')->where('id', 42)->update(['name' => 'Deva']);
 
 Values are always passed as prepared-statement parameters. Table and column identifiers are validated before being quoted. Do not interpolate user input into raw SQL.
 
-In Swoole coroutines, the manager leases PDO connections from a bounded per-worker coroutine channel and returns each connection after the operation. Outside a Swoole coroutine, it reuses a local connection for the lifetime of the manager. Tune `DB_POOL_MAX` and `DB_POOL_TIMEOUT` for the database server's connection budget.
+In Swoole coroutines, the manager leases PDO connections from a bounded per-worker coroutine channel and returns each connection after the operation. Pool shutdown is deferred until active leases finish, so an in-flight callback can return its connection before the channel is closed. Outside a Swoole coroutine, it reuses a local connection for the lifetime of the manager. Tune `DB_POOL_MAX` and `DB_POOL_TIMEOUT` for the database server's connection budget.
 
 Create a migration in `database/migrations` that returns a `Ds\Database\Migration` instance:
 
@@ -233,7 +233,7 @@ $events->clear('order.created');
 $events->clear();
 ```
 
-Lifecycle callbacks support the same cleanup pattern with `unregister($event, $listener)` and `clear($event = null)`. Keep process-wide listeners limited to process-wide state; do not capture request objects, authenticated users, or per-request services in callbacks that survive the request.
+Lifecycle callbacks support the same cleanup pattern with `unregister($event, $listener)` and `clear($event = null)`. Keep process-wide listeners limited to process-wide state; do not capture request objects, authenticated users, or per-request services in callbacks that survive the request. `Ds\\Tasks\\Scheduler` uses weak references from timer callbacks to its scheduler instance; call `cancel()` or `clear()` when recurring tasks are no longer needed. Releasing the scheduler also clears its registered timers.
 
 ## Responses
 
@@ -384,7 +384,7 @@ $container->singleton(CacheClient::class); // one per worker process
 $container->scoped(CurrentTenant::class);  // one per request/coroutine
 ```
 
-A singleton cannot depend on a request-scoped service. The container rejects that dependency graph instead of allowing user/request state to leak between requests.
+A singleton cannot depend on a request-scoped service. The container rejects that dependency graph instead of allowing user/request state to leak between requests. `beginRequest()` and `endRequest()` clear only the container's request-instance cache, preserving unrelated values in `Ds\\Context\\Context`. Rebinding a service also invalidates its cached request-scoped instance.
 
 ## Long-running worker rules
 
