@@ -159,6 +159,54 @@ final class DatabaseManagerTest extends TestCase
         self::assertSame('Lin', $notMatched[0]['name']);
     }
 
+    public function testGroupedCountCountsResultGroups(): void
+    {
+        $this->database->table('users')->insert(['name' => 'Ada', 'active' => 1]);
+        $this->database->table('users')->insert(['name' => 'Lin', 'active' => 0]);
+        $this->database->table('users')->insert(['name' => 'Mia', 'active' => 1]);
+
+        self::assertSame(
+            2,
+            $this->database->table('users')->select('active')->groupBy('active')->count()
+        );
+
+        self::assertSame(
+            1,
+            $this->database->table('users')
+                ->select('active')
+                ->groupBy('active')
+                ->having('active', '=', 0)
+                ->count()
+        );
+    }
+
+    public function testJoinAliasRejectsUnsafeIdentifiers(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->database->table('users')->leftJoin(
+            'profiles',
+            'users.id',
+            '=',
+            'p.user_id',
+            'p; DROP TABLE users'
+        );
+    }
+
+    public function testSubqueryMustShareDatabaseManager(): void
+    {
+        $otherDatabase = new DatabaseManager([
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+        ]);
+        try {
+            $subquery = $otherDatabase->table('profiles')->select('user_id');
+            $this->expectException(InvalidArgumentException::class);
+            $this->database->table('users')->whereInSubquery('id', $subquery);
+        } finally {
+            $otherDatabase->shutdown();
+        }
+    }
+
     public function testSubqueryRequiresExactlyOneSelectedColumn(): void
     {
         $subquery = $this->database->table('users')->select(['id', 'name']);
