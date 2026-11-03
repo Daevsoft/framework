@@ -176,8 +176,8 @@ This document is the durable work log and implementation roadmap for the v4 bran
 ## Batch log
 
 | Date | Batch | Changes | Tests / CI | Commit |
-| 2026-11-03 | PERF-05 | Explicit Swoole/FPM request context cleanup; reentrant Pool/PoolManager clear guards; WeakReference and reentrancy regression tests | Pending | Pending |
 |---|---|---|---|---|
+| 2026-11-03 | PERF-05 | Explicit Swoole/FPM request context cleanup; reentrant Pool/PoolManager clear guards; WeakReference and reentrancy regression tests | Pending | Pending |
 | 2026-11-03 | PERF-03 | Request-scope invalidation and context preservation; WeakReference cleanup test; weakly-held scheduler callbacks; deferred database pool closure and regression coverage | CI run `41570274744` passed | `aaca977`, `b2f90bf`, `3933794`, `709dac2`, `caa0832`, `be69215`, `e0e8542`, `9c6a5ca`, `8794373`, `be9a174`, `68067b0`, `8cd9488` |
 | 2026-11-03 | PERF-02 | WeakReference/GC tests for dispatcher, event and lifecycle retention; worker cleanup documentation | CI passed in run `41569612807` | `1ff5466`, `eac474e`, `4409f56`, `ce46aad`, `1b8529e`, `5b8b9f9` |
 | 2026-11-03 | PERF-01 | Reflection retention fix, listener cleanup APIs, pool shutdown hardening and regression tests | CI passed on final batch commit `a328d1c` after correcting intermediate syntax typos | `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f`, `452d666`, `825ea16`, `42b24d7`, `95445b7` |
