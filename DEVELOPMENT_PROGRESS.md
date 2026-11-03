@@ -303,3 +303,15 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Confirmed v3 CronJob `Job`/`Worker` CLI execution is not equivalent to v4 timer Scheduler; no queue/task-worker implementation is established.
 - Confirmed v3 helper/job generator templates and direct `cache` CLI parity are not present in the v4 base command list.
 - This is a file-level and targeted-source baseline, not yet an exhaustive method-by-method compatibility certification.
+
+
+## Runtime feature implementation batch — 2026-11-03
+
+- WebSocket runtime: `SwooleServer` now selects `Swoole\\WebSocket\\Server` when enabled, registers Open/Message/Close callbacks, loads the websocket route file, and clears worker-local connections on worker shutdown.
+- Broadcasting: added `WebSocketHub`, peer connection send/close/listener/subscription APIs, configured WebSocket driver resolution and channel broadcast frames. Delivery is worker-local only; Redis/SSE and cross-worker pub/sub are not implemented.
+- Authentication: added pluggable Bearer-token provider resolvers, request identity attachment, fail-closed 401 middleware, RBAC wildcard/exact checks, ACL grants and explicit fail-closed policy callbacks. Persistent token storage, password flows and complete session guard are still application responsibilities/open work.
+- Task workers: added `TaskDispatcher` and Swoole Task/Finish callbacks. It dispatches serializable `Task` instances to configured task workers. This is not a durable queue and has no retries or persistence.
+- Tests: added WebSocket hub/broadcast tests, TaskDispatcher tests, Bearer authentication tests and RBAC/ACL/policy tests. Updated auth middleware expectations from placeholder HTTP 501 to fail-closed HTTP 401.
+- GitHub Actions run [41597291740](https://github.com/Daevsoft/framework/actions/runs/41597291740) passed on the runtime implementation batch (156 PHPUnit tests plus CLI and Swoole/FPM integration checks).
+- A subsequent authorization test was added after that run; its CI verification is pending in the latest run.
+- Not yet verified by CI: a real WebSocket client handshake/message round trip, cross-worker delivery, and actual task-worker dispatch against a live Swoole server.
