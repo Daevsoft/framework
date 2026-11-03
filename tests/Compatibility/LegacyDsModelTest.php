@@ -53,6 +53,24 @@ final class LegacyDsModelTest extends TestCase
         self::assertNull(LegacyPersonModel::findIsNull('admin')['admin']);
     }
 
+    public function testLegacyNullLookupsAndSafeQueryHelpers(): void
+    {
+        LegacyPersonModel::save([
+            ['name' => 'Ada', 'active' => 1],
+            ['name' => 'Grace', 'active' => 1],
+        ]);
+        $this->database->execute('UPDATE legacy_people SET admin = 1 WHERE name = :name', ['name' => 'Grace']);
+
+        self::assertSame('Grace', LegacyPersonModel::findIsNotNull('admin')['name']);
+        self::assertCount(1, LegacyPersonModel::findsIsNull('admin'));
+        self::assertCount(1, LegacyPersonModel::findsIsNotNull('admin'));
+        self::assertCount(2, (new LegacyPersonModel())->whereIn('active', [1])->get());
+        self::assertCount(1, (new LegacyPersonModel())->whereNotIn('name', ['Ada'])->get());
+        self::assertCount(1, (new LegacyPersonModel())->like('name', 'Gr%')->get());
+        self::assertCount(2, (new LegacyPersonModel())->orWhereIn('name', ['Ada'])->orWhereIn('name', ['Grace'])->get());
+        self::assertCount(1, (new LegacyPersonModel())->not_equal('name', 'Ada')->get());
+    }
+
     public function testFillableHelperAndExplicitTableAreAvailable(): void
     {
         $model = new LegacyPersonModel();

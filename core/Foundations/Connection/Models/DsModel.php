@@ -75,6 +75,33 @@ abstract class DsModel extends Model
         return $query->get();
     }
 
+    public static function findIsNotNull(string $column, array|string $columns = '*'): ?array
+    {
+        $query = static::query();
+        if ($columns !== '*') {
+            $query->select($columns);
+        }
+        return $query->whereNotNull($column)->first();
+    }
+
+    public static function findsIsNull(string $column, array|string $columns = '*'): array
+    {
+        $query = static::query();
+        if ($columns !== '*') {
+            $query->select($columns);
+        }
+        return $query->whereNull($column)->get();
+    }
+
+    public static function findsIsNotNull(string $column, array|string $columns = '*'): array
+    {
+        $query = static::query();
+        if ($columns !== '*') {
+            $query->select($columns);
+        }
+        return $query->whereNotNull($column)->get();
+    }
+
     public static function findIsNull(string $column, array|string $columns = '*'): ?array
     {
         $query = static::query();
@@ -130,6 +157,41 @@ abstract class DsModel extends Model
             $query->where((string) $model->primaryKey, $idWhere);
         }
         return $query->delete();
+    }
+
+    public function whereIn(string $column, array $values): \Ds\Database\QueryBuilder
+    {
+        return static::query()->whereIn($column, $values);
+    }
+
+    public function whereNotIn(string $column, array $values): \Ds\Database\QueryBuilder
+    {
+        return static::query()->whereNotIn($column, $values);
+    }
+
+    public function orWhereIn(string $column, array $values): \Ds\Database\QueryBuilder
+    {
+        return static::query()->orWhereIn($column, $values);
+    }
+
+    public function like(string $column, mixed $value): \Ds\Database\QueryBuilder
+    {
+        return static::query()->where($column, 'LIKE', $value);
+    }
+
+    public function orLike(string $column, mixed $value): \Ds\Database\QueryBuilder
+    {
+        return static::query()->orWhere($column, 'LIKE', $value);
+    }
+
+    public function equal(string $column, mixed $value): \Ds\Database\QueryBuilder
+    {
+        return static::query()->where($column, '=', $value);
+    }
+
+    public function not_equal(string $column, mixed $value): \Ds\Database\QueryBuilder
+    {
+        return static::query()->where($column, '!=', $value);
     }
 
     public function filledFields(array $fields): array
