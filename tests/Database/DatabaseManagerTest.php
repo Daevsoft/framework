@@ -54,6 +54,19 @@ final class DatabaseManagerTest extends TestCase
         self::assertSame(0, $this->database->table('users')->count());
     }
 
+    public function testAdvancedFiltersGroupingAndHaving(): void
+    {
+        $this->database->table('users')->insert(['name' => 'A', 'active' => 1]);
+        $this->database->table('users')->insert(['name' => 'B', 'active' => 1]);
+        $this->database->table('users')->insert(['name' => 'C', 'active' => 0]);
+
+        self::assertSame(2, $this->database->table('users')->where('active', 1)->whereNotNull('name')->count());
+        self::assertSame(2, count($this->database->table('users')->whereNotIn('name', ['C'])->get()));
+        self::assertSame(2, count($this->database->table('users')->distinct()->select('active')->get()));
+        self::assertCount(1, $this->database->table('users')->select('active')->groupBy('active')->having('active', '=', 1)->get());
+        self::assertSame(3, count($this->database->table('users')->where('active', 1)->orWhere('name', 'C')->get()));
+    }
+
     public function testTransactionRollsBackOnFailure(): void
     {
         try {

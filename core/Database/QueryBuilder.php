@@ -144,7 +144,7 @@ final class QueryBuilder
     {
         $operator = strtoupper(trim($operator));
         if (!in_array($operator, ['=', '!=', '<>', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE'], true)) {
-            throw new \\InvalidArgumentException("Unsupported SQL having operator [{$operator}].");
+            throw new \InvalidArgumentException("Unsupported SQL having operator [{$operator}].");
         }
         $parameter = ':having_' . count($this->bindings);
         $this->havingConditions[] = $this->database->quoteIdentifier($column) . " {$operator} {$parameter}";

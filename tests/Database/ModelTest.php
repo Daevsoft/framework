@@ -27,6 +27,23 @@ final class ModelTest extends TestCase
         $this->database->shutdown();
     }
 
+    public function testHydratedModelsAndRelationshipQueries(): void
+    {
+        $this->database->execute('CREATE TABLE posts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL)');
+        $this->database->table('people')->insert(['name' => 'Deva', 'active' => 1]);
+        $this->database->table('posts')->insert(['user_id' => 1, 'title' => 'First']);
+        $this->database->table('posts')->insert(['user_id' => 1, 'title' => 'Second']);
+
+        $person = TestPersonModel::findModel(1);
+        self::assertSame('Deva', $person->name);
+        self::assertSame(2, $person->hasMany(TestPostModel::class, 'user_id')->count());
+        self::assertSame('First', $person->hasOne(TestPostModel::class, 'user_id')->first()['title']);
+
+        $post = new TestPostModel(['user_id' => 1]);
+        self::assertSame('Deva', $post->belongsTo(TestPersonModel::class, 'user_id')->first()['name']);
+        self::assertSame('Deva', TestPersonModel::allModels()[0]->name);
+    }
+
     public function testV3CompatibleModelCrudAndFillableWhitelist(): void
     {
         $inserted = TestPersonModel::save([
@@ -46,6 +63,11 @@ final class ModelTest extends TestCase
         self::assertSame(1, TestPersonModel::deleteById(1));
         self::assertSame([], TestPersonModel::all());
     }
+}
+
+final class TestPostModel extends Model
+{
+    protected $table = 'posts';
 }
 
 final class TestPersonModel extends Model
