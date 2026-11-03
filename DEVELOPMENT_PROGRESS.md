@@ -22,7 +22,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 | IN/null/OR filters, grouping and HAVING | Done, audit pending | Existing implementation needs edge-case coverage |
 | Validated INNER/LEFT/RIGHT joins | Done | Four-argument join API; aliases not yet supported |
 | Legacy DsModel query compatibility | Done, audit pending | Safe adapters added in prior commits |
-| Grouped WHERE expressions | Implemented, CI pending | Nested AND/OR groups with isolated bindings and nested-group coverage |
+| Grouped WHERE expressions | Implemented, CI verification pending | Nested AND/OR groups with isolated bindings and nested-group coverage |
 | JOIN aliases | Implemented, CI pending | Optional fifth alias argument; alias validated with quoteIdentifier() |
 | Subquery support | Implemented, CI pending | `whereInSubquery()` / `whereNotInSubquery()`; one selected column enforced |
 | Query semantics and edge cases | Planned | Count with joins/groups, empty IN lists, binding collisions |
