@@ -384,7 +384,7 @@ $container->singleton(CacheClient::class); // one per worker process
 $container->scoped(CurrentTenant::class);  // one per request/coroutine
 ```
 
-A singleton cannot depend on a request-scoped service. The container rejects that dependency graph instead of allowing user/request state to leak between requests. `beginRequest()` and `endRequest()` clear only the container's request-instance cache, preserving unrelated values in `Ds\\Context\\Context`. Rebinding a service also invalidates its cached request-scoped instance.
+A singleton cannot depend on a request-scoped service. The container rejects that dependency graph instead of allowing user/request state to leak between requests. `beginRequest()` and `endRequest()` clear only the container's request-instance cache, preserving unrelated values in `Ds\Context\Context`. Rebinding a service also invalidates its cached request-scoped instance.
 
 ## Long-running worker rules
 
