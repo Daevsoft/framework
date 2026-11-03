@@ -19,6 +19,7 @@ RouteRegistry::setRouter($router);
 // Register routes once during worker bootstrap, not on every HTTP request.
 require dirname(__DIR__) . '/routes/web.php';
 require dirname(__DIR__) . '/routes/api.php';
+require dirname(__DIR__) . '/routes/websocket.php';
 
 $container = new Container();
 $container->instance(LifecycleManager::class, new LifecycleManager());
