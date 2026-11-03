@@ -10,6 +10,7 @@ use LogicException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use stdClass;
+use WeakReference;
 
 final class PoolTest extends TestCase
 {
@@ -45,13 +46,12 @@ final class PoolTest extends TestCase
 
     public function testPoolRejectsReentrantReleaseDuringClear(): void
     {
-        $pool = null;
+        $poolReference = null;
         $resource = new stdClass();
-        $pool = new Pool(2, null, static function ($item) use (&$pool): void {
-            if ($pool !== null) {
-                $pool->release(new stdClass());
-            }
+        $pool = new Pool(2, null, static function ($item) use (&$poolReference): void {
+            $poolReference?->get()?->release(new stdClass());
         });
+        $poolReference = WeakReference::create($pool);
         $pool->release($resource);
 
         try {
@@ -66,10 +66,10 @@ final class PoolTest extends TestCase
 
     public function testPoolManagerRejectsPoolCreationDuringClear(): void
     {
-        $manager = null;
         $manager = new PoolManager();
-        $manager->get('primary', 2, null, static function () use (&$manager): void {
-            $manager->get('created-during-clear');
+        $managerReference = WeakReference::create($manager);
+        $manager->get('primary', 2, null, static function () use ($managerReference): void {
+            $managerReference->get()?->get('created-during-clear');
         })->release(new stdClass());
 
         try {
@@ -80,7 +80,8 @@ final class PoolTest extends TestCase
         }
 
         self::assertSame(0, $manager->count());
-        self::assertSame(1, $manager->get('after-clear')->maxSize() > 0 ? 1 : 0);
+        $manager->get('after-clear');
+        self::assertSame(1, $manager->count());
     }
 
     public function testPoolDoesNotExceedConfiguredCapacity(): void
