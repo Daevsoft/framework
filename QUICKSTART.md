@@ -196,7 +196,7 @@ For production FPM, configure Nginx or Apache to send PHP requests to `public/in
 ## 10. Create a domain
 
 ```bash
-php app/console make:domain Product
+php ds make:domain Product
 ```
 
 Domain modules belong under `app/domains/` and should keep business logic out of route declarations and HTTP controllers.
@@ -227,7 +227,7 @@ php ds migrate --status
 php ds migrate --rollback
 ```
 
-The database layer uses prepared statements, a bounded PDO connection pool inside Swoole coroutines, and transaction-backed migrations. The legacy v3 Active Record ORM and schema builder are not yet ported.
+The database layer uses prepared statements, a bounded PDO connection pool inside Swoole coroutines, and transaction-backed migrations. A partial legacy DsModel adapter and a limited Scheme bridge exist; they do not provide full v3 Active Record or schema parity. See V3_TO_V4_MIGRATION.md.
 
 ## 12. Sessions and CSRF
 
@@ -237,9 +237,9 @@ Add `SessionMiddleware` before `CsrfMiddleware` to the global middleware stack. 
 
 - HTTP routing, implicit controller attributes, PieTemplate rendering, request validation, route middleware, and response creation are implemented.
 - FPM compatibility uses the shared HTTP kernel; Swoole remains the primary runtime.
-- A PDO query builder, transactions, and migrations are available; the v3 Active Record model API and schema DSL remain unported.
+- A PDO query builder, transactions, and migrations are available; the v3 Active Record and schema APIs are only partially compatible; see V3_TO_V4_MIGRATION.md.
 - Sessions and HMAC-based CSRF are opt-in; the bundled file session store is intended as a simple adapter, not a high-concurrency distributed session backend.
-- `Route::ws()` is a declaration placeholder; a complete WebSocket server/runtime and route:list are still on the roadmap.
+- `Route::ws()` is a declaration placeholder; a complete WebSocket server/runtime remains on the roadmap. `php ds route:list` is available.
 
 ## Next steps
 
