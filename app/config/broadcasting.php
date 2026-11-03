@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'default' => env('BROADCAST_DRIVER', 'redis'),
+    'default' => env('BROADCAST_DRIVER', 'websocket'),
 
     'connections' => [
         'redis' => [
