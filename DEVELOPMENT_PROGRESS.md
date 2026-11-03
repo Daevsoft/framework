@@ -27,7 +27,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 | Subquery support | Implemented | Parameterized IN/NOT IN; same-manager and one-column checks |
 | Query semantics and edge cases | In progress | Grouped count and empty IN/NOT IN semantics covered; broader driver edge cases remain |
 | Documentation and migration guide | In progress | README updated for grouped predicates, aliases and subqueries |
-| Resource lifecycle and performance | In progress | PDO cursors released, per-pool lifecycle reference counting, credential-aware pool keys, linear WHERE assembly; worker retention cleanup added |
+| Resource lifecycle and performance | In progress | PDO cursors released, per-pool lifecycle reference counting, credential-aware pool keys, linear WHERE assembly; controller/listener retention regression tests added |
 | Full compatibility/security audit | Planned | Review v3 surface without restoring unsafe behavior |
 
 ## Task breakdown
@@ -78,7 +78,16 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Add LifecycleManager::unregister() and clear() for long-lived callback cleanup.
 - [x] Make DatabaseManager pool-channel shutdown cleanup tolerant of already-closed runtime channels.
 - [x] Add regression coverage for EventManager and LifecycleManager listener removal.
-- [ ] Add WeakReference/GC regression tests for controller and listener collection under a long-lived worker.
+- [x] Add WeakReference/GC regression tests proving dispatcher reflection cache and listener registries release controllers/captured objects.
+- [ ] Extend the audit to request-scoped container bindings, coroutine context, timers and active database leases.
+
+### PERF-02 — Verify object collection and document worker cleanup
+- [x] Add WeakReference tests proving `RequestDispatcher` does not retain controller instances after dispatch.
+- [x] Add WeakReference tests proving `EventManager::off()` / `clear()` release captured listener objects.
+- [x] Add WeakReference tests proving `LifecycleManager::unregister()` / `clear()` release captured callback objects.
+- [x] Document listener lifecycle cleanup and warn against capturing request-scoped data in process-wide callbacks.
+- [x] Inspect static middleware alias registry; it stores class-name strings only and has a reset method, so it does not retain service instances.
+- [ ] Audit active coroutine leases and timer callback cleanup under real Swoole workers.
 
 ### DB-06 — Documentation and compatibility audit
 - [ ] Document supported query-builder APIs and examples.
@@ -129,10 +138,18 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - CI: final run `41569309754` passed after correcting intermediate syntax issues.
 - Commits: `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f`, `452d666`, `825ea16`, `42b24d7`, `95445b7`.
 
+### 2026-11-03 — WeakReference retention verification
+- Added garbage-collection regression tests for controller instances, event listener captures and lifecycle callback captures.
+- Documented listener removal and safe process-wide callback practices in README.
+- Static MiddlewareRegistry review found only class-string aliases, with `clear()` restoring defaults; no retained service instances found there.
+- CI: pending.
+- Commits: `1ff5466`, `eac474e`, `4409f56`, `ce46aad`, `1b8529e`, `5b8b9f9`.
+
 ## Batch log
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
+| 2026-11-03 | PERF-02 | WeakReference/GC tests for dispatcher, event and lifecycle retention; worker cleanup documentation | Pending | `1ff5466`, `eac474e`, `4409f56`, `ce46aad`, `1b8529e`, `5b8b9f9` |
 | 2026-11-03 | PERF-01 | Reflection retention fix, listener cleanup APIs, pool shutdown hardening and regression tests | CI passed on final batch commit `a328d1c` after correcting intermediate syntax typos | `a91f62e`, `7ccbcc5`, `679eb81`, `efa5128`, `e56f3cc`, `84bc168`, `e629b5f`, `452d666`, `825ea16`, `42b24d7`, `95445b7` |
 | 2026-11-03 | DB-07 | PDO cursor release, pool lifecycle isolation, credential-aware pool keys, linear WHERE assembly and lifecycle regression tests | CI verification pending | `2cbf81b`, `9af7754`, `ea0aa55`, `0ed4e71`, `5f40c49` |
 | 2026-11-03 | DB-02 to DB-05 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI status unavailable from the current checks endpoint | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739`, `e0bc523`, `fc747f8`, `01880dc`, `762bc11` |
