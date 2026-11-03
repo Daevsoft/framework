@@ -79,8 +79,8 @@ jobs:
           php -r '$data = json_decode(file_get_contents("user.json"), true); if (($data["id"] ?? null) !== 42) { fwrite(STDERR, "Parameterized route failed\n"); exit(1); }'
 
           php -r '
-          Swoole\\Coroutine\\run(function (): void {
-              $client = new Swoole\\Coroutine\\Http\\Client("127.0.0.1", 8123);
+          Swoole\Coroutine\run(function (): void {
+              $client = new Swoole\Coroutine\Http\Client("127.0.0.1", 8123);
               $client->set(["timeout" => 3]);
               if (!$client->upgrade("/ws")) {
                   throw new RuntimeException("WebSocket upgrade failed: " . $client->errMsg);
