@@ -53,6 +53,7 @@ try {
             $container->endRequest();
         } finally {
             $context?->clear();
+            Context::default()->clear();
         }
     }
 }
