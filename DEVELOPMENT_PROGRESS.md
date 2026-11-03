@@ -68,6 +68,8 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Prevent cloning DatabaseManager so pool reference counts cannot be corrupted.
 - [x] Build WHERE SQL with a linear parts array and implode rather than repeated string concatenation.
 - [x] Add regression tests for shutdown isolation, idempotence, use-after-shutdown, and empty IN/NOT IN behavior.
+- [x] Add regression coverage for a database channel push throwing during connection return; preserve callback exceptions and decrement pool capacity.
+- [ ] Verify recovery after an unexpectedly closed channel while other managers still own the pool.
 - [ ] Add coroutine-enabled pool lifecycle tests and benchmark before/after under representative load.
 - [ ] Audit all long-lived static registries and coroutine-owned resources across the framework.
 
@@ -82,6 +84,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Audit request-scoped container bindings and context cleanup; add invalidation and context-preservation regression tests.
 - [x] Harden scheduler callback ownership and timer cancellation/clear behavior.
 - [x] Defer database pool closure until active connection leases have returned.
+- [x] Extract worker-stop cleanup into a testable sequence and verify scheduler timers, generic pools, and database manager are cleaned even when an application worker.stop listener throws.
 - [ ] Verify timer cancellation and active-lease shutdown under concurrent real Swoole workers.
 
 ### PERF-02 — Verify object collection and document worker cleanup
@@ -123,7 +126,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - [x] Ensure cleanup state is restored even when a disposer throws, and preserve the existing behavior of attempting every disposer.
 - [x] Add regression tests for context object release, shared default-context identity, Pool/PoolManager clear and forget reentrancy, Scheduler task release after cancellation/destruction, duplicate release during a yielding validator, and clear during a suspended release.
 - [x] Run Swoole HTTP smoke test with `SWOOLE_COROUTINE=0` to exercise the non-coroutine fallback request path.
-- [ ] Add an end-to-end assertion that request-specific Context values cannot be observed by a subsequent request in the same non-coroutine worker.
+- [x] Add an end-to-end request-handler assertion that request-specific Context values cannot be observed by a subsequent request in the same non-coroutine worker.
 - [x] Run real-Swoole multi-coroutine Pool/PoolManager clear/forget contention with yielding disposers.
 - [ ] Add longer-duration pool contention/throughput tests with resource counters under sustained production load and multiple worker processes.
 
@@ -177,6 +180,17 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Static MiddlewareRegistry review found only class-string aliases, with `clear()` restoring defaults; no retained service instances found there.
 - CI: full run `41570820159` passed (PHP syntax, unit/routing, CLI, Swoole HTTP, FPM, and config-cache checks). An intermediate run exposed a stale test reflection name after the private counter rename; the test was updated and the subsequent full run passed.
 - Commits: `1ff5466`, `eac474e`, `4409f56`, `ce46aad`, `1b8529e`, `5b8b9f9`.
+
+
+### 2026-11-03 — PERF-06: Request isolation and shutdown failure paths
+- Extracted the Swoole request callback body into a private handler used by the real server callback, allowing the exact per-request lifecycle to be exercised without binding a network port.
+- Added sequential non-coroutine request regression coverage: the first request writes a private Context value and the next request must not observe it.
+- Added request-handled listener failure coverage proving fallback Context cleanup still runs.
+- Hardened database connection return: a channel push exception no longer masks the original callback exception and the pool's created-connection count is decremented when a connection cannot be returned.
+- Added a regression test for a throwing channel push, both on successful callback completion and when the callback itself throws.
+- Extracted worker-stop cleanup into a testable method. Scheduler, generic PoolManager and DatabaseManager cleanup each run independently even if an application worker.stop listener throws.
+- Added a worker-stop regression test verifying timer cancellation, generic pool clearing and terminal database shutdown after a listener failure.
+- Verification scope: regression tests are included in CI. The sequential Context test exercises the same extracted request handler and fallback Context path; it is not a multi-process production load test. Unexpected channel-close recovery while other managers still own the pool remains open for further audit.
 
 ## Batch log
 
