@@ -16,8 +16,9 @@ abstract class DsModel extends Model
     protected $primaryKey = 'id';
     protected $fillable = null;
 
-    public function __construct()
+    public function __construct(array $attributes = [])
     {
+        parent::__construct($attributes);
         if (!is_string($this->table) || $this->table === '') {
             $class = (new \ReflectionClass($this))->getShortName();
             $class = preg_replace('/Model$/', '', $class) ?? $class;

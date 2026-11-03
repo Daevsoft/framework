@@ -281,6 +281,20 @@ final class QueryBuilder
 
     private function whereSql(): string
     {
-        return $this->conditions === [] ? '' : ' WHERE ' . implode(' AND ', $this->conditions);
+        if ($this->conditions === []) {
+            return '';
+        }
+
+        $sql = '';
+        foreach ($this->conditions as $condition) {
+            if ($sql === '') {
+                $sql = preg_replace('/^OR /', '', $condition) ?? $condition;
+            } elseif (str_starts_with($condition, 'OR ')) {
+                $sql .= ' OR ' . substr($condition, 3);
+            } else {
+                $sql .= ' AND ' . $condition;
+            }
+        }
+        return ' WHERE ' . $sql;
     }
 }

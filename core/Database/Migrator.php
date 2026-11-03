@@ -32,12 +32,16 @@ final class Migrator
             }
 
             $migration = require $file;
-            if (!$migration instanceof Migration) {
-                throw new RuntimeException("Migration file {$file} must return an instance of " . Migration::class . '.');
+            if (!$migration instanceof Migration && !$migration instanceof \\Ds\\Foundations\\Migrate\\Migrations) {
+                throw new RuntimeException("Migration file {$file} must return a v4 Migration or a legacy Migrations instance.");
             }
 
-            $this->database->transaction(static function (PDO $connection) use ($migration, $name, $batch): void {
-                $migration->up($connection);
+            $this->database->transaction(function (PDO $connection) use ($migration, $name, $batch): void {
+                if ($migration instanceof Migration) {
+                    $migration->up($connection);
+                } else {
+                    $migration->up(new \\Ds\\Foundations\\Migrate\\Scheme($this->database, $connection));
+                }
                 $statement = $connection->prepare(
                     'INSERT INTO migrations (name, batch) VALUES (:name, :batch)'
                 );
@@ -67,12 +71,16 @@ final class Migrator
         }
 
         $migration = require $file;
-        if (!$migration instanceof Migration) {
-            throw new RuntimeException("Migration file {$file} must return an instance of " . Migration::class . '.');
+        if (!$migration instanceof Migration && !$migration instanceof \\Ds\\Foundations\\Migrate\\Migrations) {
+            throw new RuntimeException("Migration file {$file} must return a v4 Migration or a legacy Migrations instance.");
         }
 
-        $this->database->transaction(static function (PDO $connection) use ($migration, $latest): void {
-            $migration->down($connection);
+        $this->database->transaction(function (PDO $connection) use ($migration, $latest): void {
+            if ($migration instanceof Migration) {
+                $migration->down($connection);
+            } else {
+                $migration->down(new \\Ds\\Foundations\\Migrate\\Scheme($this->database, $connection));
+            }
             $statement = $connection->prepare('DELETE FROM migrations WHERE name = :name');
             $statement->execute(['name' => $latest]);
         });
