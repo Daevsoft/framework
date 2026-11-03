@@ -451,16 +451,17 @@ final class QueryBuilder
             return '';
         }
 
-        $sql = '';
-        foreach ($this->conditions as $condition) {
-            if ($sql === '') {
-                $sql = preg_replace('/^OR /', '', $condition) ?? $condition;
+        $parts = [];
+        foreach ($this->conditions as $index => $condition) {
+            if ($index === 0) {
+                $parts[] = preg_replace('/^OR /', '', $condition) ?? $condition;
             } elseif (str_starts_with($condition, 'OR ')) {
-                $sql .= ' OR ' . substr($condition, 3);
+                $parts[] = 'OR ' . substr($condition, 3);
             } else {
-                $sql .= ' AND ' . $condition;
+                $parts[] = 'AND ' . $condition;
             }
         }
-        return ' WHERE ' . $sql;
+
+        return ' WHERE ' . implode(' ', $parts);
     }
 }
