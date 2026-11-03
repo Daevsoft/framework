@@ -1,0 +1,86 @@
+name: Multi-worker Lifecycle and Shutdown Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      workers:
+        description: Independent PHP worker processes
+        required: false
+        default: '4'
+        type: string
+      coroutines:
+        description: Concurrent operations per worker
+        required: false
+        default: '32'
+        type: string
+      pool_max:
+        description: Maximum pooled connections per worker
+        required: false
+        default: '4'
+        type: string
+  schedule:
+    - cron: '53 3 * * 1'
+  push:
+    branches: [v4]
+    paths:
+      - 'core/Database/**'
+      - 'core/Pool/**'
+      - 'core/Server/**'
+      - 'core/Tasks/**'
+      - 'benchmarks/multi-worker-lifecycle-stress.php'
+      - '.github/workflows/audit-multi-worker-lifecycle.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: multi-worker-lifecycle-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  multi-worker-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      AUDIT_WORKERS: ${{ inputs.workers || '4' }}
+      AUDIT_COROUTINES: ${{ inputs.coroutines || '32' }}
+      AUDIT_POOL_MAX: ${{ inputs.pool_max || '4' }}
+      AUDIT_HOLD_MS: '25'
+      AUDIT_TIMEOUT: '10'
+      AUDIT_REPORT_PATH: multi-worker-lifecycle-report.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: swoole, sqlite3, pdo_sqlite, pcntl
+          coverage: none
+          tools: composer:v2
+
+      - name: Verify required runtime extensions
+        run: php -r 'foreach (["swoole", "pdo_sqlite", "pcntl"] as $extension) { if (!extension_loaded($extension)) { fwrite(STDERR, "Missing extension: {$extension}\n"); exit(1); } }'
+
+      - name: Validate Composer configuration
+        run: composer validate --no-check-publish
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Check stress harness syntax
+        run: php -l benchmarks/multi-worker-lifecycle-stress.php
+
+      - name: Run multi-worker concurrent shutdown audit
+        run: php benchmarks/multi-worker-lifecycle-stress.php
+
+      - name: Upload stress report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multi-worker-lifecycle-report-${{ github.run_id }}
+          path: multi-worker-lifecycle-report.json
+          if-no-files-found: warn
+          retention-days: 30
