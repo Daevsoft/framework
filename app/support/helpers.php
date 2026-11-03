@@ -237,6 +237,13 @@ if (!function_exists('js_source')) {
     }
 }
 
+if (!function_exists('schema')) {
+    function schema(): \\Ds\\Database\\SchemaBuilder
+    {
+        return db()->schema();
+    }
+}
+
 if (!function_exists('collect')) {
     /**
      * Create a v3-compatible collection. New code may use Ds\Support\Collection::make().

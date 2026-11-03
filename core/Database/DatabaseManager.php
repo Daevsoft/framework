@@ -35,6 +35,16 @@ final class DatabaseManager
         return new QueryBuilder($this, $table);
     }
 
+    public function schema(): SchemaBuilder
+    {
+        return new SchemaBuilder($this);
+    }
+
+    public function driver(): string
+    {
+        return (string) ($this->config['driver'] ?? 'mysql');
+    }
+
     public function select(string $sql, array $bindings = []): array
     {
         return $this->withConnection(static function (PDO $pdo) use ($sql, $bindings): array {

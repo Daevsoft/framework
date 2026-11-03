@@ -352,6 +352,8 @@ For v3 model migration, extend `Ds\\Foundations\\Connection\\Models\\DsModel` to
 
 For v3 migration, `Ds\Foundations\Common\Collection` and the `collect()` helper are available as compatibility APIs. The legacy collection keeps array-returning helper methods where practical; new v4 code should use `Ds\Support\Collection` for fluent immutable-style transformations. The compatibility layer has no Illuminate dependency.
 
+The v4 schema API is available through `db()->schema()` or `schema()`. It currently supports safe table creation/deletion and common column definitions (`id`, `string`, `integer`, `boolean`, `text`, `date`, `datetime`, `timestamp`), nullable/default/unique attributes, and table-existence checks. The v3 `Scheme`/migration callback API is not source-compatible; rewrite migrations to the v4 `Migration` contract and use the v4 schema builder for new DDL. Alter-column operations are intentionally not exposed until driver-specific behavior is implemented and tested.
+
 ## Dependency lifetimes
 
 The container supports transient, singleton, and request-scoped services:
