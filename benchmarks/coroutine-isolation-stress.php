@@ -67,9 +67,9 @@ for ($coroutine = 0; $coroutine < $coroutines; $coroutine++) {
             $container->beginRequest();
             try {
                 $context->set('request_id', $requestId);
-                \Swoole\Coroutine::sleep(0);
+                \Swoole\Coroutine::sleep(0.001);
                 $first = $container->make('audit.request_service');
-                \Swoole\Coroutine::sleep(0);
+                \Swoole\Coroutine::sleep(0.001);
                 $second = $container->make('audit.request_service');
 
                 if ($first !== $second || $first->request_id !== $requestId) {
@@ -88,7 +88,7 @@ for ($coroutine = 0; $coroutine < $coroutines; $coroutine++) {
                     $intentionalExceptions++;
                 }
 
-                \Swoole\Coroutine::sleep(0);
+                \Swoole\Coroutine::sleep(0.001);
                 if ($context->get('request_id') !== $requestId) {
                     $contextViolations++;
                 }
