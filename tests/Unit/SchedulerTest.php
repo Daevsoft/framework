@@ -14,7 +14,7 @@ final class SchedulerTest extends TestCase
 
     public function testCanCancelSwooleTimerWhenExtensionIsAvailable(): void
     {
-        if (!class_exists(\\Swoole\\Timer::class)) {
+        if (!class_exists(\Swoole\Timer::class)) {
             self::markTestSkipped('Swoole timer extension is unavailable.');
         }
 
