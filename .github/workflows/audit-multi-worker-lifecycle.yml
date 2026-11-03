@@ -28,6 +28,7 @@ on:
       - 'core/Server/**'
       - 'core/Tasks/**'
       - 'benchmarks/multi-worker-lifecycle-stress.php'
+      - 'tests/Database/DatabaseManagerShutdownRaceTest.php'
       - '.github/workflows/audit-multi-worker-lifecycle.yml'
 
 permissions:
