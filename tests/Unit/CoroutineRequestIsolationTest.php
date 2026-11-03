@@ -61,9 +61,9 @@ final class CoroutineRequestIsolationTest extends TestCase
                     $container->beginRequest();
                     try {
                         $context->set('request_id', $requestId);
-                        \Swoole\Coroutine::sleep(0);
+                        \Swoole\Coroutine::sleep(0.001);
                         $first = $container->make(CoroutineIsolationService::class);
-                        \Swoole\Coroutine::sleep(0);
+                        \Swoole\Coroutine::sleep(0.001);
                         $second = $container->make(CoroutineIsolationService::class);
 
                         if ($first !== $second || $first->requestId !== $requestId) {
@@ -82,7 +82,7 @@ final class CoroutineRequestIsolationTest extends TestCase
                             $results['caught']++;
                         }
 
-                        \Swoole\Coroutine::sleep(0);
+                        \Swoole\Coroutine::sleep(0.001);
                         if ($context->get('request_id') !== $requestId) {
                             $results['context_violations'][] = $requestId;
                         }
