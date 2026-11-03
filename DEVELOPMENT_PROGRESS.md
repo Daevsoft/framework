@@ -244,3 +244,11 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added `docs/audits/context-lifecycle-stress.md` documenting workload, configuration, pass criteria, and limitations.
 - Added a PHPUnit regression test covering sequential request cleanup when middleware and lifecycle listeners throw.
 - Verification: GitHub Actions run `41577220173` passed on PHP 8.3.36 / Swoole 6.2.3. All 10,000 request cycles completed; 10 intentional exceptions were exercised in each of `request.received`, `request.handled`, and middleware; 0 unexpected failures; 10,000/10,000 request WeakReferences were released; Context was empty after cleanup. Retained allocator delta was 264,624 bytes (about 258.4 KiB), peak allocated memory was 6 MiB, and the configured growth bound was 8 MiB. Focused PHPUnit regression passed (1 test, 104 assertions). These measurements are runner-specific and do not prove absence of memory leaks. Audit run: https://github.com/Daevsoft/framework/actions/runs/41577220173
+
+
+### 2026-11-03 — AUDIT-03: Multi-worker Lifecycle & Concurrent Shutdown
+- Added `benchmarks/multi-worker-lifecycle-stress.php`: independent forked PHP processes, each with its own Swoole coroutine runtime and DatabaseManager pool; shutdown begins only after all configured coroutines have entered active-operation accounting, including blocked pool waiters.
+- The audit verifies pool channel retention during shutdown, successful completion of all transactions, per-process pool bounds, unique child PIDs, and channel removal after the final operation drains.
+- Added `.github/workflows/audit-multi-worker-lifecycle.yml` with manual worker/coroutine/pool inputs, weekly schedule, relevant-path triggers, and a 30-day JSON report artifact.
+- Added `docs/audits/multi-worker-lifecycle-stress.md` and a PHPUnit regression test for shared DatabaseManager instances shutting down during an active coroutine lease.
+- Verification: pending GitHub Actions. This test models independent processes on one Linux runner; it is not a multi-host deployment test or proof that all lifecycle races are impossible.
