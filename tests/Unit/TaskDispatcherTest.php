@@ -14,14 +14,12 @@ final class TaskDispatcherTest extends TestCase
     protected function tearDown(): void
     {
         TaskDispatcher::setServer(null);
+        TaskDispatcherTestTask::$executed = false;
     }
 
     public function testDispatchRequiresAnActiveSwooleServer(): void
     {
-        $task = new class extends Task {
-            public function handle(): void {}
-        };
-
+        $task = new TaskDispatcherTestTask();
         $this->expectException(RuntimeException::class);
         (new TaskDispatcher())->dispatch($task);
     }
@@ -30,9 +28,7 @@ final class TaskDispatcherTest extends TestCase
     {
         $server = new FakeTaskServer();
         TaskDispatcher::setServer($server);
-        $task = new class extends Task {
-            public function handle(): void {}
-        };
+        $task = new TaskDispatcherTestTask();
 
         self::assertSame(73, (new TaskDispatcher())->dispatch($task));
         self::assertSame($task, $server->submitted);
@@ -41,15 +37,16 @@ final class TaskDispatcherTest extends TestCase
 
     public function testTaskRunnerExecutesOnlyTaskInstances(): void
     {
-        $executed = false;
-        $task = new class($executed) extends Task {
-            public function __construct(private mixed &$executed) {}
-            public function handle(): void { $this->executed = true; }
-        };
-
-        TaskDispatcher::run($task);
-        self::assertTrue($executed);
+        TaskDispatcherTestTask::$executed = false;
+        TaskDispatcher::run(new TaskDispatcherTestTask());
+        self::assertTrue(TaskDispatcherTestTask::$executed);
     }
+}
+
+final class TaskDispatcherTestTask extends Task
+{
+    public static bool $executed = false;
+    public function handle(): void { self::$executed = true; }
 }
 
 final class FakeTaskServer
