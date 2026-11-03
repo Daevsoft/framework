@@ -70,7 +70,11 @@ final class Container
 
     private function forgetRequestInstance(string $abstract): void
     {
-        $context = $this->requestContext();
+        $context = $this->instances[Context::class] ?? null;
+        if (!$context instanceof Context) {
+            return;
+        }
+
         $instances = $context->get('container.request_instances', []);
         if (!array_key_exists($abstract, $instances)) {
             return;
