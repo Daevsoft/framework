@@ -311,6 +311,7 @@ final class DatabaseManagerTest extends TestCase
         $keyMethod = new \ReflectionMethod(DatabaseManager::class, 'poolKey');
         $key = $keyMethod->invoke($manager);
         $channels = new \ReflectionProperty(DatabaseManager::class, 'channels');
+        $activeOperations = new \ReflectionProperty(DatabaseManager::class, 'activeOperations');
         $duringCallback = false;
         $afterCallback = true;
 
@@ -365,7 +366,7 @@ final class DatabaseManagerTest extends TestCase
         $results = [];
 
         try {
-            \Swoole\Coroutine::run(static function () use ($manager, &$results): void {
+            \Swoole\Coroutine::run(static function () use ($manager, $activeOperations, &$results): void {
                 \Swoole\Coroutine::create(static function () use ($manager, &$results): void {
                     $manager->transaction(function (\PDO $pdo) use ($manager, &$results): void {
                         $results['holder_entered'] = true;
@@ -386,8 +387,8 @@ final class DatabaseManagerTest extends TestCase
                     $results['waiter_result'] = $manager->select('SELECT 42 AS answer');
                 });
 
-                \\Swoole\\Coroutine::create(static function () use ($activeOperations, &$results): void {
-                    \\Swoole\\Coroutine::sleep(0.03);
+                \Swoole\Coroutine::create(static function () use ($activeOperations, &$results): void {
+                    \Swoole\Coroutine::sleep(0.03);
                     $counts = $activeOperations->getValue();
                     $results['blocked_waiter_reserved'] = max($counts);
                 });
