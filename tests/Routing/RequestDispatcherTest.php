@@ -86,11 +86,11 @@ final class DispatcherTestController
 
 final class RetentionTestController
 {
-    public static ?\\WeakReference $lastInstance = null;
+    public static ?\WeakReference $lastInstance = null;
 
     public function __construct()
     {
-        self::$lastInstance = \\WeakReference::create($this);
+        self::$lastInstance = \WeakReference::create($this);
     }
 
     public function show(): string
