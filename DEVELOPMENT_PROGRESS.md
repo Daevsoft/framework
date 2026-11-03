@@ -261,6 +261,6 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added a focused PHPUnit regression for 2,000 repeated request/resource cycles and deterministic exception cleanup.
 - Added a weekly/manual GitHub Actions workflow with relevant path triggers and a 30-day JSON report artifact.
 - Added audit documentation describing pass criteria and limits; retained-memory bounds are measurements, not proof that all PHP/native/coroutine leaks are absent.
-- Initial implementation is pushed. CI/audit execution results are pending.
+- Verification: audit run `41580099521` passed on PHP 8.3 / GitHub-hosted Ubuntu. All 50,000 cycles completed; 50 intentional exceptions were caught; all 500 sampled request objects were released; Context and Pool were empty after cleanup; 1/1 pooled resources were disposed; no unexpected failures. Retained PHP memory delta was 42,208 bytes, peak allocated memory was 4 MiB, and the configured growth bound was 16 MiB. Observed throughput was 477,162.55 cycles/second on this runner. These are synthetic runner-specific measurements, not production guarantees or proof of no memory leak. Focused PHPUnit regression and harness syntax passed. Main CI run `41580107041` passed all jobs.
 
-| 2026-11-03 | AUDIT-04 | Sustained worker-style lifecycle/memory harness, resource disposal regression, scheduled/manual workflow, audit documentation | Pending GitHub Actions | Pending |
+| 2026-11-03 | AUDIT-04 | Sustained worker-style lifecycle/memory harness, resource disposal regression, scheduled/manual workflow, audit documentation | Audit `41580099521` passed; CI `41580107041` passed | `714346e` (progress update) |
