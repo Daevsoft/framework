@@ -28,6 +28,6 @@ final class AuthManager
         $provider = (string) ($guard['provider'] ?? '');
         $providerConfig = $config['providers'][$provider] ?? [];
         $resolver = $this->providers[$provider] ?? ($providerConfig['resolver'] ?? null);
-        return new Guard(is_callable($resolver) ? $resolver : null);
+        return new Guard(is_callable($resolver) ? $resolver : null, (string) ($guard['driver'] ?? 'token'));
     }
 }
