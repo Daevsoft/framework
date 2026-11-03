@@ -299,7 +299,7 @@ final class DatabaseManagerTest extends TestCase
 
     public function testShutdownDuringActiveCoroutineOperationDefersPoolClosure(): void
     {
-        if (!class_exists(\\Swoole\\Coroutine::class) || !class_exists(\\Swoole\\Coroutine\\Channel::class)) {
+        if (!class_exists(\Swoole\Coroutine::class) || !class_exists(\Swoole\Coroutine\Channel::class)) {
             self::markTestSkipped('Swoole coroutine runtime is unavailable.');
         }
 
@@ -308,22 +308,22 @@ final class DatabaseManagerTest extends TestCase
             'database' => ':memory:',
             'pool' => ['max' => 1, 'timeout' => 1],
         ]);
-        $keyMethod = new \\ReflectionMethod(DatabaseManager::class, 'poolKey');
+        $keyMethod = new \ReflectionMethod(DatabaseManager::class, 'poolKey');
         $key = $keyMethod->invoke($manager);
-        $channels = new \\ReflectionProperty(DatabaseManager::class, 'channels');
+        $channels = new \ReflectionProperty(DatabaseManager::class, 'channels');
         $duringCallback = false;
         $afterCallback = true;
 
         $runner = static function (callable $callback): void {
-            if (method_exists(\\Swoole\\Coroutine::class, 'run')) {
-                \\Swoole\\Coroutine::run($callback);
+            if (method_exists(\Swoole\Coroutine::class, 'run')) {
+                \Swoole\Coroutine::run($callback);
                 return;
             }
 
-            if (!class_exists(\\Swoole\\Coroutine\\Scheduler::class)) {
+            if (!class_exists(\Swoole\Coroutine\Scheduler::class)) {
                 self::markTestSkipped('No supported Swoole coroutine scheduler is available.');
             }
-            $scheduler = new \\Swoole\\Coroutine\\Scheduler();
+            $scheduler = new \Swoole\Coroutine\Scheduler();
             $scheduler->add($callback);
             $scheduler->start();
         };
@@ -331,7 +331,7 @@ final class DatabaseManagerTest extends TestCase
         try {
             $runner(static function () use ($manager, $channels, $key, &$duringCallback, &$afterCallback): void {
                 $manager->execute('CREATE TABLE lifecycle_probe (id INTEGER PRIMARY KEY)');
-                $manager->transaction(function (\\PDO $pdo) use ($manager, $channels, $key, &$duringCallback): void {
+                $manager->transaction(function (\PDO $pdo) use ($manager, $channels, $key, &$duringCallback): void {
                     $manager->shutdown();
                     $current = $channels->getValue();
                     $duringCallback = isset($current[$key]);
