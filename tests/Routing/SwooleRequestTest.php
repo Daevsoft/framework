@@ -36,15 +36,17 @@ final class SwooleRequestTest extends TestCase
         $observed = 'not-run';
 
         $kernelFactory = static function () use (&$observed): object {
-            return new class($observed) {
-                public function __construct(private mixed &$observed)
+            return new class(static function (mixed $value) use (&$observed): void {
+                $observed = $value;
+            }) {
+                public function __construct(private \\Closure $observe)
                 {
                 }
 
                 public function handle(Request $request): Response
                 {
                     $context = Context::default();
-                    $this->observed = $context->get('request.secret');
+                    ($this->observe)($context->get('request.secret'));
                     if ($request->getPath() === '/first') {
                         $context->set('request.secret', 'private-first-request');
                     }
