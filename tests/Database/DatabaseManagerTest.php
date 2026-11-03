@@ -312,6 +312,7 @@ final class DatabaseManagerTest extends TestCase
         $key = $keyMethod->invoke($manager);
         $channels = new \ReflectionProperty(DatabaseManager::class, 'channels');
         $activeOperations = new \ReflectionProperty(DatabaseManager::class, 'activeOperations');
+        $activeOperations = new \ReflectionProperty(DatabaseManager::class, 'activeOperations');
         $duringCallback = false;
         $afterCallback = true;
 
