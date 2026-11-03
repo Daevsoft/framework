@@ -296,6 +296,58 @@ final class DatabaseManagerTest extends TestCase
     }
 
 
+
+    public function testShutdownDuringActiveCoroutineOperationDefersPoolClosure(): void
+    {
+        if (!class_exists(\\Swoole\\Coroutine::class) || !class_exists(\\Swoole\\Coroutine\\Channel::class)) {
+            self::markTestSkipped('Swoole coroutine runtime is unavailable.');
+        }
+
+        $manager = new DatabaseManager([
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'pool' => ['max' => 1, 'timeout' => 1],
+        ]);
+        $keyMethod = new \\ReflectionMethod(DatabaseManager::class, 'poolKey');
+        $key = $keyMethod->invoke($manager);
+        $channels = new \\ReflectionProperty(DatabaseManager::class, 'channels');
+        $duringCallback = false;
+        $afterCallback = true;
+
+        $runner = static function (callable $callback): void {
+            if (method_exists(\\Swoole\\Coroutine::class, 'run')) {
+                \\Swoole\\Coroutine::run($callback);
+                return;
+            }
+
+            if (!class_exists(\\Swoole\\Coroutine\\Scheduler::class)) {
+                self::markTestSkipped('No supported Swoole coroutine scheduler is available.');
+            }
+            $scheduler = new \\Swoole\\Coroutine\\Scheduler();
+            $scheduler->add($callback);
+            $scheduler->start();
+        };
+
+        try {
+            $runner(static function () use ($manager, $channels, $key, &$duringCallback, &$afterCallback): void {
+                $manager->execute('CREATE TABLE lifecycle_probe (id INTEGER PRIMARY KEY)');
+                $manager->transaction(function (\\PDO $pdo) use ($manager, $channels, $key, &$duringCallback): void {
+                    $manager->shutdown();
+                    $current = $channels->getValue();
+                    $duringCallback = isset($current[$key]);
+                });
+
+                $current = $channels->getValue();
+                $afterCallback = isset($current[$key]);
+            });
+        } finally {
+            $manager->shutdown();
+        }
+
+        self::assertTrue($duringCallback, 'Pool channel must remain alive during an active callback.');
+        self::assertFalse($afterCallback, 'Pool channel should close after the final lease is returned.');
+    }
+
     public function testPoolShutdownWaitsUntilActiveLeasesAreReleased(): void
     {
         $channel = new class {
