@@ -264,3 +264,12 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Verification: audit run `41580099521` passed on PHP 8.3 / GitHub-hosted Ubuntu. All 50,000 cycles completed; 50 intentional exceptions were caught; all 500 sampled request objects were released; Context and Pool were empty after cleanup; 1/1 pooled resources were disposed; no unexpected failures. Retained PHP memory delta was 42,208 bytes, peak allocated memory was 4 MiB, and the configured growth bound was 16 MiB. Observed throughput was 477,162.55 cycles/second on this runner. These are synthetic runner-specific measurements, not production guarantees or proof of no memory leak. Focused PHPUnit regression and harness syntax passed. Main CI run `41580107041` passed all jobs.
 
 | 2026-11-03 | AUDIT-04 | Sustained worker-style lifecycle/memory harness, resource disposal regression, scheduled/manual workflow, audit documentation | Audit `41580099521` passed; CI `41580107041` passed | `714346e` (progress update) |
+
+
+### 2026-11-03 — AUDIT-05: Coroutine Isolation
+- Added concurrent Swoole regression coverage for Context, Container request-scoped services, lifecycle callbacks, interleaved request cycles and deterministic callback exceptions.
+- Added a configurable stress harness, weekly/manual GitHub Actions workflow, and audit documentation.
+- The default audit workload is 64 coroutines × 250 requests. It measures context/scope mismatches, lifecycle context mismatches, completion and exception counts.
+- This synthetic single-process test does not prove isolation for arbitrary globals or every cancellation/shutdown interleaving. CI and audit verification pending.
+
+| 2026-11-03 | AUDIT-05 | Coroutine isolation regression, stress harness, workflow and docs | Pending | Pending |
