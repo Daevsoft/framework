@@ -214,6 +214,27 @@ Run migrations with `php ds migrate`, inspect with `php ds migrate --status`, an
 
 The v3-compatible `asset('images/logo.svg')` helper is also available. Set `ASSET_URL` to a CDN or asset prefix when needed; without it, local assets resolve from the web root.
 
+## Long-running worker resource cleanup
+
+Event and lifecycle listeners remain registered until explicitly removed or their manager is released. In persistent Swoole workers, unregister callbacks when a module or resource is no longer needed so closures do not retain captured services or request data:
+
+```php
+$listener = function (\\Ds\\Events\\Event $event): void {
+    // Handle the event.
+};
+
+$events->on('order.created', $listener);
+
+// When the subscriber is stopped:
+$events->off('order.created', $listener);
+
+// Or remove every listener for an event / manager:
+$events->clear('order.created');
+$events->clear();
+```
+
+Lifecycle callbacks support the same cleanup pattern with `unregister($event, $listener)` and `clear($event = null)`. Keep process-wide listeners limited to process-wide state; do not capture request objects, authenticated users, or per-request services in callbacks that survive the request.
+
 ## Responses
 
 ```php
