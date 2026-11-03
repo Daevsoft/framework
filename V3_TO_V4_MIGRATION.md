@@ -35,7 +35,7 @@ v4 has reimplemented the framework around a new Swoole-first runtime, HTTP kerne
 | Tester / Runner | Replaced / partial | PHPUnit-based tests and `php ds test` command | v3 custom Tester/Assert/Runner API is not a drop-in compatibility layer |
 | Debugger | Replaced / partial | v4 Inspector and Profiler | Compare v3 Debug API and exception rendering before claiming parity |
 | Environment helpers / generator | Partial | v4 environment loader and helper functions | v3 EnvGenerator / interactive .env generation is not confirmed as parity |
-| Broadcasting / WebSocket | Scaffolding only; not operational | `BroadcastManager` returns an empty `Broadcaster`; `broadcast()` is empty; Redis/SSE/WebSocket connection classes are empty; `Route::ws()` registers method `WS` | Implement configured transport resolution, Swoole WebSocket handshake/open/message/close callbacks, connection registry, heartbeat, backpressure, authorization and worker-safe pub/sub. See `V3_API_INVENTORY.md` |
+| Broadcasting / WebSocket | Partial: single-worker WebSocket lifecycle and channel broadcast | Swoole WebSocket Server callbacks, peer registry/subscriptions and local broadcast implemented; Redis/SSE and cross-worker pub/sub are not | Add shared pub/sub, heartbeat, bounded backpressure, channel authorization and real-client integration tests. See `V3_API_INVENTORY.md` |
 
 ## Verified v4 behavior
 
