@@ -49,42 +49,15 @@ $lifecycle->register('request.received', static function ($event) use (
 $started = hrtime(true);
 $runner = static function (callable $callback) use ($hasRun): void {
     if ($hasRun) {
-        \Swoole\Coroutine::run($callback);
+        \\Swoole\\Coroutine::run(static function () use ($callback): void {
+            $callback(static fn (callable $task) => \\Swoole\\Coroutine::create($task));
+        });
         return;
     }
-    $scheduler = new \Swoole\Coroutine\Scheduler();
-    $scheduler->add($callback);
+    $scheduler = new \\Swoole\\Coroutine\\Scheduler();
+    $callback(static fn (callable $task) => $scheduler->add($task));
     $scheduler->start();
 };
-$runner(static function () use (
-    $coroutines,
-    $cycles,
-    $context,
-    $container,
-    $lifecycle,
-    &$completed,
-    &$intentionalExceptions,
-    &$contextViolations,
-    &$scopeViolations
-): void {
-    for ($coroutine = 0; $coroutine < $coroutines; $coroutine++) {
-        \Swoole\Coroutine::create(static function () use (
-            $coroutine,
-            $cycles,
-            $context,
-            $container,
-            $lifecycle,
-            &$completed,
-            &$intentionalExceptions,
-            &$contextViolations,
-            &$scopeViolations
-        ): void {
-            for ($sequence = 1; $sequence <= $cycles; $sequence++) {
-                $requestId = sprintf('co-%03d-req-%05d', $coroutine, $sequence);
-                $container->beginRequest();
-                try {
-                    $context->set('request_id', $requestId);
-                    \Swoole\Coroutine::sleep(0);
 
                     $first = $container->make('audit.request_service');
                     \Swoole\Coroutine::sleep(0);
