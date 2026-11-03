@@ -16,6 +16,7 @@
 |---|---|
 | [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) | v3/v4 compatibility matrix and completion criteria |
 | [V3_API_INVENTORY.md](V3_API_INVENTORY.md) | Tracked v3 source inventory, current v4 feature evidence, CLI/generator comparison and open gaps |
+| [RUNTIME_FEATURES.md](RUNTIME_FEATURES.md) | WebSocket, broadcast, Bearer authentication, authorization primitives and task-worker usage/limitations |
 | [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md) | Application development, migration and release checklist |
 | [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | Implemented v4 systems and limitations |
 | [COMPLETION.md](COMPLETION.md) | High-level implementation/migration status |
@@ -48,8 +49,9 @@
 ## Important boundaries
 
 - Swoole is the primary runtime; FPM is a compatibility adapter.
-- Authentication is not production-ready; the built-in AuthMiddleware fails closed with HTTP 501.
-- `Route::ws()` is not a complete WebSocket server.
+- Authentication supports pluggable Bearer providers and fail-closed middleware, but does not include a complete persistent token/password/session system.
+- WebSocket supports a worker-local Swoole connection and broadcast path; cross-worker pub/sub, channel authorization, heartbeat and backpressure remain open.
+- TaskDispatcher provides ephemeral Swoole task-worker dispatch, not a durable queue.
 - Legacy v3 database/model/schema, CronJob, generator and Tester/Runner behavior is not fully compatible.
 - CI and synthetic stress audits do not prove production readiness or absence of all memory/concurrency defects.
 
