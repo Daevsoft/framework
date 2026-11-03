@@ -14,6 +14,7 @@ final class DatabaseManager
     private static array $created = [];
     private static ?self $defaultManager = null;
     private static array $poolUsers = [];
+    private static array $activeLeases = [];
 
     private ?PDO $localConnection = null;
     private bool $shutdown = false;
@@ -138,16 +139,28 @@ final class DatabaseManager
         }
 
         unset(self::$poolUsers[$key]);
+        $this->closePoolIfUnused($key);
+    }
+
+    /**
+     * Close a pool only after its final manager and in-flight lease are gone.
+     * An active callback may still need to return its connection to the channel.
+     */
+    private function closePoolIfUnused(string $key): void
+    {
+        if ((self::$poolUsers[$key] ?? 0) > 0 || (self::$activeLeases[$key] ?? 0) > 0) {
+            return;
+        }
+
         $channel = self::$channels[$key] ?? null;
         try {
             if (is_object($channel) && method_exists($channel, 'close')) {
                 $channel->close();
             }
         } catch (Throwable) {
-            // Destructors and worker shutdown must not fail because a pool
-            // channel was already closed by the runtime.
+            // Destructors and worker shutdown must tolerate runtime-closed channels.
         } finally {
-            unset(self::$channels[$key], self::$created[$key]);
+            unset(self::$channels[$key], self::$created[$key], self::$activeLeases[$key]);
         }
     }
 
@@ -210,12 +223,24 @@ final class DatabaseManager
 
     private function runAndRelease(PDO $connection, callable $callback, object $channel, string $key): mixed
     {
+        self::$activeLeases[$key] = (self::$activeLeases[$key] ?? 0) + 1;
+
         try {
             return $callback($connection);
         } finally {
-            if (!$channel->push($connection, 0.1)) {
-                self::$created[$key] = max(0, (self::$created[$key] ?? 1) - 1);
-                $connection = null;
+            try {
+                if (!$channel->push($connection, 0.1)) {
+                    self::$created[$key] = max(0, (self::$created[$key] ?? 1) - 1);
+                    $connection = null;
+                }
+            } finally {
+                $remainingLeases = max(0, (self::$activeLeases[$key] ?? 1) - 1);
+                if ($remainingLeases > 0) {
+                    self::$activeLeases[$key] = $remainingLeases;
+                } else {
+                    unset(self::$activeLeases[$key]);
+                    $this->closePoolIfUnused($key);
+                }
             }
         }
     }
