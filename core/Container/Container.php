@@ -209,7 +209,7 @@ final class Container
     private function requestContext(): Context
     {
         if (!isset($this->instances[Context::class])) {
-            $this->instance(Context::class, new Context());
+            $this->instance(Context::class, Context::default());
         }
 
         return $this->instances[Context::class];
