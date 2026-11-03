@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Tests\\Routing;
+namespace Tests\Routing;
 
-use Ds\\Container\\Container;
-use Ds\\Context\\Context;
-use Ds\\Http\\Request;
-use Ds\\Http\\Response;
-use Ds\\Lifecycle\\LifecycleManager;
-use Ds\\Server\\SwooleServer;
-use PHPUnit\\Framework\\TestCase;
+use Ds\Container\Container;
+use Ds\Context\Context;
+use Ds\Http\Request;
+use Ds\Http\Response;
+use Ds\Lifecycle\LifecycleManager;
+use Ds\Server\SwooleServer;
+use PHPUnit\Framework\TestCase;
 
 final class SwooleRequestTest extends TestCase
 {
@@ -39,7 +39,7 @@ final class SwooleRequestTest extends TestCase
             return new class(static function (mixed $value) use (&$observed): void {
                 $observed = $value;
             }) {
-                public function __construct(private \\Closure $observe)
+                public function __construct(private \Closure $observe)
                 {
                 }
 
@@ -56,7 +56,7 @@ final class SwooleRequestTest extends TestCase
             };
         };
 
-        $method = new \\ReflectionMethod(SwooleServer::class, 'handleRequest');
+        $method = new \ReflectionMethod(SwooleServer::class, 'handleRequest');
         $method->setAccessible(true);
 
         $firstResponse = new FakeSwooleHttpResponse();
@@ -78,7 +78,7 @@ final class SwooleRequestTest extends TestCase
         $container = new Container();
         $lifecycle = new LifecycleManager();
         $lifecycle->register('request.handled', static function (): void {
-            throw new \\RuntimeException('listener failure');
+            throw new \RuntimeException('listener failure');
         });
 
         $kernel = static function (): object {
@@ -91,7 +91,7 @@ final class SwooleRequestTest extends TestCase
             };
         };
 
-        $method = new \\ReflectionMethod(SwooleServer::class, 'handleRequest');
+        $method = new \ReflectionMethod(SwooleServer::class, 'handleRequest');
         $method->setAccessible(true);
         $method->invoke(null, $container, $kernel, $lifecycle, new FakeSwooleHttpRequest('/failure'), new FakeSwooleHttpResponse());
 
