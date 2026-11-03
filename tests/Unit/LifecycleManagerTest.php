@@ -30,8 +30,8 @@ final class LifecycleManagerTest extends TestCase
     public function testUnregisteringListenerReleasesCapturedObjects(): void
     {
         $manager = new LifecycleManager();
-        $target = new \\stdClass();
-        $reference = \\WeakReference::create($target);
+        $target = new \stdClass();
+        $reference = \WeakReference::create($target);
         $listener = static function () use ($target): void {};
 
         $manager->register('worker.start', $listener);
@@ -47,8 +47,8 @@ final class LifecycleManagerTest extends TestCase
     public function testClearingLifecycleListenersReleasesCapturedObjects(): void
     {
         $manager = new LifecycleManager();
-        $target = new \\stdClass();
-        $reference = \\WeakReference::create($target);
+        $target = new \stdClass();
+        $reference = \WeakReference::create($target);
         $listener = static function () use ($target): void {};
 
         $manager->register('worker.start', $listener);
