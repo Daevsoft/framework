@@ -18,7 +18,7 @@ The table below records findings from the initial v4 audit; it is not a statemen
 | Dependency injection | Weak reflection/lifetime behavior | Autowiring, circular checks, metadata cache and explicit scopes implemented |
 | Response API | Immutable header results discarded | Response factory and immutable response handling implemented |
 | FPM adapter | Separate/inconsistent kernel setup | Shared HTTP kernel compatibility adapter implemented |
-| Authentication | Placeholder guard/RBAC/ACL | Still not production authentication; middleware fails closed with HTTP 501 |
+| Authentication | Initial fail-closed placeholders | Pluggable Bearer-token resolvers, 401 middleware, RBAC/ACL and explicit policies implemented; no built-in persistent token/user provider or full session/password flow |
 | Scheduler | Initial implementation was a no-op | Bounded Swoole timer Scheduler implemented and audited through AUDIT-06 |
 | Resource pools | Unbounded and weak cleanup | Bounded pools, validation, disposal and shutdown lifecycle hardened |
 
@@ -50,10 +50,12 @@ The table below records findings from the initial v4 audit; it is not a statemen
 
 ### P1 — Core framework completeness
 
-- [ ] Implement WebSocket upgrade, connection lifecycle, heartbeat, backpressure and worker-safe broadcasting, or explicitly de-scope the feature. **Confirmed not implemented at current v4 HEAD**; transport classes and broadcast method are stubs. See `V3_API_INVENTORY.md`.
+- [x] Implement the initial Swoole WebSocket server lifecycle, per-worker connection registry, subscriptions and local channel broadcast. **Implemented and unit-tested.**
+- [ ] Add WebSocket heartbeat, bounded backpressure, channel authorization, shared cross-worker pub/sub and real-client integration coverage. See `V3_API_INVENTORY.md`.
 - [ ] Complete route naming/URL generation, constraints, method-not-allowed handling and HEAD support.
 - [ ] Complete uploaded-file handling, cookie APIs and content negotiation.
-- [ ] Implement queued task-worker execution if asynchronous job queues are in scope; timer Scheduler is not a queue. **Confirmed not implemented as a queue/worker subsystem**; v3 CronJob runner is not equivalent to the v4 timer Scheduler.
+- [x] Add Swoole task-worker dispatch for serializable `Task` objects via `TaskDispatcher`. This is ephemeral async execution only.
+- [ ] Add durable queue storage, retries, delayed scheduling, failed-job persistence and worker integration tests; timer Scheduler and task dispatch are not a durable queue.
 - [ ] Expand pool factories, acquisition timeout behavior and driver-specific integration tests.
 - [ ] Complete or document event/broadcast adapters and supported transports.
 
@@ -73,7 +75,7 @@ See [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) for the compatibility matrix 
 
 - [ ] Add sustained Swoole load tests reporting throughput, p50/p95/p99 latency, worker RSS and memory trends.
 - [ ] Profile routing, container resolution, middleware and serialization under representative concurrency.
-- [ ] Expand security tests for path normalization, headers, uploads, CORS, authentication and error disclosure.
+- [ ] Expand security tests for path normalization, headers, uploads, CORS, authentication and error disclosure. Bearer-provider, RBAC/ACL and fail-closed policy unit coverage is now present.
 - [ ] Audit static registries, listeners, caches and resources under long-running worker traffic.
 - [ ] Expand CI across the supported PHP/Swoole matrix.
 
