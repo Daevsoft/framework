@@ -194,7 +194,7 @@ final class DatabaseManager
         self::$activeLeases[$key] = (self::$activeLeases[$key] ?? 0) + 1;
 
         try {
-            $channelClass = 'Swoole\\\\Coroutine\\\\Channel';
+            $channelClass = 'Swoole\\Coroutine\\Channel';
             $max = max(1, (int) ($this->config['pool']['max'] ?? 10));
             $timeout = max(0.1, (float) ($this->config['pool']['timeout'] ?? 3.0));
             $channel = self::$channels[$key] ??= new $channelClass($max);
