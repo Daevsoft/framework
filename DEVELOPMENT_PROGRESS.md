@@ -66,7 +66,15 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 ## Completed work log
 
-### 2026-11-03 — Query composition improvements (CI pending)\n- Added nested `whereGroup()` / `orWhereGroup()` predicates with isolated child builders and parent-safe binding renaming.\n- Added optional JOIN aliases to all four join methods; table and alias identifiers use the existing strict identifier validator.\n- Added `whereInSubquery()` / `whereNotInSubquery()` with binding renaming and a one-column subquery guard.\n- Added regression tests for grouped predicates, nested groups, aliased LEFT JOINs, IN/NOT IN subqueries, and invalid multi-column subqueries.\n- Updated README query-builder and compatibility documentation.\n- Commits in this batch: `e08cb42eb035e53fab24fce4ebd54151aa310974`, `828da078db7acaef837d0132eda10ca232a58a3d`, `0a4f3f42300fb98399588da6d187c7c6b3d4f2e2`, `cecd73950d3c9910d3663b2ac20d49e33481d985`.\n\n### 2026-11-03 — Progress tracking initialized
+### 2026-11-03 — Query composition improvements (CI pending)
+- Added nested `whereGroup()` / `orWhereGroup()` predicates with isolated child builders and parent-safe binding renaming.
+- Added optional JOIN aliases to all four join methods; table and alias identifiers use the existing strict identifier validator.
+- Added `whereInSubquery()` / `whereNotInSubquery()` with binding renaming and a one-column subquery guard.
+- Added regression tests for grouped predicates, nested groups, aliased LEFT JOINs, IN/NOT IN subqueries, and invalid multi-column subqueries.
+- Updated README query-builder and compatibility documentation.
+- Commits in this batch: `e08cb42eb035e53fab24fce4ebd54151aa310974`, `828da078db7acaef837d0132eda10ca232a58a3d`, `0a4f3f42300fb98399588da6d187c7c6b3d4f2e2`, `cecd73950d3c9910d3663b2ac20d49e33481d985`.
+
+### 2026-11-03 — Progress tracking initialized
 - Added this roadmap so task status, decisions, commits, and CI results are tracked in-repository.
 - Baseline branch: `v4`.
 - Baseline commit before this log: `8e9527bb862d9e5a1dc524dc845638ccf40eef3c`.
@@ -84,4 +92,5 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 | Date | Batch | Changes | Tests / CI | Commit |
 |---|---|---|---|---|
-| 2026-11-03 | DB-02 to DB-04 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI pending | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739` |\n| 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
+| 2026-11-03 | DB-02 to DB-04 | Grouped predicates, JOIN aliases, parameterized IN/NOT IN subqueries, regression tests and README updates | CI pending | `e08cb42`, `828da07`, `0a4f3f4`, `cecd739` |
+| 2026-11-03 | Tracking setup | Initial roadmap and durable progress log | Commit `0c4c8f9` | `0c4c8f9` |
