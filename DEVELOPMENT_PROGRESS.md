@@ -26,9 +26,9 @@ This document is the durable work log and implementation roadmap for the v4 bran
 | JOIN aliases | Implemented | Optional fifth alias argument with strict identifier validation |
 | Subquery support | Implemented | Parameterized IN/NOT IN; same-manager and one-column checks |
 | Query semantics and edge cases | In progress | Grouped count and empty IN/NOT IN semantics covered; broader driver edge cases remain |
-| Documentation and migration guide | In progress | Root docs aligned and V3_TO_V4_MIGRATION.md added; public v3 API inventory remains open |
+| Documentation and migration guide | In progress | Root docs aligned; V3_TO_V4_MIGRATION.md and V3_API_INVENTORY.md added; exhaustive method-level parity remains open |
 | Resource lifecycle and performance | In progress | PDO cursors released, per-pool lifecycle reference counting, credential-aware pool keys, linear WHERE assembly; controller/listener retention regression tests added |
-| Full compatibility/security audit | In progress | Initial v3/v4 subsystem matrix documented; public method/command/template inventory and parity tests remain open |
+| Full compatibility/security audit | In progress | v3 tracked-source inventory and targeted broadcast/auth/CLI checks recorded in V3_API_INVENTORY.md; exhaustive public-method parity and subsystem tests remain open |
 
 ## Task breakdown
 
@@ -293,3 +293,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Reworked `DEVELOPMENT_CHECKLIST.md`, `IMPLEMENTATION_SUMMARY.md` and `COMPLETION.md` so they no longer claim complete v3 parity, operational WebSocket support or production authentication.
 - Updated `README.md`, `QUICKSTART.md`, `SETUP.md`, `API.md`, `Framework Flow Process.md`, `DOCUMENTATION_INDEX.md`, `AUDIT_AND_ROADMAP.md` and `CONSOLE_VERIFICATION.md` to align paths, CLI commands, feature boundaries and links.
 - Documentation-only alignment; no runtime code was changed in this batch. The full v3 public API/method/template inventory remains unfinished, so migration status remains **partial**.
+
+
+## V3 API inventory baseline — 2026-11-03
+
+- Added `V3_API_INVENTORY.md` from the complete tracked v3 Git tree (90 files) and targeted source inspection.
+- Confirmed v4 broadcasting is scaffolding only: empty broadcast delivery, empty Redis/SSE/WebSocket connection classes, and no WebSocket callbacks/upgrade lifecycle in `SwooleServer`.
+- Confirmed the sample AuthMiddleware returns HTTP 501 and `Guard::check()` returns false; authentication must not be presented as production-ready.
+- Confirmed v3 CronJob `Job`/`Worker` CLI execution is not equivalent to v4 timer Scheduler; no queue/task-worker implementation is established.
+- Confirmed v3 helper/job generator templates and direct `cache` CLI parity are not present in the v4 base command list.
+- This is a file-level and targeted-source baseline, not yet an exhaustive method-by-method compatibility certification.
