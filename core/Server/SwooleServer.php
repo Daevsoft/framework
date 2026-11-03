@@ -128,6 +128,10 @@ final class SwooleServer
                     error_log((string) $exception);
                 }
                 $container->endRequest();
+                // Request callbacks may run without coroutine-local storage
+                // (for example when enable_coroutine is disabled). Clear the
+                // fallback store as well so request objects cannot survive.
+                $context->clear();
             }
         });
 
