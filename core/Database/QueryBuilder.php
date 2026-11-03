@@ -222,7 +222,7 @@ final class QueryBuilder
     public function toSubquery(): array
     {
         if (count($this->columns) !== 1) {
-            throw new \\InvalidArgumentException('A subquery used with IN must select exactly one column.');
+            throw new \InvalidArgumentException('A subquery used with IN must select exactly one column.');
         }
 
         $sql = 'SELECT ' . ($this->distinctValue ? 'DISTINCT ' : '') . implode(', ', $this->columns)
