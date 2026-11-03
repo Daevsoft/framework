@@ -84,6 +84,27 @@ final class PoolTest extends TestCase
         self::assertSame(1, $manager->count());
     }
 
+
+    public function testPoolManagerRejectsRecreationDuringForget(): void
+    {
+        $manager = new PoolManager();
+        $managerReference = WeakReference::create($manager);
+        $manager->get('cache', 2, null, static function () use ($managerReference): void {
+            $managerReference->get()?->get('cache');
+        })->release(new stdClass());
+
+        try {
+            $manager->forget('cache');
+            self::fail('Pool recreation should be rejected while the named pool is being forgotten.');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('being forgotten', $exception->getMessage());
+        }
+
+        self::assertSame(0, $manager->count());
+        $manager->get('cache');
+        self::assertSame(1, $manager->count());
+    }
+
     public function testPoolDoesNotExceedConfiguredCapacity(): void
     {
         $disposed = [];
