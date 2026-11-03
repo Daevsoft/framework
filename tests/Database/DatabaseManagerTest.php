@@ -348,7 +348,7 @@ final class DatabaseManagerTest extends TestCase
         self::assertFalse($afterCallback, 'Pool channel should close after the final lease is returned.');
     }
 
-    public function testPoolShutdownWaitsUntilActiveLeasesAreReleased(): void
+    public function testPoolShutdownWaitsUntilActiveOperationsAreReleased(): void
     {
         $channel = new class {
             public bool $closed = false;
@@ -362,7 +362,7 @@ final class DatabaseManagerTest extends TestCase
         $channels = new \ReflectionProperty(DatabaseManager::class, 'channels');
         $created = new \ReflectionProperty(DatabaseManager::class, 'created');
         $users = new \ReflectionProperty(DatabaseManager::class, 'poolUsers');
-        $leases = new \ReflectionProperty(DatabaseManager::class, 'activeLeases');
+        $leases = new \ReflectionProperty(DatabaseManager::class, 'activeOperations');
         $channels->setValue(null, ['lease-test' => $channel]);
         $created->setValue(null, ['lease-test' => 1]);
         $users->setValue(null, []);
