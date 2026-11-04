@@ -40,7 +40,7 @@ final class SchemaBuilder
         if ($this->database->driver() === 'sqlite') {
             $version = $this->database->select('SELECT sqlite_version() AS version')[0]['version'] ?? '0.0.0';
             if (version_compare((string) $version, '3.35.0', '<')) {
-                throw new \\RuntimeException(
+                throw new \RuntimeException(
                     'SQLite DROP COLUMN requires SQLite 3.35.0 or newer; rebuild the table for older versions.'
                 );
             }
