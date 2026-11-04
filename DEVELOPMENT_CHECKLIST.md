@@ -27,7 +27,7 @@ This file is the working checklist for developing applications on v4. It is **no
 - [x] Restore Common File/Func adapters, view cache clearer and `php ds cache` CLI
 - [x] Record the currently verified PHP 8.3 / Swoole 6.2.3 / SQLite / FPM baseline in [SUPPORTED_RUNTIMES.md](SUPPORTED_RUNTIMES.md)
 - [ ] Expand the version matrix across pinned PHP/Swoole releases and production database drivers; complete production deployment validation
-- [x] Restore v3 Date/Str helper namespaces and add request-aware app_url() with APP_URL override
+- [x] Restore v3 Date/Str helper namespaces, Env::get/AppEnv adapters and request-aware app_url() with APP_URL override
 - [x] Verify PieTemplate layout/component dependency invalidation and reject view/dependency path traversal
 
 ## Getting started
