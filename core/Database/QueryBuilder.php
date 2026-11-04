@@ -374,6 +374,38 @@ final class QueryBuilder
         return $query->get()[0] ?? null;
     }
 
+    /** Compatibility aliases for common v3 query-result accessors. */
+    public function get_object(): array
+    {
+        return $this->get();
+    }
+
+    public function get_array(): array
+    {
+        return $this->get();
+    }
+
+    public function get_assoc(): array
+    {
+        return $this->get();
+    }
+
+    public function row(): ?array
+    {
+        return $this->first();
+    }
+
+    public function get_row_object(): ?array
+    {
+        return $this->first();
+    }
+
+    public function get_exist(): bool
+    {
+        $query = clone $this;
+        return $query->limit(1)->get() !== [];
+    }
+
     public function count(): int
     {
         if ($this->groups !== [] || $this->havingConditions !== []) {
