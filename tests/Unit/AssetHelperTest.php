@@ -28,6 +28,41 @@ final class AssetHelperTest extends TestCase
         }
     }
 
+    public function testAppUrlPrefersConfiguredAbsoluteUrl(): void
+    {
+        $hadValue = array_key_exists('APP_URL', $_ENV);
+        $previous = $_ENV['APP_URL'] ?? null;
+        $_ENV['APP_URL'] = 'https://app.example.test/base/';
+
+        try {
+            self::assertSame('https://app.example.test/base', app_url());
+        } finally {
+            if ($hadValue) {
+                $_ENV['APP_URL'] = $previous;
+            } else {
+                unset($_ENV['APP_URL']);
+            }
+        }
+    }
+
+    public function testRejectsInvalidConfiguredAppUrl(): void
+    {
+        $hadValue = array_key_exists('APP_URL', $_ENV);
+        $previous = $_ENV['APP_URL'] ?? null;
+        $_ENV['APP_URL'] = 'javascript:alert(1)';
+
+        try {
+            $this->expectException(\\RuntimeException::class);
+            app_url();
+        } finally {
+            if ($hadValue) {
+                $_ENV['APP_URL'] = $previous;
+            } else {
+                unset($_ENV['APP_URL']);
+            }
+        }
+    }
+
     public function testLeavesAbsoluteAssetUrlsUnchanged(): void
     {
         self::assertSame(
