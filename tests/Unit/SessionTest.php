@@ -67,6 +67,16 @@ final class SessionTest extends TestCase
         self::assertSame(42, $third->get('user_id'));
     }
 
+    public function testSessionGetDistinguishesStoredNullFromMissingKeys(): void
+    {
+        $session = SessionManager::start(new Request(), $this->directory);
+        $session->put('nullable', null);
+
+        self::assertNull($session->get('nullable', 'fallback'));
+        self::assertSame('fallback', $session->get('missing', 'fallback'));
+        self::assertTrue($session->has('nullable'));
+    }
+
     public function testDifferentSessionCookiesNeverShareData(): void
     {
         $first = SessionManager::start(new Request(), $this->directory);
