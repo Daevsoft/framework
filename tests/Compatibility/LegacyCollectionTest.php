@@ -48,6 +48,23 @@ final class LegacyCollectionTest extends TestCase
         self::assertSame([0 => ['name' => 'Ada'], 1 => ['name' => 'Lin']], $collection->take(2));
     }
 
+    public function testLegacyMutationAndSerializationMethodsRemainConsistent(): void
+    {
+        $collection = new LegacyCollection(['profile' => ['name' => 'Ada'], 'unused' => null]);
+        self::assertSame(['profile' => ['name' => 'Grace'], 'unused' => null], $collection->set('profile.name', 'Grace'));
+        self::assertSame('Grace', $collection->get('profile.name'));
+        self::assertNull($collection->pull('unused', 'fallback'));
+        self::assertFalse($collection->exists('unused'));
+        self::assertSame(['profile' => ['name' => 'Grace']], $collection->forget('unused'));
+
+        $serialized = $collection->serialize();
+        $restored = new LegacyCollection();
+        $restored->unserialize($serialized);
+        self::assertSame($collection->toArray(), $restored->toArray());
+        self::assertSame('Grace', $collection->profile['name']);
+        self::assertSame($collection->toArray(), $collection->__debugInfo());
+    }
+
     public function testNestedAccessMappingAndJsonSerialization(): void
     {
         $collection = new LegacyCollection([
