@@ -413,3 +413,12 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Corrected generator/runner path casing to match Composer PSR-4 on case-sensitive Linux filesystems.
 - Scope boundary: synchronous CLI job execution and Task dispatch are available; durable queue semantics, retry/failure storage, delayed jobs and recurring orchestration remain unimplemented. Nested named jobs work; no-argument discovery currently scans top-level job files only.
 - Updated README, API inventory, migration matrix, checklist and implementation summary. Verification remains pending user-reported Actions; development continues without waiting.
+
+
+## 2026-11-04 — Authentication and API documentation reconciliation
+
+- Re-inspected the current AuthMiddleware, AuthManager, Guard and authorization tests. The middleware is fail-closed with HTTP 401 and a Bearer challenge, not the stale HTTP 501 described in several root documents.
+- Updated README, API reference, implementation summary and checklist to reflect pluggable token resolvers and the remaining application-owned persistent token/user storage, password flows and session guard.
+- Corrected API WebSocket status: current v4 has Swoole WebSocket upgrade callbacks, worker-local hub/broadcast and a live-client smoke test; cross-worker pub/sub, Redis/SSE, heartbeat, backpressure and channel authorization remain open.
+- Updated migration completion criteria to focus on remaining durable queue, cross-worker realtime, upload and Tester/Runner gaps rather than claiming those base runtimes are absent.
+- Verification: documentation/source reconciliation only; no CI wait.
