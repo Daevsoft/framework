@@ -12,7 +12,7 @@ This file is the working checklist for developing applications on v4. It is **no
 - [x] Partial v3 compatibility bridges for Request, Response, Middleware, DsModel, Collection, sessions, CSRF and views
 - [x] CLI commands for common generators, route listing, config, tests and migrations
 - [x] CI coverage and lifecycle audit workflows through AUDIT-06
-- [ ] Complete public v3 API/method/command/template inventory
+- [ ] Complete behavioral compatibility certification for the v3 public method/command/template inventory (the declaration baseline is recorded)
 - [x] Fix guarded-primary-key Model::save() updates and add direct legacy DsModel result accessors
 - [x] Restore protected DsModel pagination using request-scoped page/query context and v4 limit/offset
 - [x] Preserve explicit null values in SessionManager::get()
