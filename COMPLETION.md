@@ -42,5 +42,6 @@ This file replaces the previous blanket “production-ready / fully implemented�
 3. [AUDIT_AND_ROADMAP.md](AUDIT_AND_ROADMAP.md) — engineering priorities.
 4. [DEVELOPMENT_PROGRESS.md](DEVELOPMENT_PROGRESS.md) — chronological implementation and CI log.
 5. [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) — implemented systems and limitations.
+6. [SUPPORTED_RUNTIMES.md](SUPPORTED_RUNTIMES.md) — verified runtime baseline and unverified combinations.
 
 Do not mark the migration complete until the explicit criteria in the migration matrix are satisfied.
