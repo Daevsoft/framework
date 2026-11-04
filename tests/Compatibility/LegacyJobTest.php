@@ -16,8 +16,12 @@ final class LegacyJobTest extends TestCase
     {
         $jobDirectory = base_path('app/CronJobs/TestFixtures');
         $helperDirectory = base_path('app/Helpers/TestFixtures');
-        mkdir($jobDirectory, 0775, true);
-        mkdir($helperDirectory, 0775, true);
+        if (!is_dir($jobDirectory)) {
+            mkdir($jobDirectory, 0775, true);
+        }
+        if (!is_dir($helperDirectory)) {
+            mkdir($helperDirectory, 0775, true);
+        }
         $jobFile = $jobDirectory . '/GeneratedJobFixture.job.php';
         $helperFile = $helperDirectory . '/GeneratedHelperFixture.php';
 
