@@ -10,7 +10,7 @@ use Ds\Validation\ValidationException;
  * Safe v3 namespace adapter. Validation no longer sends headers, echoes output,
  * redirects, or terminates the process; callers inspect errors or call validate().
  */
-final class Validator
+class Validator
 {
     private array $errors = [];
     private array $validated = [];
