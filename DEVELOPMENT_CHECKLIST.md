@@ -16,8 +16,11 @@ This file is the working checklist for developing applications on v4. It is **no
 - [ ] Complete and test Active Record/query/schema/migration parity or document each replacement
 - [x] Add a safe v3 validation namespace adapter with structured errors and registered custom rules
 - [x] Add validated single-column schema add/drop operations; retain explicit migration path for modify/rename and older SQLite table rebuilds
-- [ ] Port or formally de-scope v3 CronJob/Job/Worker and Tester/Runner APIs
-- [ ] Implement a complete WebSocket server runtime or formally de-scope it
+- [x] Restore v3 CronJob Job::start()/run() compatibility, add:job generator and named/top-level cronjob CLI runner
+- [ ] Implement durable task queue semantics (persistence, retry, failed-job storage) or explicitly de-scope them
+- [ ] Map remaining custom Tester/Runner APIs to PHPUnit or document replacement
+- [x] Implement single-worker Swoole WebSocket lifecycle, local channel broadcast and live-client smoke test
+- [ ] Implement cross-worker pub/sub, Redis/SSE transports, heartbeat, bounded backpressure and channel authorization
 - [ ] Finish supported PHP/Swoole compatibility matrix and production deployment validation
 - [x] Restore v3 Date/Str helper namespaces and add request-aware app_url() with APP_URL override
 - [x] Verify PieTemplate layout/component dependency invalidation and reject view/dependency path traversal
