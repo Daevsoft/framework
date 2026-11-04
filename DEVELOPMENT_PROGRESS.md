@@ -479,3 +479,12 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added regression coverage for serialized array decoding and safe handling of serialized object payloads.
 - Updated session migration inventory to document the compatibility boundary.
 - Verification: pending user-reported GitHub Actions; work continues without waiting.
+
+
+## 2026-11-04 — Runtime matrix and CLI CI assertions
+
+- Added a conservative runtime matrix documenting the verified PHP 8.3, Swoole 6.2.3, PDO SQLite, FPM smoke and coroutine-fallback baseline, plus combinations that are not yet certified.
+- Updated the main CI CLI verification step to assert the new add:helper, add:job, cronjob and cache commands are registered.
+- Linked the runtime matrix from README, documentation index, completion status and migration guidance.
+- The Swoole extension remains unpinned in CI; the matrix explicitly records that policy gap instead of implying a stable version range.
+- Verification: no CI wait; user will report the latest GitHub Actions result.
