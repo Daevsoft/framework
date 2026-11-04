@@ -442,3 +442,12 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Corrected SessionManager::get() to distinguish a stored null from a missing key by using array_key_exists(), with regression coverage for both cases.
 - Corrected generated PHP fully-qualified names in DsModel/schema code before proceeding; current source uses valid single-separator namespace references.
 - Verification: pending user-reported GitHub Actions; no CI wait was performed.
+
+
+## 2026-11-04 — DsModel pagination compatibility
+
+- Added protected DsModel::paginate() and size() using the v4 QueryBuilder's limit/offset and count operations.
+- Pagination reads page and existing query parameters from the coroutine-scoped current Request, clamps page bounds, and returns the legacy data/links/meta structure while preserving filters in generated links.
+- Added regression coverage for page 2 of a multi-page dataset, previous/next/first/last links and preserved query parameters.
+- Updated migration inventory, checklist and README. Stateful result iterators and magic scope dispatch remain open.
+- Verification: pending user-reported GitHub Actions; work continues without waiting.
