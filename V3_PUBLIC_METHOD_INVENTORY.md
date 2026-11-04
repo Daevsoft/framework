@@ -76,9 +76,9 @@ A source scan was performed across all **76 tracked PHP files** in the v3 tree. 
 | `View\\PageProvider` | static `getInstance()`, `init()`, `page_not_found()`; `install()`, `run()`, `viewFileName()`, `__page()`, `pie_view()`, `not_found()` | v4 ViewRenderer/PieCompiler replace provider rendering; layout/slot/import/component/cache paths are covered. Legacy PageProvider is not a drop-in adapter because v3 component rendering contains dd()/debug termination and provider lifecycle hooks are not retained |
 | `View\\Slot` | `__construct()`, `attachSlot()`, `getSlot()` | Replaced by compiler-managed named/default slots and caller-scoped closures; the v3 class's undeclared static slot store and inverted lookup branch are intentionally not copied |
 | `View\\CacheView` | `checkRootUpdated()`, `getEncryptedFileName()`, `recordViewTime()`, `__construct()`, `is_modified()`, `exists()`, `recordToFile()` | v4 compiled-view cache differs |
-| `Helper\\Function.php` | global `asset()`, `view()`, `session()`, `unsession()`, `flash()`, `is_flash()`, `set_flash()`, `old()`, `js_source()`, `app_url()` | v4 global helpers exist selectively; argument/return semantics need exact comparison |
-| `Helper\\Date` | static `timestamp()` | v4 date helper parity not certified |
-| `Helper\\Str` | static `contains()`, `replace()`, `empty()`, `nullEmpty()` | v4 string helper parity not certified |
+| `Helper\\Function.php` | global `asset()`, `view()`, `session()`, `unsession()`, `flash()`, `is_flash()`, `set_flash()`, `old()`, `js_source()`, `app_url()` | v4 helper set includes asset/view/session/flash/old/js_source/app_url; view now returns rendered content consistently for both Swoole and FPM, and app_url prefers validated APP_URL then request-aware host context |
+| `Helper\\Date` | static `timestamp()` | v4 `Ds\\Helper\\Date::timestamp()` adapter returns Unix seconds |
+| `Helper\\Str` | static `contains()`, `replace()`, `empty()`, `nullEmpty()` | v4 `Ds\\Helper\\Str` adapter provides case-insensitive contains/replace and strict empty/nullEmpty semantics |
 
 ## Compatibility completion criteria
 
