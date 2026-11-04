@@ -353,3 +353,12 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added regression tests for selected-column chains, comparison operators, OR predicates, row access and existence checks.
 - Explicitly not ported in this batch: v3 dynamic magic scope dispatch, stateful result/iterator object semantics, pagination URL generation, bulk insert callback/upsert semantics and less common PDO fetch modes.
 - Verification: pending user-reported GitHub Actions; implementation continued without waiting for CI.
+
+
+## 2026-11-04 — Request old-input compatibility correction
+
+- Compared v3 Request::old()/setOld() with the v4 Request facade and found a key-shape mismatch: v3 stores each old field as a separate flash key prefixed with _old_, while v4 Request::old() incorrectly read the aggregate _old_input payload.
+- Updated Request::old() to read the same per-field flash key written by Request::setOld(), preserving default handling and request-local session isolation.
+- Added a cross-request regression test that persists old input, starts the next session request using the emitted cookie, and verifies the old value and fallback.
+- The legacy v3 upload implementation was reviewed and deliberately not copied: its extension filtering is incorrect, file size is hard-coded with response text echoed directly, and filenames are not safely constrained. A secure UploadedFile adapter remains a separate migration item.
+- Verification: pending user-reported GitHub Actions; implementation continues without waiting for CI.
