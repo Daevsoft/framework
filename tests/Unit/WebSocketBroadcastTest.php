@@ -59,7 +59,7 @@ final class WebSocketBroadcastTest extends TestCase
     public function testBroadcastRejectsFramesAboveConfiguredIpcLimit(): void
     {
         $hub = new WebSocketHub(null, null, 1, 1024);
-        $this->expectException(\\RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $hub->broadcast('large', 'Payload', str_repeat('x', 2048));
     }
 
