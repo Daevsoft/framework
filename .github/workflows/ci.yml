@@ -51,6 +51,10 @@ jobs:
           grep -q 'add:view' cli-help.txt
           grep -q 'add:test' cli-help.txt
           grep -q 'add:migration' cli-help.txt
+          grep -q 'add:helper' cli-help.txt
+          grep -q 'add:job' cli-help.txt
+          grep -q 'cronjob' cli-help.txt
+          grep -q 'cache' cli-help.txt
           grep -q 'route:list' cli-help.txt
           grep -q 'test' cli-help.txt
           php ds route:list > route-list.txt
