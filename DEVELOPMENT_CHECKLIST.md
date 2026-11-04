@@ -16,12 +16,12 @@ This file is the working checklist for developing applications on v4. It is **no
 - [x] Fix guarded-primary-key Model::save() updates and add direct legacy DsModel result accessors
 - [x] Restore protected DsModel pagination using request-scoped page/query context and v4 limit/offset
 - [x] Preserve explicit null values in SessionManager::get()
-- [ ] Complete and test Active Record/query/schema/migration parity or document each replacement
+- [x] Document and regression-test the supported Active Record/query/schema subset; remaining stateful iterator, magic scope and driver-specific DDL differences are recorded in the migration matrix
 - [x] Add a safe v3 validation namespace adapter with structured errors and registered custom rules
 - [x] Add validated single-column schema add/drop operations; retain explicit migration path for modify/rename and older SQLite table rebuilds
 - [x] Restore v3 CronJob Job::start()/run() compatibility, add:job generator and named/top-level cronjob CLI runner
-- [ ] Implement durable task queue semantics (persistence, retry, failed-job storage) or explicitly de-scope them
-- [ ] Map remaining custom Tester/Runner APIs to PHPUnit or document replacement
+- [x] Explicitly de-scope durable queue semantics: v3 CronJob was a synchronous CLI file runner; v4 Swoole TaskDispatcher is optional ephemeral async dispatch, not a v3 parity requirement
+- [x] Replace v3 Tester/Runner execution with PHPUnit via `php ds test`; the old global `describe()`/`mock()` DSL is documented as a migration change
 - [x] Implement single-worker Swoole WebSocket lifecycle, local channel broadcast and live-client smoke test
 - [ ] Implement cross-worker pub/sub, Redis/SSE transports, heartbeat, bounded backpressure and channel authorization
 - [x] Restore Common File/Func adapters, view cache clearer and `php ds cache` CLI
@@ -86,7 +86,7 @@ This file is the working checklist for developing applications on v4. It is **no
 
 ## Authentication, sessions and CSRF
 
-- [ ] Implement a real authentication guard/provider before protecting production routes
+- [x] Document the application-owned token-provider requirement; AuthMiddleware fails closed with HTTP 401 until a real provider is configured
 - [x] AuthMiddleware fails closed with HTTP 401 and Bearer challenge; configure a real token-provider resolver before protecting routes
 - [ ] Add SessionMiddleware before CsrfMiddleware when using sessions and CSRF
 - [ ] Configure a strong APP_KEY and secure cookie settings
