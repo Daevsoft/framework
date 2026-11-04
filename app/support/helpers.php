@@ -36,13 +36,13 @@ if (!function_exists('app_url')) {
             $parts = parse_url($configured);
             if (!is_array($parts) || !in_array(strtolower((string) ($parts['scheme'] ?? '')), ['http', 'https'], true)
                 || empty($parts['host'])) {
-                throw new \\RuntimeException('APP_URL must be an absolute HTTP or HTTPS URL.');
+                throw new \RuntimeException('APP_URL must be an absolute HTTP or HTTPS URL.');
             }
             return rtrim($configured, '/');
         }
 
-        $request = \\Ds\\Context\\Context::default()->get('request');
-        if ($request instanceof \\Ds\\Http\\Request) {
+        $request = \Ds\Context\Context::default()->get('request');
+        if ($request instanceof \Ds\Http\Request) {
             $host = (string) $request->getHeader('host', '');
             $scheme = $request->getScheme();
         } else {
@@ -54,7 +54,7 @@ if (!function_exists('app_url')) {
         }
 
         if ($host === '' || preg_match('/\\A(?:[A-Za-z0-9.-]+|\\[[0-9A-Fa-f:.]+\\])(?::[0-9]{1,5})?\\z/D', $host) !== 1) {
-            throw new \\RuntimeException('Unable to determine a valid application host; configure APP_URL.');
+            throw new \RuntimeException('Unable to determine a valid application host; configure APP_URL.');
         }
 
         return $scheme . '://' . $host;
