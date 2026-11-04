@@ -19,6 +19,7 @@ This file is the working checklist for developing applications on v4. It is **no
 - [ ] Port or formally de-scope v3 CronJob/Job/Worker and Tester/Runner APIs
 - [ ] Implement a complete WebSocket server runtime or formally de-scope it
 - [ ] Finish supported PHP/Swoole compatibility matrix and production deployment validation
+- [x] Restore v3 Date/Str helper namespaces and add request-aware app_url() with APP_URL override
 - [x] Verify PieTemplate layout/component dependency invalidation and reject view/dependency path traversal
 
 ## Getting started
