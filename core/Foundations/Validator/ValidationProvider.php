@@ -29,7 +29,7 @@ final class ValidationProvider
                 'required',
                 ' field is required',
                 static fn (mixed $value, string $field, ?array $options, ValidationRule $rule): bool|ValidationResult =>
-                    ($value !== null && $value !== '' && $value !== [])
+                    ($value !== null && $value !== [] && !(is_string($value) && trim($value) === ''))
                         ? true
                         : new ValidationResult(false, $field . $rule->message)
             ),
