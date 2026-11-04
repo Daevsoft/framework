@@ -57,3 +57,5 @@
 - CI and synthetic stress audits do not prove production readiness or absence of all memory/concurrency defects.
 
 When documents disagree, use the migration matrix for v3 compatibility, the roadmap for future work, and the progress log for actual completed changes and verification.
+
+- [SUPPORTED_RUNTIMES.md](SUPPORTED_RUNTIMES.md) — verified PHP/Swoole/FPM/database baseline and unverified runtime combinations.
