@@ -44,6 +44,22 @@ final class ModelTest extends TestCase
         self::assertSame('Deva', TestPersonModel::allModels()[0]->name);
     }
 
+    public function testSaveUpdatesByGuardedPrimaryKey(): void
+    {
+        self::assertSame(1, TestPersonModel::save(['name' => 'Ada', 'active' => 1]));
+
+        self::assertSame(1, TestPersonModel::save([
+            'id' => 1,
+            'name' => 'Grace',
+            'active' => 1,
+            'is_admin' => true,
+        ]));
+
+        self::assertSame(1, TestPersonModel::count());
+        self::assertSame('Grace', TestPersonModel::find(1)['name']);
+        self::assertArrayNotHasKey('is_admin', TestPersonModel::find(1));
+    }
+
     public function testUpdateByIdWithNoFillableChangesIsANoOp(): void
     {
         self::assertSame(1, TestPersonModel::save(['name' => 'Ada', 'active' => 1]));
