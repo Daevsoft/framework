@@ -71,6 +71,27 @@ final class LegacyDsModelTest extends TestCase
         self::assertCount(1, (new LegacyPersonModel())->not_equal('name', 'Ada')->get());
     }
 
+    public function testLegacySelectChainAndComparisonOperators(): void
+    {
+        LegacyPersonModel::save([
+            ['name' => 'Ada', 'active' => 1],
+            ['name' => 'Grace', 'active' => 1],
+            ['name' => 'Lin', 'active' => 0],
+        ]);
+
+        $selected = (new LegacyPersonModel())
+            ->select(['name'])
+            ->where('active', '=', 1)
+            ->orderBy('name')
+            ->get_object();
+        self::assertSame([['name' => 'Ada'], ['name' => 'Grace']], $selected);
+
+        self::assertSame('Grace', LegacyPersonModel::where('name', 'LIKE', 'Gr%')->first()['name']);
+        self::assertSame('Ada', LegacyPersonModel::orWhere('name', 'Ada')->first()['name']);
+        self::assertTrue((new LegacyPersonModel())->whereIn('active', [1])->get_exist());
+        self::assertSame('Ada', (new LegacyPersonModel())->select()->where('name', 'Ada')->row()['name']);
+    }
+
     public function testFillableHelperAndExplicitTableAreAvailable(): void
     {
         $model = new LegacyPersonModel();
