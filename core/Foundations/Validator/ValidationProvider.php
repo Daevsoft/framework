@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Ds\Foundations\Validator;
 
-final class ValidationProvider
+class ValidationProvider
 {
     /** @var array<string, ValidationRule> */
     private static array $rules = [];
