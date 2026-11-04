@@ -488,3 +488,14 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Linked the runtime matrix from README, documentation index, completion status and migration guidance.
 - The Swoole extension remains unpinned in CI; the matrix explicitly records that policy gap instead of implying a stable version range.
 - Verification: no CI wait; user will report the latest GitHub Actions result.
+
+
+## 2026-11-04 — Same-server cross-worker WebSocket fan-out
+
+- Extended WebSocketHub with optional Swoole server/worker context. Broadcasts are delivered to local subscribers and forwarded to peer worker IDs with Server::sendMessage; each receiving worker uses PipeMessage to deliver only to its local subscribers, avoiding rebroadcast loops.
+- Added a configurable maximum IPC frame size (WEBSOCKET_MAX_BROADCAST_BYTES, default 64 KiB) to avoid unbounded payloads and unnecessary large IPC temp-file traffic.
+- SwooleServer now creates a worker-scoped hub for normal workers and registers PipeMessage only when WebSocket mode is enabled. Task workers do not receive a connection hub.
+- Added unit tests for source-worker fan-out, remote delivery, no rebroadcast loops and oversized payload rejection.
+- Swoole's documented sendMessage/PipeMessage contract supports worker-directed IPC; payloads above 8 KiB are queued via temporary files, so the framework defaults to a 64 KiB ceiling. See official documentation: <https://openswoole.com/docs/modules/swoole-server-sendMessage> and <https://openswoole.com/docs/modules/swoole-server-on-pipemessage>.
+- Remaining: Redis/SSE across separate server instances, heartbeat, bounded outbound backpressure, channel authorization and live multi-worker contention/restart validation.
+- Verification: no GitHub Actions wait; user will report the latest result.
