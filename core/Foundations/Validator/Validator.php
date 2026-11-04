@@ -44,8 +44,10 @@ final class Validator
                 $options = $argument === null ? null : explode(',', $argument);
                 $result = ValidationProvider::validate((string) $field, $value, $name, $options);
 
-                if ($result instanceof ValidationResult && !$result->isValid) {
-                    $this->errors[(string) $field] = $result->error;
+                if ($result === false || ($result instanceof ValidationResult && !$result->isValid)) {
+                    $this->errors[(string) $field] = $result instanceof ValidationResult
+                        ? $result->error
+                        : ((string) $field . ' is invalid');
                     break;
                 }
             }
