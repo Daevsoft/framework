@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Ds\Foundations\Common;
 
 /** Small v3 debug/path helpers implemented without process-global state. */
-final class Func
+class Func
 {
     public static bool $isDebug = false;
 
