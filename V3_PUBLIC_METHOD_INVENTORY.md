@@ -31,9 +31,9 @@ A source scan was performed across all **76 tracked PHP files** in the v3 tree. 
 | v3 class/file | Public surface observed | v4 mapping / review status |
 |---|---|---|
 | `Common\\Collection` | `__construct`, iterator methods `current/key/next/rewind/valid`, ArrayAccess `offsetSet/offsetExists/offsetUnset/offsetGet`; `add/collapse/crossJoin/divide/dot/undot/except/exists/first/last/take/flatten/forget/get/has/hasAny/isAssoc/isList/keyBy/prependKeysWith/only/pluck/map/mapWithKeys/mapSpread/prepend/pull/random/set/shuffle/sort/sortDesc/sortRecursive/sortRecursiveDesc/toCssClasses/toCssStyles/whereNotNull/wrap/toArray/toJson/serialize/jsonSerialize/dump`; magic `__toString/__sleep/__serialize/__get/__debugInfo` | Current v4 legacy collection includes the inventoried helpers; nested mutation, null-valued pull, serialization round-trip and magic property/debug access have focused regression coverage. Callback edge cases and inherited ArrayIterator parity remain open |
-| `Common\\File` | `__construct($path,$mode)`, `close()`, `rewrite()`, `append()`, `create()`, `delete()`, `getContent()`, `getFilename()` | v4 filesystem utilities differ; no complete adapter |
-| `Common\\Cache` | `run()`, `clearAllPages()`, `resetCacheRecord()`, `clearReferences()` | v4 FileCache/view cache replaces implementation; invalidation semantics need comparison |
-| `Common\\Func` | static `check()`, `isSlash()`, `replaceSlash()` | v4 helpers; method/global compatibility not fully tested |
+| `Common\\File` | `__construct($path,$mode)`, `close()`, `rewrite()`, `append()`, `create()`, `delete()`, `getContent()`, `getFilename()` | v4 compatibility facade now implements these methods using locked native file operations; no long-lived stream handle is retained |
+| `Common\\Cache` | `run()`, `clearAllPages()`, `resetCacheRecord()`, `clearReferences()` | v4 adapter clears generated PieTemplate `.php`/`.tmp` files and resets the default renderer; no timestamp manifest/reference registry exists |
+| `Common\\Func` | static `check()`, `isSlash()`, `replaceSlash()` | v4 adapter provides escaped debug output, platform-aware slash detection and path normalization |
 | `Config\\Env` | static `get($key,$default)` | v4 env/config helpers; precedence and coercion need parity tests |
 | `Config\\AppEnv` | `__construct($envfile)`, `generateConfig()` | v4 config cache/generator differs |
 
