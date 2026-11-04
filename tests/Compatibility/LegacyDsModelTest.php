@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Compatibility;
 
+use Ds\Context\Context;
 use Ds\Database\DatabaseManager;
+use Ds\Http\Request;
 use Ds\Foundations\Connection\Models\DsModel;
 use PHPUnit\Framework\TestCase;
 
@@ -102,6 +104,35 @@ final class LegacyDsModelTest extends TestCase
         self::assertSame('Ada', $model->row()['name']);
     }
 
+    public function testLegacyPaginationUsesRequestContextAndPreservesQueryParameters(): void
+    {
+        LegacyPersonModel::save([
+            ['name' => 'Ada', 'active' => 1],
+            ['name' => 'Grace', 'active' => 1],
+            ['name' => 'Lin', 'active' => 0],
+            ['name' => 'Margaret', 'active' => 1],
+            ['name' => 'Katherine', 'active' => 1],
+        ]);
+
+        $request = new Request([], [], 'GET', '/people');
+        $request->query = ['search' => 'Ada', 'page' => '2'];
+        Context::default()->set('request', $request);
+
+        try {
+            $page = (new LegacyPersonModel())->paginatePage(2);
+            self::assertSame(['Lin', 'Margaret'], array_column($page['data'], 'name'));
+            self::assertSame('/people?search=Ada&page=1', $page['links']['prev']);
+            self::assertSame('/people?search=Ada&page=3', $page['links']['next']);
+            self::assertSame('/people?search=Ada&page=1', $page['links']['first']);
+            self::assertSame('/people?search=Ada&page=3', $page['links']['last']);
+            self::assertSame(2, $page['meta']['current_page']);
+            self::assertSame(3, $page['meta']['last_page']);
+            self::assertSame(5, $page['meta']['total']);
+        } finally {
+            Context::default()->remove('request');
+        }
+    }
+
     public function testFillableHelperAndExplicitTableAreAvailable(): void
     {
         $model = new LegacyPersonModel();
@@ -117,4 +148,9 @@ final class LegacyPersonModel extends DsModel
 {
     public $table = 'legacy_people';
     protected $fillable = ['name', 'active'];
+
+    public function paginatePage(int $limit = 10): array
+    {
+        return $this->paginate($limit);
+    }
 }
