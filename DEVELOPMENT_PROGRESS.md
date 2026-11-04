@@ -432,3 +432,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added tests for single/multiple file normalization and rejection of non-upload temporary paths.
 - This is a safer migration than the v3 Request implementation, which moved files automatically, echoed errors and had ineffective extension filtering. Callers must now explicitly call store() and choose a private application-controlled directory.
 - Verification: pending user-reported GitHub Actions; development continues without waiting.
+
+
+## 2026-11-04 — Database/model and session edge-case corrections
+
+- Fixed Model::save() to capture the supplied primary key before applying the fillable whitelist. Guarded primary keys now correctly select UPDATE rather than accidentally inserting a second row.
+- Added regression coverage for guarded-primary-key save updates and retained the no-op behavior when fillable filtering leaves no mutable fields.
+- Added direct DsModel get_object(), get_array() and row() compatibility accessors; each returns the v4 array/null representation without retaining result cursors on model instances.
+- Corrected SessionManager::get() to distinguish a stored null from a missing key by using array_key_exists(), with regression coverage for both cases.
+- Corrected generated PHP fully-qualified names in DsModel/schema code before proceeding; current source uses valid single-separator namespace references.
+- Verification: pending user-reported GitHub Actions; no CI wait was performed.
