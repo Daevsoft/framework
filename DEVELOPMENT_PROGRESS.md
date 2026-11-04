@@ -451,3 +451,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added regression coverage for page 2 of a multi-page dataset, previous/next/first/last links and preserved query parameters.
 - Updated migration inventory, checklist and README. Stateful result iterators and magic scope dispatch remain open.
 - Verification: pending user-reported GitHub Actions; work continues without waiting.
+
+
+## 2026-11-04 — Legacy Response static header bridge
+
+- Added v3-compatible Response::header(), reset(), applyToSwoole() and applyToPhp() entry points without restoring process-global static header arrays.
+- Legacy status/header changes are stored in coroutine/request Context, validated against header injection and HTTP status bounds, then consumed once by the FPM ResponseEmitter or Swoole server response path.
+- Header replacement semantics honor the legacy replace flag; response overrides are removed after emission so they cannot leak into the next request.
+- Added tests for request-scoped merge/consumption, duplicate header behavior, CRLF/status rejection and a Swoole response adapter.
+- Response constructor/isValid property semantics remain intentionally different; new code should continue using immutable Response instances.
+- Verification: pending user-reported GitHub Actions; no CI wait.
