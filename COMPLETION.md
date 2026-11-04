@@ -13,7 +13,7 @@ This file replaces the previous blanket â€œproduction-ready / fully implementedâ
 - Lifecycle hooks, bounded Swoole timer Scheduler and resource-pool cleanup.
 - PDO query builder, connection manager/pooling, transactions and v4 migration commands.
 - Validation, sessions, CSRF, PieTemplate views, collections, file cache, secure UploadedFile metadata/storage and v3 helper adapters.
-- Swoole WebSocket lifecycle, worker-local connection tracking, same-server cross-worker IPC broadcast fan-out, live-client CI smoke test and IPC unit tests.
+- Swoole WebSocket lifecycle, worker-local connection tracking, same-server cross-worker IPC broadcast fan-out, re-entrant-safe worker registry teardown, live-client CI smoke test and IPC unit tests.
 - Pluggable token-provider resolution, fail-closed HTTP 401 authentication middleware and RBAC/ACL/policy primitives.
 - CLI commands for controller/model/view/test/migration/helper/job generation, named/top-level cronjob execution, view-cache clearing, route listing, config and tests.
 - CI and targeted stress/regression audits through AUDIT-06.
