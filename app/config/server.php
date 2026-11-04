@@ -20,5 +20,6 @@ return [
         'host' => (string) env('WEBSOCKET_HOST', '127.0.0.1'),
         'port' => (int) env('WEBSOCKET_PORT', env('SERVER_PORT', 8000)),
         'path' => (string) env('WEBSOCKET_PATH', '/ws'),
+        'max_broadcast_payload_bytes' => (int) env('WEBSOCKET_MAX_BROADCAST_BYTES', 65536),
     ],
 ];
