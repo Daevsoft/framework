@@ -2,13 +2,13 @@
 
 Repository: `Daevsoft/framework`  
 Source ref: `v3` (tree SHA `0230738252c8ce8ecf563d164bb497863fe22ef5`)  
-Target ref: `v4` (tree SHA `1fe1421f1c19c3cadb2e494296ecaec887a91f7a`)  
+Target ref: `v4` (tree SHA `6cdc9930b7541713bc68109a89d372cca6b349da`)  
 Review type: tracked-file inventory + targeted source inspection.  
 Status: **Baseline inventory; not yet a complete method-by-method compatibility certification.**
 
 ## Why this inventory exists
 
-The v3 tree contains 90 tracked files (including assets, templates, tests and metadata). The v4 tree snapshot contains 420 tracked files. File/class name similarity is not proof of behavior parity. Each public v3 API must eventually be compared by signature, arguments, return value, exceptions, side effects and lifecycle behavior.
+The v3 tree contains 90 tracked files (including assets, templates, tests and metadata). The v4 tree snapshot contains 306 tracked files (421 total tree entries including directories). File/class name similarity is not proof of behavior parity. Each public v3 API must eventually be compared by signature, arguments, return value, exceptions, side effects and lifecycle behavior.
 
 ## Executive findings
 
@@ -29,7 +29,7 @@ The v3 tree contains 90 tracked files (including assets, templates, tests and me
 | Core bootstrap: `src/Core/Ds.php`, `src/Core/Application.php`, `src/base.php` | `Ds` constructor, provider install/run, `connect()`, `getProvider()`, `isDebug()`; `AppIndex`, `Dir`, autoload and path constants | Reimplemented around v4 bootstrap/container/kernel | Map provider lifecycle and path/config expectations; document breaking changes |
 | Helpers: `src/Helper/Function.php`, `Date.php`, `Str.php` | `asset`, `view`, `session`, `unsession`, `flash`, `is_flash`, `set_flash`, `old`, `js_source`, `app_url`; date/string helpers | Expanded bridge: Date/Str adapters and request-aware app_url; view returns a string consistently | Verify remaining argument/return edge cases and legacy flash consumption differences |
 | Routing: `src/Foundations/Routing/*` | GET/POST/PUT/DELETE, `middleware()`, `group()`, controller attributes | Broad but partial compatibility; v4 adds PATCH/OPTIONS/resource/prefix | Compare names, route normalization, metadata, constraints, HEAD and method-not-allowed behavior |
-| HTTP: `src/Foundations/Network/*` | Request dynamic fields, JSON, route tracking, old input, file uploads; Response static headers/status and Swoole/PHP application | Reimplemented Request/Response and middleware | Compare upload validation, request field normalization, response header/status reset and redirect semantics |
+| HTTP: `src/Foundations/Network/*` | Request dynamic fields, JSON, route tracking, old input, file uploads; Response static headers/status and Swoole/PHP application | Reimplemented Request/Response and middleware; safe route-history adapter now stores the latest two local URIs in SessionManager, safely reads legacy serialized arrays, and returns a Response from getBack() | Compare upload validation, request field normalization, exact validated() return semantics and legacy edge cases |
 | Middleware/providers: `Provider.php`, `Network/Middleware.php`, provider classes | install/run provider lifecycle and middleware hooks | Reimplemented container, middleware stack and lifecycle | Method/signature and order compatibility tests |
 | Database: `Connection/Db.php`, `QueryCommon.php`, `SqlModel.php`, set classes | Query chain, raw SQL, joins, filters, ordering, pagination, object/array/row results | New PDO query builder plus partial `DsModel` bridge | Complete method and return-type matrix; raw SQL, cursor/result objects and pagination need explicit decisions |
 | Active Record: `Connection/Models/DsModel.php`, `Enumerable.php` | CRUD, lookup, null filters, bulk save, iterator/count, pagination and fillable | Partial adapter | Audit every public/protected method, relation/cast/scope behavior and return type |
@@ -180,6 +180,8 @@ src/base.php
 ## Method-level inventory follow-up
 
 A declaration-level scan across all 76 tracked v3 PHP files is now recorded in [V3_PUBLIC_METHOD_INVENTORY.md](V3_PUBLIC_METHOD_INVENTORY.md). It lists the principal public and protected APIs grouped by subsystem. It is a source declaration inventory, not yet a completed v4 parity classification or runtime semantic certification.
+
+The 2026-11-05 follow-up adds safe v3 Request route-history methods and WebSocketHub re-entrant-safe teardown coverage. The Request bridge intentionally changes `getBack()` into a returned redirect Response and requires SessionMiddleware; it does not write headers directly. This behavior is covered by `tests/Compatibility/LegacyRequestRouteHistoryTest.php`.
 
 ## Next audit steps
 
