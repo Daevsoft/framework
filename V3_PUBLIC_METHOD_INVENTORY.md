@@ -66,8 +66,8 @@ A source scan was performed across all **76 tracked PHP files** in the v3 tree. 
 
 | v3 class/file | Public surface observed | v4 mapping / review status |
 |---|---|---|
-| `Session\\Session` | static `user()`, `destroy()` | v4 session facade is partial; user serialization and destruction semantics need review |
-| `Session\\SessionManager` | static `init()`; `get()`, `put()`, `has()`, `delete()`, `destroy()`, `id()` | v4 SessionManager exists; storage, cookie, regeneration and concurrency semantics need parity tests |
+| `Session\\Session` | static `user()`, `destroy()` | v4 facade returns request-local session user and safely decodes serialized scalar/array payloads with allowed_classes=false; serialized objects are not instantiated |
+| `Session\\SessionManager` | static `init()`; `get()`, `put()`, `has()`, `delete()`, `destroy()`, `id()` | v4 request-local facade provides these methods over the isolated SessionManager; explicit-null reads, cookie/session isolation, destroy and concurrent lifecycle have regression coverage |
 | `Validator\\ValidationProvider` | static `register()`, `boot()`, `validate()`; `install()`, `run()` | v4 legacy namespace adapter now supports registered ValidationRule callbacks and required/min/max; provider lifecycle install/run remain intentionally omitted |
 | `Validator\\ValidationRule` | `__construct()`, `runValidation()` | v4 compatibility ValidationRule preserves the callback contract using Closure::fromCallable and typed result objects |
 | `Validator\\ValidationResult` | `__construct($isValid,$error)` | v4 compatibility ValidationResult preserves isValid/error properties |
