@@ -24,7 +24,7 @@ final class AddHelper extends GeneratorCommand
                 $segments = $this->segments($name);
                 $class = $this->className($segments);
                 $namespace = $this->namespaceFor('App\\Helpers', $segments);
-                $relative = 'app/helpers/' . implode('/', $segments) . '.php';
+                $relative = 'app/Helpers/' . implode('/', $segments) . '.php';
                 $content = "<?php\n\ndeclare(strict_types=1);\n\nnamespace {$namespace};\n\n"
                     . "final class {$class}\n{\n}\n";
                 $this->write($relative, $content);
