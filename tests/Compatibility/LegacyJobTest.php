@@ -31,7 +31,7 @@ final class LegacyJobTest extends TestCase
 
     public function testCronjobCommandExecutesNamespacedApplicationJob(): void
     {
-        $directory = base_path('app/cronjobs/Compatibility');
+        $directory = base_path('app/CronJobs/Compatibility');
         if (!is_dir($directory)) {
             mkdir($directory, 0775, true);
         }
