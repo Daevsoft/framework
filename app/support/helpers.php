@@ -24,6 +24,43 @@ if (!function_exists('env')) {
     }
 }
 
+if (!function_exists('app_url')) {
+    /**
+     * Build the current application's origin. Configure APP_URL in production
+     * to avoid depending on a request Host header or reverse-proxy topology.
+     */
+    function app_url(): string
+    {
+        $configured = trim((string) env('APP_URL', ''));
+        if ($configured !== '') {
+            $parts = parse_url($configured);
+            if (!is_array($parts) || !in_array(strtolower((string) ($parts['scheme'] ?? '')), ['http', 'https'], true)
+                || empty($parts['host'])) {
+                throw new \\RuntimeException('APP_URL must be an absolute HTTP or HTTPS URL.');
+            }
+            return rtrim($configured, '/');
+        }
+
+        $request = \\Ds\\Context\\Context::default()->get('request');
+        if ($request instanceof \\Ds\\Http\\Request) {
+            $host = (string) $request->getHeader('host', '');
+            $scheme = $request->getScheme();
+        } else {
+            $host = (string) ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '');
+            $scheme = strtolower((string) ($_SERVER['REQUEST_SCHEME'] ?? '')) === 'https'
+                || (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+                    ? 'https'
+                    : 'http';
+        }
+
+        if ($host === '' || preg_match('/\\A(?:[A-Za-z0-9.-]+|\\[[0-9A-Fa-f:.]+\\])(?::[0-9]{1,5})?\\z/D', $host) !== 1) {
+            throw new \\RuntimeException('Unable to determine a valid application host; configure APP_URL.');
+        }
+
+        return $scheme . '://' . $host;
+    }
+}
+
 if (!function_exists('response')) {
     /**
      * response() returns the response factory; response($body, ...) creates
