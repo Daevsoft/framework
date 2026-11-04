@@ -50,8 +50,9 @@ final class UploadedFile
         }
 
         $maximumBytes = max(1, (int) env('UPLOAD_MAX_BYTES', 10 * 1024 * 1024));
-        if ($this->size > $maximumBytes) {
-            throw new RuntimeException('The uploaded file exceeds the configured size limit.');
+        $actualSize = filesize($this->temporaryPath);
+        if ($actualSize === false || $this->size > $maximumBytes || $actualSize > $maximumBytes) {
+            throw new RuntimeException('The uploaded file exceeds the configured size limit or cannot be measured.');
         }
 
         $extension = strtolower(pathinfo($this->originalName, PATHINFO_EXTENSION));
@@ -80,12 +81,21 @@ final class UploadedFile
         }
 
         $target = $root . DIRECTORY_SEPARATOR . $storedName;
-        if (file_exists($target)) {
-            throw new RuntimeException('The requested upload filename already exists.');
+        // Exclusive creation closes the overwrite race for caller-supplied names.
+        $reservation = @fopen($target, 'x');
+        if ($reservation === false) {
+            throw new RuntimeException('The requested upload filename already exists or cannot be reserved.');
         }
+        fclose($reservation);
 
         if (!move_uploaded_file($this->temporaryPath, $target)) {
+            @unlink($target);
             throw new RuntimeException('Unable to move the uploaded file.');
+        }
+
+        if (!@chmod($target, 0600)) {
+            @unlink($target);
+            throw new RuntimeException('Unable to secure uploaded file permissions.');
         }
 
         return $storedName;
