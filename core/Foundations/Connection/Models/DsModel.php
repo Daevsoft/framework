@@ -33,6 +33,21 @@ abstract class DsModel extends Model
         return $query->select($columns);
     }
 
+    public function get_object(): array
+    {
+        return static::query()->get_object();
+    }
+
+    public function get_array(): array
+    {
+        return static::query()->get_array();
+    }
+
+    public function row(): ?array
+    {
+        return static::query()->row();
+    }
+
     public static function first(array|string $columns = '*'): ?array
     {
         $query = static::query();
