@@ -44,6 +44,17 @@ final class ModelTest extends TestCase
         self::assertSame('Deva', TestPersonModel::allModels()[0]->name);
     }
 
+    public function testUpdateByIdWithNoFillableChangesIsANoOp(): void
+    {
+        self::assertSame(1, TestPersonModel::save(['name' => 'Ada', 'active' => 1]));
+
+        self::assertSame(0, TestPersonModel::updateById(1, [
+            'id' => 1,
+            'is_admin' => true,
+        ]));
+        self::assertSame('Ada', TestPersonModel::find(1)['name']);
+    }
+
     public function testV3CompatibleModelCrudAndFillableWhitelist(): void
     {
         $inserted = TestPersonModel::save([
