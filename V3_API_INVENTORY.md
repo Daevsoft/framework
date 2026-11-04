@@ -2,13 +2,13 @@
 
 Repository: `Daevsoft/framework`  
 Source ref: `v3` (tree SHA `0230738252c8ce8ecf563d164bb497863fe22ef5`)  
-Target ref: `v4` (tree SHA `14cf64f54fe5f522a646888fa0c25cd1489a7b43`)  
+Target ref: `v4` (tree SHA `1fe1421f1c19c3cadb2e494296ecaec887a91f7a`)  
 Review type: tracked-file inventory + targeted source inspection.  
 Status: **Baseline inventory; not yet a complete method-by-method compatibility certification.**
 
 ## Why this inventory exists
 
-The v3 tree contains 90 tracked files (including assets, templates, tests and metadata). The v4 tree snapshot contains 415 tracked files. File/class name similarity is not proof of behavior parity. Each public v3 API must eventually be compared by signature, arguments, return value, exceptions, side effects and lifecycle behavior.
+The v3 tree contains 90 tracked files (including assets, templates, tests and metadata). The v4 tree snapshot contains 420 tracked files. File/class name similarity is not proof of behavior parity. Each public v3 API must eventually be compared by signature, arguments, return value, exceptions, side effects and lifecycle behavior.
 
 ## Executive findings
 
