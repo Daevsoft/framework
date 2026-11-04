@@ -438,4 +438,4 @@ MIT
 
 ## v3 → v4 migration
 
-v4 reimplements the runtime and core APIs around Swoole, a new HTTP kernel, dependency container and PDO database layer. Selected v3 namespaces and helpers have compatibility bridges, but database/model/schema, CronJob, console generator and other behaviors are not all equivalent. Review the [migration matrix](V3_TO_V4_MIGRATION.md) and add regression tests for the APIs your application uses before switching branches.
+v4 reimplements the runtime and core APIs around Swoole, a new HTTP kernel, dependency container and PDO database layer. Selected v3 namespaces and helpers have compatibility bridges, including basic named/top-level CronJob execution and helper/job generation, but database/model/schema, durable job queue and other behaviors are not all equivalent. Review the [migration matrix](V3_TO_V4_MIGRATION.md) and add regression tests for the APIs your application uses before switching branches.
