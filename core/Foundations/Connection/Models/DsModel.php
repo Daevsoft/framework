@@ -26,6 +26,57 @@ abstract class DsModel extends Model
         }
     }
 
+    /** Start a legacy-style select chain while keeping the v4 QueryBuilder underneath. */
+    public function select(array|string $columns = '*', ?string $table = null): \\Ds\\Database\\QueryBuilder
+    {
+        $query = $table === null ? static::query() : \\db()->table($table);
+        return $query->select($columns);
+    }
+
+    public static function first(array|string $columns = '*'): ?array
+    {
+        $query = static::query();
+        if ($columns !== '*') {
+            $query->select($columns);
+        }
+        return $query->first();
+    }
+
+    public function asc(string $column): \\Ds\\Database\\QueryBuilder
+    {
+        return static::query()->orderBy($column, 'ASC');
+    }
+
+    public function desc(string $column): \\Ds\\Database\\QueryBuilder
+    {
+        return static::query()->orderBy($column, 'DESC');
+    }
+
+    public function groupBy(array|string $columns): \\Ds\\Database\\QueryBuilder
+    {
+        return static::query()->groupBy($columns);
+    }
+
+    public function distinct(array|string $columns = '*'): \\Ds\\Database\\QueryBuilder
+    {
+        return static::query()->distinct()->select($columns);
+    }
+
+    public function join(string $table, string $first, string $operator, string $second, ?string $alias = null): \\Ds\\Database\\QueryBuilder
+    {
+        return static::query()->join($table, $first, $operator, $second, $alias);
+    }
+
+    public function leftJoin(string $table, string $first, string $operator, string $second, ?string $alias = null): \\Ds\\Database\\QueryBuilder
+    {
+        return static::query()->leftJoin($table, $first, $operator, $second, $alias);
+    }
+
+    public function rightJoin(string $table, string $first, string $operator, string $second, ?string $alias = null): \\Ds\\Database\\QueryBuilder
+    {
+        return static::query()->rightJoin($table, $first, $operator, $second, $alias);
+    }
+
     public static function all(array|string $columns = []): array
     {
         $query = static::query();
