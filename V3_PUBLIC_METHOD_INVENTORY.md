@@ -68,10 +68,10 @@ A source scan was performed across all **76 tracked PHP files** in the v3 tree. 
 |---|---|---|
 | `Session\\Session` | static `user()`, `destroy()` | v4 session facade is partial; user serialization and destruction semantics need review |
 | `Session\\SessionManager` | static `init()`; `get()`, `put()`, `has()`, `delete()`, `destroy()`, `id()` | v4 SessionManager exists; storage, cookie, regeneration and concurrency semantics need parity tests |
-| `Validator\\ValidationProvider` | static `register()`, `boot()`, `validate()`; `install()`, `run()` | v4 rule registry differs; custom-rule signature/registration parity open |
-| `Validator\\ValidationRule` | `__construct()`, `runValidation()` | v4 rule callback signature differs |
-| `Validator\\ValidationResult` | `__construct($isValid,$error)` | v4 validation result shape differs |
-| `Validator\\Validator` | `__construct()`, static `make()`, `doValidate()`, static `oldValue()` | v4 Validator covers common validation but old-value/error flash semantics need parity |
+| `Validator\\ValidationProvider` | static `register()`, `boot()`, `validate()`; `install()`, `run()` | v4 legacy namespace adapter now supports registered ValidationRule callbacks and required/min/max; provider lifecycle install/run remain intentionally omitted |
+| `Validator\\ValidationRule` | `__construct()`, `runValidation()` | v4 compatibility ValidationRule preserves the callback contract using Closure::fromCallable and typed result objects |
+| `Validator\\ValidationResult` | `__construct($isValid,$error)` | v4 compatibility ValidationResult preserves isValid/error properties |
+| `Validator\\Validator` | `__construct()`, static `make()`, `doValidate()`, static `oldValue()` | v4 compatibility adapter exposes make/doValidate/passes/fails/errors/validated/validate/oldValue; invalid input is reported via ValidationException rather than response termination |
 | `View\\View` | static `contents()`, `filename()` | v4 view facade is partial adapter |
 | `View\\PageProvider` | static `getInstance()`, `init()`, `page_not_found()`; `install()`, `run()`, `viewFileName()`, `__page()`, `pie_view()`, `not_found()` | v4 PieTemplate renderer exists; directive/component/slot/cache behavior needs full parity |
 | `View\\Slot` | `__construct()`, `attachSlot()`, `getSlot()` | v4 slot behavior needs comparison |
