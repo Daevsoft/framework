@@ -7,7 +7,7 @@ namespace Ds\Http;
 use Ds\Context\Context;
 use InvalidArgumentException;
 
-final class Response
+class Response
 {
     private int $status;
     private array $headers;
