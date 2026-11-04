@@ -17,10 +17,10 @@ The v3 tree contains 90 tracked files (including assets, templates, tests and me
 - The v3 console exposed `serve`, `add:*`, `config`, `test`, `cronjob`, `migrate` and `cache`. v4 now includes `add:helper`, `add:job`, a namespaced `cronjob` runner and `cache` view-cache clearing; exact aliases/options/output parity remains open.
 - v3 generators included controller, model, view, helper, test, job and migration templates. v4 now includes helper and job generators; generated jobs extend a compatibility Job base and can also be dispatched through the Swoole TaskDispatcher.
 - v3 CronJob `Job`/`Worker` is a CLI runner that discovers and executes `*.job.php` files. v4 now provides a namespaced `app/CronJobs/*.job.php` runner and a Job adapter implementing the Task contract. The Scheduler remains a timer for bounded callbacks, not a durable queue.
-- v4 now has a Swoole WebSocket server path, `Open`/`Message`/`Close` callbacks, per-worker connection registry, channel subscriptions and worker-local broadcast delivery. Redis/SSE transports, cross-worker pub/sub, heartbeat policy, bounded send queues/backpressure and WebSocket channel authorization remain open.
+- v4 has a Swoole WebSocket server path, `Open`/`Message`/`Close` callbacks, per-worker connection registry, channel subscriptions and same-server cross-worker fan-out via `sendMessage`/`PipeMessage`. Redis/SSE multi-instance transports, heartbeat policy, bounded send queues/backpressure and WebSocket channel authorization remain open.
 - v4 authentication now supports pluggable Bearer-token provider resolvers, fail-closed 401 middleware, role permission checks, ACL grants and explicit policy callbacks. There is no built-in persistent token/user provider, password workflow or session guard implementation; authentication is extensible but not production-complete by itself.
 - v4 dispatches serializable `Task` objects to configured Swoole task workers; the legacy Job bridge implements this contract. This is ephemeral async dispatch, not a durable queue: retries, persistence, delayed jobs, failed-job storage and exactly-once semantics are not implemented.
-- v4 CI has a live Swoole WebSocket client handshake/message round-trip smoke test. Real task-worker dispatch under a live multi-worker server, cross-worker WebSocket delivery and sustained backpressure remain unverified.
+- v4 CI has a live Swoole WebSocket client handshake/message round-trip smoke test. Cross-worker IPC fan-out has unit coverage; live multi-worker contention/restart behavior, real task-worker dispatch and sustained backpressure remain unverified.
 
 ## Subsystem inventory and disposition
 
@@ -42,7 +42,7 @@ The v3 tree contains 90 tracked files (including assets, templates, tests and me
 | Generators: `Commands/Generator/AddFile.php` + templates | controller, helper, job, migration, model, test, unit-test and view templates | v4 controller/model/view/test/migration/domain plus helper/job generators are present; generated paths follow PSR-4 namespace casing | Compare remaining template output, nested paths, options and generated-code conventions |
 | Background jobs: `Commands/CronJob/Job.php`, `Worker.php`, `job.empty` | CLI executes named/all `*.job.php` classes through `Job::run()` and protected `start()` | Partial compatibility: `Ds\\Foundations\\Commands\\CronJob\\Job` preserves `start()/run()` and implements v4 Task; `add:job` generates compatible classes; `cronjob` CLI runs named/all top-level jobs | Add nested all-job discovery policy and live task-worker integration if applications require it. Durable queue/retry/failure storage is not a v3 parity requirement; v3 Worker was synchronous CLI execution. |
 | Tester/debugger/exceptions: `Commands/Tester/*`, `Debugger/Debug.php`, exception renderer | Custom Tester/Assert/Runner, debug bar and exception view | PHPUnit/CLI test, Inspector/Profiler and new error path | Compatibility mapping and configurable safe error rendering |
-| Broadcasting/realtime | No complete v3 realtime subsystem found in the tracked v3 source inventory | v4 partial implementation: WebSocket handshake/upgrade callbacks, per-worker connection registry, subscriptions, channel broadcast and live-client smoke test | Add cross-worker pub/sub, Redis/SSE transports, heartbeat policy, bounded backpressure and channel authorization before claiming horizontally scalable delivery |
+| Broadcasting/realtime | No complete v3 realtime subsystem found in the tracked v3 source inventory | v4 partial implementation: WebSocket handshake/upgrade callbacks, per-worker registry/subscriptions, same-server cross-worker IPC fan-out and live-client smoke test | Add Redis/SSE multi-instance transports, heartbeat policy, bounded backpressure and channel authorization before claiming production-grade horizontal delivery |
 
 ## CLI and generator comparison
 
@@ -68,17 +68,17 @@ The current v4 branch has moved beyond the original scaffolding baseline:
 
 - `core/Server/SwooleServer.php` selects the Swoole WebSocket server when WebSocket mode is enabled and registers Open, Message and Close lifecycle callbacks.
 - The websocket route file is loaded for the WebSocket runtime; worker shutdown clears worker-local connection state.
-- `WebSocketHub` manages worker-local peers, listeners, subscriptions and channel delivery.
+- `WebSocketHub` manages worker-local peers/listeners/subscriptions and uses Swoole `sendMessage`/`PipeMessage` to forward broadcast frames to other workers in the same server.
 - The configured broadcast driver resolves the local WebSocket broadcaster and emits channel/event payload frames.
 - A live Swoole WebSocket smoke test upgrades an HTTP client connection, receives the connect frame, sends a message and receives the echo; the recorded CI run passed.
 
-**Current boundary:** delivery is worker-local. Redis/SSE transports and cross-worker pub/sub are not implemented. Heartbeat/idle cleanup policy, bounded outbound queues/backpressure, channel authorization and multi-client contention tests remain open. Do not describe the current implementation as horizontally scalable or durable realtime delivery.
+**Current boundary:** same-server worker fan-out is implemented, but delivery across separate server instances is not. Redis/SSE transports, heartbeat/idle cleanup policy, bounded outbound queues/backpressure, channel authorization and live multi-worker contention/restart tests remain open. Do not describe the current implementation as durable realtime delivery.
 
 ## Roadmap feature status snapshot
 
 | Roadmap item | Current evidence | Status |
 |---|---|---|
-| WebSocket lifecycle and local broadcast | Swoole WebSocket callbacks, per-worker hub, channel delivery and live client handshake/message CI smoke test | Partial; no cross-worker pub/sub, Redis/SSE transport, heartbeat policy, bounded backpressure queue or channel authorization |
+| WebSocket lifecycle and broadcast | Swoole WebSocket callbacks, per-worker hub, same-server cross-worker IPC fan-out, channel delivery and live client handshake/message CI smoke test | Partial; Redis/SSE multi-instance transport, heartbeat policy, bounded backpressure queue, channel authorization and live multi-worker contention/restart test remain open |
 | Route naming/URL generation, constraints, 405 and HEAD | Router has parameterized matching; full parity not demonstrated | Partial / open |
 | Upload handling, cookie API, content negotiation | v3 Request has file helpers; v4 request upload/cookie/content-negotiation parity not established | Open |
 | Authentication/authorization | Bearer resolver, fail-closed 401 middleware, RBAC/ACL/policy callbacks | Partial; no built-in persistent user/token provider or complete session/password flow |
