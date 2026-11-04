@@ -18,7 +18,7 @@ This matrix records what is exercised by the current repository workflows. It is
 - Swoole versions other than the audited 6.2.3 baseline; CI currently installs the extension without pinning an exact version.
 - OpenSwoole as a distinct extension/runtime.
 - PDO MySQL, PostgreSQL and SQL Server integration/DDL compatibility. The schema add/drop tests currently use SQLite.
-- Cross-worker WebSocket pub/sub, Redis/SSE transports, sustained backpressure and channel authorization.
+- Live multi-worker WebSocket contention/restart validation, Redis/SSE multi-instance transports, sustained backpressure and channel authorization.
 - Live Swoole task-worker dispatch with concurrent task payloads and worker restart.
 - Sustained production traffic, OS-level worker reload races, long-duration memory retention and deployment-specific proxy/TLS behavior.
 
@@ -28,6 +28,6 @@ This matrix records what is exercised by the current repository workflows. It is
 2. Keep FPM as a compatibility runtime, not the primary performance target.
 3. Pin the Swoole extension version in deployment images; the CI workflow should be pinned once the project chooses its supported Swoole release policy.
 4. Run database migrations against a disposable instance of each production database driver before deployment.
-5. Do not claim horizontal WebSocket delivery, durable task queues or production authentication until the corresponding integrations and failure-mode tests exist.
+5. Same-server cross-worker WebSocket fan-out is implemented, but do not claim multi-instance delivery or production-grade realtime until Redis/SSE, backpressure, authorization and failure-mode tests exist.
 
 See [DEVELOPMENT_CHECKLIST.md](DEVELOPMENT_CHECKLIST.md), [V3_TO_V4_MIGRATION.md](V3_TO_V4_MIGRATION.md) and [DEVELOPMENT_PROGRESS.md](DEVELOPMENT_PROGRESS.md) for current implementation status.
