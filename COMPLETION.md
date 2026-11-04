@@ -12,18 +12,20 @@ This file replaces the previous blanket â€œproduction-ready / fully implementedâ
 - Request Context isolation and lifecycle cleanup.
 - Lifecycle hooks, bounded Swoole timer Scheduler and resource-pool cleanup.
 - PDO query builder, connection manager/pooling, transactions and v4 migration commands.
-- Validation, sessions, CSRF, PieTemplate views, collections and file cache.
-- CLI commands for common generators, route listing, config and tests.
+- Validation, sessions, CSRF, PieTemplate views, collections, file cache, secure UploadedFile metadata/storage and v3 helper adapters.
+- Worker-local Swoole WebSocket lifecycle/channel broadcast with a live-client CI smoke test.
+- Pluggable token-provider resolution, fail-closed HTTP 401 authentication middleware and RBAC/ACL/policy primitives.
+- CLI commands for controller/model/view/test/migration/helper/job generation, named/top-level cronjob execution, view-cache clearing, route listing, config and tests.
 - CI and targeted stress/regression audits through AUDIT-06.
 
 ## Not complete / not equivalent to v3
 
 - Complete v3 public API and behavioral parity inventory.
-- Full legacy Active Record/query-chain/result-object parity.
-- Full legacy schema DSL and migration parity (`Scheme::alter()` is unsupported).
-- v3 CronJob/Job/Worker semantics and custom Tester/Runner compatibility.
-- Complete WebSocket server and connection lifecycle.
-- Production authentication/authorization; built-in AuthMiddleware intentionally returns HTTP 501.
+- Full legacy Active Record/query-chain/result-object/iterator parity.
+- Full legacy schema DSL and migration parity (`Scheme::alter()` modify/rename/table-rebuild behavior is not a drop-in equivalent).
+- Durable queue semantics (persistence, retries, delayed jobs, failed-job storage) and complete custom Tester/Runner compatibility.
+- Cross-worker/horizontally scalable WebSocket delivery, Redis/SSE transports, heartbeat, bounded backpressure and channel authorization.
+- Production authentication data flows: persistent token/user storage, password verification and a complete session guard remain application responsibilities; built-in AuthMiddleware fails closed with HTTP 401 until a provider is configured.
 - Supported PHP/Swoole version matrix, sustained production-like load and deployment validation.
 
 ## How to interpret status
