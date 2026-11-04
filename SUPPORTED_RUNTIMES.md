@@ -18,7 +18,7 @@ This matrix records what is exercised by the current repository workflows. It is
 - Swoole versions other than the audited 6.2.3 baseline; CI currently installs the extension without pinning an exact version.
 - OpenSwoole as a distinct extension/runtime.
 - PDO MySQL, PostgreSQL and SQL Server integration/DDL compatibility. The schema add/drop tests currently use SQLite.
-- Live multi-worker WebSocket contention/restart validation, Redis/SSE multi-instance transports, sustained backpressure and channel authorization.
+- Successful execution of the newly added two-worker WebSocket IPC CI smoke test, live multi-worker contention/restart validation, Redis/SSE multi-instance transports, sustained backpressure and channel authorization.
 - Live Swoole task-worker dispatch with concurrent task payloads and worker restart.
 - Sustained production traffic, OS-level worker reload races, long-duration memory retention and deployment-specific proxy/TLS behavior.
 
