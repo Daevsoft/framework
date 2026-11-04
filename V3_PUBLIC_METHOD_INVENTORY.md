@@ -73,8 +73,8 @@ A source scan was performed across all **76 tracked PHP files** in the v3 tree. 
 | `Validator\\ValidationResult` | `__construct($isValid,$error)` | v4 compatibility ValidationResult preserves isValid/error properties |
 | `Validator\\Validator` | `__construct()`, static `make()`, `doValidate()`, static `oldValue()` | v4 compatibility adapter exposes make/doValidate/passes/fails/errors/validated/validate/oldValue; invalid input is reported via ValidationException rather than response termination |
 | `View\\View` | static `contents()`, `filename()` | v4 view facade is partial adapter |
-| `View\\PageProvider` | static `getInstance()`, `init()`, `page_not_found()`; `install()`, `run()`, `viewFileName()`, `__page()`, `pie_view()`, `not_found()` | v4 PieTemplate renderer exists; directive/component/slot/cache behavior needs full parity |
-| `View\\Slot` | `__construct()`, `attachSlot()`, `getSlot()` | v4 slot behavior needs comparison |
+| `View\\PageProvider` | static `getInstance()`, `init()`, `page_not_found()`; `install()`, `run()`, `viewFileName()`, `__page()`, `pie_view()`, `not_found()` | v4 ViewRenderer/PieCompiler replace provider rendering; layout/slot/import/component/cache paths are covered. Legacy PageProvider is not a drop-in adapter because v3 component rendering contains dd()/debug termination and provider lifecycle hooks are not retained |
+| `View\\Slot` | `__construct()`, `attachSlot()`, `getSlot()` | Replaced by compiler-managed named/default slots and caller-scoped closures; the v3 class's undeclared static slot store and inverted lookup branch are intentionally not copied |
 | `View\\CacheView` | `checkRootUpdated()`, `getEncryptedFileName()`, `recordViewTime()`, `__construct()`, `is_modified()`, `exists()`, `recordToFile()` | v4 compiled-view cache differs |
 | `Helper\\Function.php` | global `asset()`, `view()`, `session()`, `unsession()`, `flash()`, `is_flash()`, `set_flash()`, `old()`, `js_source()`, `app_url()` | v4 global helpers exist selectively; argument/return semantics need exact comparison |
 | `Helper\\Date` | static `timestamp()` | v4 date helper parity not certified |
