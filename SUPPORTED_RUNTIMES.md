@@ -15,7 +15,7 @@ This matrix records what is exercised by the current repository workflows. It is
 ## Not yet certified
 
 - PHP 8.2 and older PHP versions.
-- Swoole versions other than the audited 6.2.3 baseline; CI currently installs the extension without pinning an exact version.
+- Swoole versions other than 6.2.3. All CI/audit workflows are now pinned to `swoole-6.2.3` so future runs use the audited baseline.
 - OpenSwoole as a distinct extension/runtime.
 - PDO MySQL, PostgreSQL and SQL Server integration/DDL compatibility. The schema add/drop tests currently use SQLite.
 - Successful execution of the newly added two-worker WebSocket IPC CI smoke test, live multi-worker contention/restart validation, Redis/SSE multi-instance transports, sustained backpressure and channel authorization.
@@ -26,7 +26,7 @@ This matrix records what is exercised by the current repository workflows. It is
 
 1. Use PHP 8.3 and the Swoole version used by the latest successful CI/audit run as the verified baseline.
 2. Keep FPM as a compatibility runtime, not the primary performance target.
-3. Pin the Swoole extension version in deployment images; the CI workflow should be pinned once the project chooses its supported Swoole release policy.
+3. Pin the Swoole extension to 6.2.3 in deployment images to match CI; expand the matrix before claiming support for other versions.
 4. Run database migrations against a disposable instance of each production database driver before deployment.
 5. Same-server cross-worker WebSocket fan-out is implemented, but do not claim multi-instance delivery or production-grade realtime until Redis/SSE, backpressure, authorization and failure-mode tests exist.
 
