@@ -470,3 +470,12 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added Common\\Cache adapter and the `php ds cache` command to clear only generated PieTemplate `.php`/temporary cache files and reset the default renderer; application data and FileCache entries are not deleted.
 - Registered the cache command and added tests for file operations, cache file selection and debug/path helpers.
 - Updated migration matrix, public method inventory, checklist, README and implementation summary. Verification remains pending user-reported Actions; no CI wait.
+
+
+## 2026-11-04 — Safe legacy session user decoding
+
+- Updated the v3 Session::user() facade to recognize legacy serialized scalar/array values and decode them with allowed_classes=false.
+- Serialized objects are returned as their original string rather than creating incomplete objects or instantiating application classes; no static per-worker user cache is introduced.
+- Added regression coverage for serialized array decoding and safe handling of serialized object payloads.
+- Updated session migration inventory to document the compatibility boundary.
+- Verification: pending user-reported GitHub Actions; work continues without waiting.
