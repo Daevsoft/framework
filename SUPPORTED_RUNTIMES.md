@@ -6,11 +6,11 @@ This matrix records what is exercised by the current repository workflows. It is
 
 | Runtime | Status | Evidence / scope |
 |---|---|---|
-| PHP 8.3 | <badge>CI baseline</badge> | Main CI runs syntax checks, PHPUnit, CLI checks, Swoole HTTP/WebSocket smoke tests, fallback Context mode, FPM smoke test and config-cache smoke test |
-| Swoole 6.2.3 | <badge>Audited</badge> | Targeted database pool, coroutine isolation, timer/scheduler, multi-worker lifecycle and cancellation audits have recorded successful runs on PHP 8.3.36 / Swoole 6.2.3 |
-| PDO SQLite | <badge>CI baseline</badge> | Database/model/schema tests, in-memory integration tests and concurrency stress harnesses |
-| PHP built-in FPM server | <badge>Smoke-tested</badge> | CI starts the FPM runtime and verifies the health endpoint on PHP 8.3 |
-| Swoole coroutine fallback mode | <badge>Smoke-tested</badge> | CI runs HTTP health requests with coroutine support disabled and verifies repeated request handling |
+| PHP 8.3 | **CI baseline** | Main CI runs syntax checks, PHPUnit, CLI checks, Swoole HTTP/WebSocket smoke tests, fallback Context mode, FPM smoke test and config-cache smoke test |
+| Swoole 6.2.3 | **Audited** | Targeted database pool, coroutine isolation, timer/scheduler, multi-worker lifecycle and cancellation audits have recorded successful runs on PHP 8.3.36 / Swoole 6.2.3 |
+| PDO SQLite | **CI baseline** | Database/model/schema tests, in-memory integration tests and concurrency stress harnesses |
+| PHP built-in FPM server | **Smoke-tested** | CI starts the FPM runtime and verifies the health endpoint on PHP 8.3 |
+| Swoole coroutine fallback mode | **Smoke-tested** | CI runs HTTP health requests with coroutine support disabled and verifies repeated request handling |
 
 ## Not yet certified
 
