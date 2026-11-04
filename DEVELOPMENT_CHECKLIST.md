@@ -14,6 +14,7 @@ This file is the working checklist for developing applications on v4. It is **no
 - [x] CI coverage and lifecycle audit workflows through AUDIT-06
 - [ ] Complete public v3 API/method/command/template inventory
 - [ ] Complete and test Active Record/query/schema/migration parity or document each replacement
+- [x] Add a safe v3 validation namespace adapter with structured errors and registered custom rules
 - [x] Add validated single-column schema add/drop operations; retain explicit migration path for modify/rename and older SQLite table rebuilds
 - [ ] Port or formally de-scope v3 CronJob/Job/Worker and Tester/Runner APIs
 - [ ] Implement a complete WebSocket server runtime or formally de-scope it
