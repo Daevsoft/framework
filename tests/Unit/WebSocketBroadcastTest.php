@@ -33,6 +33,36 @@ final class WebSocketBroadcastTest extends TestCase
         ], json_decode($server->frames[0]['data'], true));
     }
 
+    public function testBroadcastFansOutAcrossWorkersWithoutRebroadcastingPipeFrames(): void
+    {
+        $sourceServer = new FakeWebSocketServer();
+        $sourceHub = new WebSocketHub($sourceServer, 0, 2, 8192);
+        $sourceConnection = new WebSocketConnection($sourceServer, 20, $sourceHub);
+        $sourceHub->add($sourceConnection);
+        $sourceConnection->subscribe('orders');
+
+        $remoteServer = new FakeWebSocketServer();
+        $remoteHub = new WebSocketHub($remoteServer, 1, 2, 8192);
+        $remoteConnection = new WebSocketConnection($remoteServer, 21, $remoteHub);
+        $remoteHub->add($remoteConnection);
+        $remoteConnection->subscribe('orders');
+
+        self::assertSame(1, $sourceHub->broadcast('orders', 'Updated', ['id' => 7]));
+        self::assertCount(1, $sourceServer->messages);
+        self::assertSame(1, $sourceServer->messages[0]['worker']);
+
+        self::assertSame(1, $remoteHub->deliverFrame($sourceServer->messages[0]['message']));
+        self::assertSame([21], array_column($remoteServer->frames, 'fd'));
+        self::assertSame([], $remoteServer->messages, 'PipeMessage delivery must not fan out again.');
+    }
+
+    public function testBroadcastRejectsFramesAboveConfiguredIpcLimit(): void
+    {
+        $hub = new WebSocketHub(null, null, 1, 1024);
+        $this->expectException(\\RuntimeException::class);
+        $hub->broadcast('large', 'Payload', str_repeat('x', 2048));
+    }
+
     public function testRemovingConnectionStopsFutureBroadcasts(): void
     {
         $server = new FakeWebSocketServer();
@@ -68,10 +98,17 @@ final class WebSocketBroadcastTest extends TestCase
 final class FakeWebSocketServer
 {
     public array $frames = [];
+    public array $messages = [];
 
     public function push(int $fd, string $data): bool
     {
         $this->frames[] = ['fd' => $fd, 'data' => $data];
+        return true;
+    }
+
+    public function sendMessage(string $message, int $workerId): bool
+    {
+        $this->messages[] = ['message' => $message, 'worker' => $workerId];
         return true;
     }
 
