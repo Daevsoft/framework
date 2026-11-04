@@ -31,7 +31,7 @@ Ds Framework 4 is an actively developed **Swoole-first framework** with an expli
 
 ## Important limitations
 
-- **Authentication:** the built-in AuthMiddleware is fail-closed with HTTP 501. AuthManager/Guard/RBAC/ACL must not be represented as a production authentication/authorization system until real providers, credential verification, token/session integration and policy enforcement are implemented and tested.
+- **Authentication:** AuthMiddleware fails closed with HTTP 401 and a Bearer challenge. Token-provider resolvers and RBAC/ACL/policy primitives exist, but persistent token/user storage, password flows and a complete session guard remain application responsibilities.
 - **WebSocket:** Swoole WebSocket upgrade callbacks, per-worker connection tracking and local channel broadcast are implemented and smoke-tested with a live client. Cross-worker pub/sub, Redis/SSE, heartbeat, bounded backpressure and channel authorization remain open.
 - **v3 database parity:** DsModel is a transitional adapter, not a full clone of v3 Active Record, query-chain, result-object and relationship behavior. SchemaBuilder supports validated single-column add/drop operations, but legacy Scheme::alter callback semantics, column modification/rename and older SQLite table rebuilds are not drop-in compatible.
 - **Background jobs:** v3-style Job::start()/run() is bridged to v4 Task, with add:job generation and a synchronous cronjob CLI runner. Swoole TaskDispatcher is ephemeral; it has no durable queue, retries, delayed jobs or failed-job persistence.
