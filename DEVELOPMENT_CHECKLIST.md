@@ -23,7 +23,7 @@ This file is the working checklist for developing applications on v4. It is **no
 - [x] Explicitly de-scope durable queue semantics: v3 CronJob was a synchronous CLI file runner; v4 Swoole TaskDispatcher is optional ephemeral async dispatch, not a v3 parity requirement
 - [x] Replace v3 Tester/Runner execution with PHPUnit via `php ds test`; the old global `describe()`/`mock()` DSL is documented as a migration change
 - [x] Implement Swoole WebSocket lifecycle, local channel broadcast and same-server cross-worker IPC fan-out (`sendMessage`/`PipeMessage`)
-- [ ] Add Redis/SSE multi-instance transport, heartbeat, bounded backpressure, channel authorization and live multi-worker contention/restart validation
+- [ ] Confirm the new two-worker PipeMessage smoke test passes; then add Redis/SSE multi-instance transport, heartbeat, bounded backpressure, channel authorization and contention/restart validation
 - [x] Restore Common File/Func adapters, view cache clearer and `php ds cache` CLI
 - [x] Record the currently verified PHP 8.3 / Swoole 6.2.3 / SQLite / FPM baseline in [SUPPORTED_RUNTIMES.md](SUPPORTED_RUNTIMES.md)
 - [ ] Expand the version matrix across pinned PHP/Swoole releases and production database drivers; complete production deployment validation
