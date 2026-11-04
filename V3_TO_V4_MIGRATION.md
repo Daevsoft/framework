@@ -36,7 +36,7 @@ v4 has reimplemented the framework around a new Swoole-first runtime, HTTP kerne
 | Tester / Runner | Replaced | PHPUnit-based tests and `php ds test` command replace the v3 Runner/Tester execution wrapper | The global `describe()`/`mock()` test DSL and custom PASS/FAIL counter are not carried; migrate to PHPUnit test cases, assertions, setUp/tearDown and mocks |
 | Debugger | Replaced / partial | v4 Inspector and Profiler | Compare v3 Debug API and exception rendering before claiming parity |
 | Environment helpers / generator | Expanded helper compatibility | v4 env/config helpers, app_url() with APP_URL override and request-aware fallback, plus Ds\\Helper\\Date and Ds\\Helper\\Str adapters | v3 AppEnv/EnvGenerator file-writing behavior is intentionally replaced by the config repository/cache workflow; review legacy environment precedence and any custom generator options |
-| Broadcasting / WebSocket | Partial: single-worker WebSocket lifecycle and channel broadcast | Swoole WebSocket Server callbacks, peer registry/subscriptions and local broadcast implemented; Redis/SSE and cross-worker pub/sub are not | Add shared pub/sub, heartbeat, bounded backpressure, channel authorization and real-client integration tests. See `V3_API_INVENTORY.md` |
+| Broadcasting / WebSocket | Partial: WebSocket lifecycle, local broadcast and same-server cross-worker IPC fan-out | Swoole WebSocket callbacks, peer registry/subscriptions and `sendMessage`/`PipeMessage` forwarding implemented; no v3 realtime subsystem existed | Add Redis/SSE multi-instance transport, heartbeat, bounded backpressure, channel authorization and live multi-worker contention/restart tests. See `V3_API_INVENTORY.md` |
 
 ## Verified v4 behavior
 
@@ -60,7 +60,7 @@ The v3 → v4 migration should only be marked **complete** after all of the foll
 2. Assign each item one explicit outcome: compatible, adapter provided, replaced with documented migration, intentionally removed, or not implemented.
 3. Add compatibility tests for every item marked compatible or adapter provided, including return types, exceptions and side effects.
 4. Provide migration examples for every replaced API and identify breaking changes.
-5. Implement or explicitly de-scope the remaining subsystem boundaries (notably durable queue/retry semantics, cross-worker WebSocket pub/sub, upload handling and the remaining Tester/Runner behavior).
+5. Implement or explicitly de-scope the remaining subsystem boundaries (notably durable queue/retry semantics, cross-instance WebSocket transport, upload handling and the remaining Tester/Runner behavior).
 6. Update root documentation and examples so no document describes scaffolding as operational.
 7. Run the complete CI suite and focused compatibility tests on the supported PHP/Swoole matrix.
 8. Keep this matrix, `DEVELOPMENT_CHECKLIST.md`, `IMPLEMENTATION_SUMMARY.md`, `AUDIT_AND_ROADMAP.md` and `DEVELOPMENT_PROGRESS.md` consistent.
