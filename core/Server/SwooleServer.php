@@ -72,9 +72,12 @@ final class SwooleServer
             catch (Throwable $exception) { error_log((string) $exception); }
         });
 
-        $server->on('WorkerStart', static function ($server, int $workerId) use ($lifecycle, $workerCount, $maxBroadcastBytes): void {
+        $server->on('WorkerStart', static function ($server, int $workerId) use ($lifecycle, $workerCount, $maxBroadcastBytes, $websocketEnabled): void {
             if ($workerId < $workerCount) {
-                WebSocketHub::replaceDefault(new WebSocketHub($server, $workerId, $workerCount, $maxBroadcastBytes));
+                $hub = $websocketEnabled
+                    ? new WebSocketHub($server, $workerId, $workerCount, $maxBroadcastBytes)
+                    : new WebSocketHub();
+                WebSocketHub::replaceDefault($hub);
             }
             TaskDispatcher::setServer($server);
             $lifecycle->emit('worker.start', ['server' => $server, 'worker_id' => $workerId]);
