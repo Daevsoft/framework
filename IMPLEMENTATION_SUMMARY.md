@@ -24,9 +24,9 @@ Ds Framework 4 is an actively developed **Swoole-first framework** with an expli
 | Validation | Dependency-free validator with common rules and structured errors; safe v3 namespace adapter for required/min/max and registered custom callbacks |
 | Views | PieTemplate compiler/renderer and compatibility facade coverage |
 | Session/CSRF | Request-isolated sessions, signed CSRF tokens and helpers |
-| Collections/cache | Native Collection, legacy Collection bridge and atomic TTL FileCache |
+| Collections/cache | Native Collection, legacy Collection bridge, atomic TTL FileCache and v3 cache-clear facade/CLI |
 | Compatibility helpers | v3 Ds\\Helper\\Date/Str adapters; request-aware app_url() with APP_URL override |
-| CLI | Swoole/FPM serving, domain/controller/model/view/test/migration/helper/job generators, named/top-level cronjob runner, route list, config and test commands |
+| CLI | Swoole/FPM serving, domain/controller/model/view/test/migration/helper/job generators, named/top-level cronjob runner, cache clear, route list, config and test commands |
 | Testing | PHPUnit suites, Swoole HTTP smoke tests, compatibility tests and targeted lifecycle audits |
 
 ## Important limitations
