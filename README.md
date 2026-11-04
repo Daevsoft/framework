@@ -261,6 +261,7 @@ php ds add:helper Formatting/Money
 php ds add:job Maintenance/PruneLogs
 php ds cronjob Maintenance/PruneLogs
 php ds cronjob
+php ds cache
 php ds add:test UserTest
 php ds add:test PriceCalculatorTest --unit
 php ds add:migration create_people_table
