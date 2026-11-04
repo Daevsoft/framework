@@ -33,6 +33,8 @@ final class SwooleServer
         $settings = function_exists('config') ? config('server', []) : [];
         $swooleSettings = $settings['swoole'] ?? [];
         $websocketEnabled = (bool) ($settings['websocket']['enabled'] ?? false);
+        $workerCount = max(1, (int) ($swooleSettings['worker_num'] ?? 1));
+        $maxBroadcastBytes = max(1024, (int) ($settings['websocket']['max_broadcast_payload_bytes'] ?? 65536));
 
         $serverClass = $websocketEnabled ? '\\Swoole\\WebSocket\\Server' : '\\Swoole\\Http\\Server';
         if (!class_exists($serverClass)) {
@@ -69,8 +71,10 @@ final class SwooleServer
             catch (Throwable $exception) { error_log((string) $exception); }
         });
 
-        $server->on('WorkerStart', static function ($server, int $workerId) use ($lifecycle): void {
-            WebSocketHub::replaceDefault(new WebSocketHub());
+        $server->on('WorkerStart', static function ($server, int $workerId) use ($lifecycle, $workerCount, $maxBroadcastBytes): void {
+            if ($workerId < $workerCount) {
+                WebSocketHub::replaceDefault(new WebSocketHub($server, $workerId, $workerCount, $maxBroadcastBytes));
+            }
             TaskDispatcher::setServer($server);
             $lifecycle->emit('worker.start', ['server' => $server, 'worker_id' => $workerId]);
         });
@@ -84,6 +88,11 @@ final class SwooleServer
         });
 
         if ($websocketEnabled) {
+            $server->on('PipeMessage', static function ($server, int $sourceWorkerId, mixed $message): void {
+                if (is_string($message)) {
+                    WebSocketHub::default()->deliverFrame($message);
+                }
+            });
             $server->on('Open', static function ($server, $request) use ($lifecycle): void {
                 self::handleWebSocketOpen($server, $request, $lifecycle);
             });
