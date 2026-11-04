@@ -34,7 +34,7 @@ final class SwooleServer
         $swooleSettings = $settings['swoole'] ?? [];
         $websocketEnabled = (bool) ($settings['websocket']['enabled'] ?? false);
         $workerCount = max(1, (int) ($swooleSettings['worker_num'] ?? 1));
-        $maxBroadcastBytes = max(1024, (int) ($settings['websocket']['max_broadcast_payload_bytes'] ?? 65536));
+        $maxBroadcastBytes = max(1024, (int) ($settings['websocket']['max_broadcast_payload_bytes'] ?? 8192));
         $swooleSettings['worker_num'] = $workerCount;
 
         $serverClass = $websocketEnabled ? '\\Swoole\\WebSocket\\Server' : '\\Swoole\\Http\\Server';
