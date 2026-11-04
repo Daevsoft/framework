@@ -14,6 +14,7 @@ final class LegacyEnvTest extends TestCase
     {
         $key = 'DS_COMPAT_ENV_' . strtoupper(bin2hex(random_bytes(4)));
         $existingKey = $key . '_EXISTING';
+        $quotedKey = $key . '_QUOTED';
         $path = sys_get_temp_dir() . '/' . $key . '.env';
         $oldEnv = $_ENV[$key] ?? null;
         $oldServer = $_SERVER[$key] ?? null;
@@ -23,16 +24,20 @@ final class LegacyEnvTest extends TestCase
         $hadServer = array_key_exists($key, $_SERVER);
         $hadExistingEnv = array_key_exists($existingKey, $_ENV);
         $hadExistingServer = array_key_exists($existingKey, $_SERVER);
+        $oldQuotedEnv = $_ENV[$quotedKey] ?? null;
+        $oldQuotedServer = $_SERVER[$quotedKey] ?? null;
+        $hadQuotedEnv = array_key_exists($quotedKey, $_ENV);
+        $hadQuotedServer = array_key_exists($quotedKey, $_SERVER);
 
         unset($_ENV[$key], $_SERVER[$key]);
         $_ENV[$existingKey] = 'process-value';
-        file_put_contents($path, "# comment\n{$key}=hello=world\n{$existingKey}=file-value\nQUOTED='two words'\n");
+        file_put_contents($path, "# comment\n{$key}=hello=world\n{$existingKey}=file-value\n{$quotedKey}='two words'\n");
 
         try {
             AppEnv::create($path);
             self::assertSame('hello=world', Env::get($key));
             self::assertSame('process-value', Env::get($existingKey));
-            self::assertSame('two words', Env::get('QUOTED'));
+            self::assertSame('two words', Env::get($quotedKey));
             self::assertSame('fallback', Env::get($key . '_MISSING', 'fallback'));
         } finally {
             @unlink($path);
@@ -40,10 +45,11 @@ final class LegacyEnvTest extends TestCase
             if ($hadServer) $_SERVER[$key] = $oldServer; else unset($_SERVER[$key]);
             if ($hadExistingEnv) $_ENV[$existingKey] = $oldExistingEnv; else unset($_ENV[$existingKey]);
             if ($hadExistingServer) $_SERVER[$existingKey] = $oldExistingServer; else unset($_SERVER[$existingKey]);
-            unset($_ENV['QUOTED'], $_SERVER['QUOTED']);
+            if ($hadQuotedEnv) $_ENV[$quotedKey] = $oldQuotedEnv; else unset($_ENV[$quotedKey]);
+            if ($hadQuotedServer) $_SERVER[$quotedKey] = $oldQuotedServer; else unset($_SERVER[$quotedKey]);
             putenv($key);
             putenv($existingKey);
-            putenv('QUOTED');
+            putenv($quotedKey);
         }
     }
 }
