@@ -19,7 +19,7 @@ Ds Framework 4 is an actively developed **Swoole-first framework** with an expli
 | Lifecycle | Application/request/worker/server lifecycle hooks and cleanup |
 | Tasks | Bounded Swoole timer Scheduler for one-shot and recurring callbacks |
 | Database | PDO manager, prepared query builder, transactions, bounded Swoole pool, joins, grouped predicates and subqueries |
-| Migrations | Transactional v4 migrations, status and rollback commands, partial legacy Scheme bridge |
+| Migrations | Transactional v4 migrations, status and rollback commands, validated schema add/drop column operations, partial legacy Scheme bridge |
 | Models | v4 model/query APIs and partial legacy DsModel adapter |
 | Validation | Dependency-free validator with common rules and structured errors |
 | Views | PieTemplate compiler/renderer and compatibility facade coverage |
@@ -32,7 +32,7 @@ Ds Framework 4 is an actively developed **Swoole-first framework** with an expli
 
 - **Authentication:** the built-in AuthMiddleware is fail-closed with HTTP 501. AuthManager/Guard/RBAC/ACL must not be represented as a production authentication/authorization system until real providers, credential verification, token/session integration and policy enforcement are implemented and tested.
 - **WebSocket:** `Route::ws()` is a declaration placeholder. The HTTP Swoole server does not yet provide a complete WebSocket upgrade/connection lifecycle.
-- **v3 database parity:** DsModel is a transitional adapter, not a full clone of v3 Active Record, query-chain, result-object and relationship behavior. Legacy Scheme::alter is unsupported.
+- **v3 database parity:** DsModel is a transitional adapter, not a full clone of v3 Active Record, query-chain, result-object and relationship behavior. SchemaBuilder supports validated single-column add/drop operations, but legacy Scheme::alter callback semantics, column modification/rename and older SQLite table rebuilds are not drop-in compatible.
 - **Background jobs:** the v4 Scheduler handles bounded Swoole timers; it is not a replacement for the v3 CronJob/Job/Worker queue/runner subsystem.
 - **Console parity:** common generators and CLI commands exist, but v3 generator templates/options and custom Tester/Runner APIs have not been proven equivalent.
 - **Production validation:** CI and synthetic audits do not replace deployment testing, supported-version matrices, realistic database/Redis adapters, sustained load, or security review.
