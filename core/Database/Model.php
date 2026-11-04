@@ -136,6 +136,9 @@ abstract class Model
         $attributes = $model->filterFillable($attributes);
 
         if ($id === null) {
+            if ($attributes === []) {
+                return 0;
+            }
             return db()->table($model->resolveTable())->insert($attributes);
         }
 
