@@ -53,7 +53,7 @@ A source scan was performed across all **76 tracked PHP files** in the v3 tree. 
 
 | v3 class/file | Public surface observed | v4 mapping / review status |
 |---|---|---|
-| `Network\\Request` | `validated()`, `all()`, static `getBack()`, `getReferrer()`, `trackRoute()`, `getTrackRoute()`, `json()`, magic `__get()`, `add()`, `old()`, `setOld()`, `files()`, `file()` | v4 Request covers input/JSON/validation and per-field old-input flash; file upload, route tracking, back/referrer and exact validated() return semantics remain open. v3 upload code is not safe to port verbatim |
+| `Network\\Request` | `validated()`, `all()`, static `getBack()`, `getReferrer()`, `trackRoute()`, `getTrackRoute()`, `json()`, magic `__get()`, `add()`, `old()`, `setOld()`, `files()`, `file()` | v4 Request covers input/JSON/validation/per-field old-input and normalized single/multi-file UploadedFile metadata with explicit secure storage; route tracking, back/referrer and exact validated() return semantics remain open. Upload auto-move behavior intentionally changed to explicit store() |
 | `Network\\Response` | `__construct()`, static `header()`, `applyToSwoole()`, `applyToPhp()`, `reset()` | v4 immutable Response/Emitter differs; static header state and reset behavior not drop-in |
 | `Network\\Middleware` | `handle(Request,$next)` | v4 MiddlewareInterface/pipeline exists; parameter and return behavior need migration tests |
 | `Network\\Validator` | `__construct()`, static `make()`, `doValidate()` | v4 Validator has common rules; result/message/custom-rule parity incomplete |
