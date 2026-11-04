@@ -66,7 +66,7 @@ final class Blueprint
     public function compileColumn(DatabaseManager $database): string
     {
         if (count($this->columns) !== 1) {
-            throw new \\LogicException('An ALTER TABLE operation must define exactly one column.');
+            throw new \LogicException('An ALTER TABLE operation must define exactly one column.');
         }
 
         return $this->columns[0]->compile($database);
