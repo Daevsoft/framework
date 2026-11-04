@@ -14,6 +14,7 @@ This file is the working checklist for developing applications on v4. It is **no
 - [x] CI coverage and lifecycle audit workflows through AUDIT-06
 - [ ] Complete public v3 API/method/command/template inventory
 - [x] Fix guarded-primary-key Model::save() updates and add direct legacy DsModel result accessors
+- [x] Restore protected DsModel pagination using request-scoped page/query context and v4 limit/offset
 - [x] Preserve explicit null values in SessionManager::get()
 - [ ] Complete and test Active Record/query/schema/migration parity or document each replacement
 - [x] Add a safe v3 validation namespace adapter with structured errors and registered custom rules
