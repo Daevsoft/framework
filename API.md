@@ -45,11 +45,11 @@ The framework can emit JSON, text, HTML, redirects, status codes and headers thr
 
 ## Authentication and authorization
 
-The built-in AuthMiddleware intentionally fails closed with HTTP 501. AuthManager/Guard/RBAC/ACL should not be treated as a completed production authentication system. Implement and test a real guard/provider and authorization policy before exposing protected endpoints.
+The built-in AuthMiddleware fails closed with HTTP 401 and a Bearer challenge when no valid identity is resolved. AuthManager/Guard accept pluggable token-provider resolvers and RBAC/ACL/policy primitives are available, but persistent user/token storage, credential/password flows and a complete session guard remain application responsibilities. Register and test a real provider before protecting production endpoints.
 
 ## WebSocket
 
-**Not operational in the current v4 runtime.** `Route::ws()` and broadcasting classes are declarations/abstractions only; the Swoole HTTP server does not yet implement WebSocket upgrade handling, connection lifecycle, heartbeat, backpressure or worker-safe connection management.
+**Partially operational.** When WebSocket mode is enabled, SwooleServer uses the WebSocket server and registers Open/Message/Close callbacks. The worker-local WebSocketHub supports connection tracking, subscriptions and channel broadcast; CI includes a live client upgrade/message smoke test. Delivery is not cross-worker: Redis/SSE transports, shared pub/sub, heartbeat policy, bounded backpressure and channel authorization remain unimplemented. Do not use it as a horizontally scalable or durable realtime transport.
 
 ## Rate limiting, pagination and filtering
 
