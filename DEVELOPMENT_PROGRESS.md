@@ -511,3 +511,11 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - The adapter deliberately does not generate executable PHP cache files from .env contents; v4 bootstrap loading and ConfigRepository cache remain the supported workflow.
 - Added regression coverage for values containing equals signs, quoted values, existing process precedence and default values.
 - Updated method inventory and migration guidance; the interactive v3 EnvGenerator command is replaced by .env.example/bootstrap/config cache.
+
+
+## 2026-11-04 — Pin audited Swoole CI runtime
+
+- Pinned all seven CI/audit workflows to PECL extension `swoole-6.2.3`, matching the version used by the recorded successful lifecycle, database-pool and scheduler audits.
+- Updated the runtime support matrix and checklist; other Swoole releases remain uncertified until added to an explicit matrix.
+- The setup-php action supports selecting a PECL extension version by suffixing the extension name with the version; this syntax is documented by the action maintainers.
+- Verification: no Actions wait; the user will report the latest run.
