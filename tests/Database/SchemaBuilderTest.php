@@ -74,7 +74,7 @@ final class SchemaBuilderTest extends TestCase
             $table->id();
         });
 
-        $this->expectException(\\LogicException::class);
+        $this->expectException(\LogicException::class);
         $this->database->schema()->addColumn('schema_alter_invalid', static function ($table): void {
             $table->string('first');
             $table->string('second');
