@@ -92,6 +92,16 @@ final class LegacyDsModelTest extends TestCase
         self::assertSame('Ada', (new LegacyPersonModel())->select()->where('name', 'Ada')->row()['name']);
     }
 
+    public function testDirectLegacyResultAccessorsReturnV4ArrayRows(): void
+    {
+        LegacyPersonModel::save(['name' => 'Ada', 'active' => 1]);
+        $model = new LegacyPersonModel();
+
+        self::assertSame('Ada', $model->get_object()[0]['name']);
+        self::assertSame('Ada', $model->get_array()[0]['name']);
+        self::assertSame('Ada', $model->row()['name']);
+    }
+
     public function testFillableHelperAndExplicitTableAreAvailable(): void
     {
         $model = new LegacyPersonModel();
