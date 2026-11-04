@@ -49,7 +49,7 @@ The built-in AuthMiddleware fails closed with HTTP 401 and a Bearer challenge wh
 
 ## WebSocket
 
-**Partially operational.** When WebSocket mode is enabled, SwooleServer uses the WebSocket server and registers Open/Message/Close callbacks. The worker-local WebSocketHub supports connection tracking, subscriptions and channel broadcast; CI includes a live client upgrade/message smoke test. Delivery is not cross-worker: Redis/SSE transports, shared pub/sub, heartbeat policy, bounded backpressure and channel authorization remain unimplemented. Do not use it as a horizontally scalable or durable realtime transport.
+**Partially operational.** When WebSocket mode is enabled, SwooleServer uses the WebSocket server and registers Open/Message/Close callbacks. WebSocketHub now fans out frames to other workers in the same Swoole server through `sendMessage`/`PipeMessage`, while each worker retains only its local connection registry. The existing CI smoke test covers a live client upgrade/message round trip; unit tests cover IPC fan-out. Redis/SSE multi-instance transports, heartbeat policy, bounded backpressure and channel authorization remain unimplemented. Live multi-worker contention/restart behavior still needs an integration run.
 
 ## Rate limiting, pagination and filtering
 
