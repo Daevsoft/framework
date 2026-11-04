@@ -16,6 +16,9 @@ use Ds\Console\Commands\AddMigration;
 use Ds\Console\Commands\RouteList;
 use Ds\Console\Commands\Test;
 use Ds\Console\Commands\Migrate;
+use Ds\Console\Commands\AddHelper;
+use Ds\Console\Commands\AddJob;
+use Ds\Console\Commands\CronJob;
 
 class ConsoleKernel
 {
@@ -36,6 +39,9 @@ class ConsoleKernel
         AddView::class,
         AddTest::class,
         AddMigration::class,
+        AddHelper::class,
+        AddJob::class,
+        CronJob::class,
         RouteList::class,
         Test::class,
     ];
