@@ -7,7 +7,7 @@ namespace Ds\Foundations\Common;
 use Ds\View\ViewRenderer;
 
 /** v3-compatible cache clearer for v4's content-addressed PieTemplate cache. */
-final class Cache
+class Cache
 {
     public function __construct(private readonly ?string $cacheDirectory = null)
     {
