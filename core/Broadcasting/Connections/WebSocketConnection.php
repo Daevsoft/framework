@@ -22,6 +22,11 @@ final class WebSocketConnection
 
     public function id(): int { return $this->fd; }
 
+    public function workerId(): ?int
+    {
+        return isset($this->server->worker_id) ? (int) $this->server->worker_id : null;
+    }
+
     public function on(string $event, callable $listener): self
     {
         $event = strtolower($event);
