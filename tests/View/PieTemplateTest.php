@@ -324,6 +324,34 @@ final class PieTemplateTest extends TestCase
         self::assertSame('<article><strong>New badge</strong></article>', $renderer->render('nested-component-cache'));
     }
 
+    public function testRejectsViewAndDependencyPathTraversal(): void
+    {
+        file_put_contents($this->root . '/outside.pie.php', 'outside');
+        $renderer = new ViewRenderer($this->views, $this->cache);
+
+        try {
+            $renderer->render('../outside');
+            self::fail('Expected view path traversal to be rejected.');
+        } catch (\\RuntimeException $exception) {
+            self::assertStringContainsString('not found', $exception->getMessage());
+        }
+
+        file_put_contents($this->views . '/traversal.pie.php', "@use('../outside')");
+        $this->expectException(\\RuntimeException::class);
+        $renderer->render('traversal');
+    }
+
+    public function testRejectsCircularLayoutExpansionWithBoundedFailure(): void
+    {
+        file_put_contents($this->views . '/layouts/first.pie.php', "@use('layouts.second')");
+        file_put_contents($this->views . '/layouts/second.pie.php', "@use('layouts.first')");
+        file_put_contents($this->views . '/circular.pie.php', "@use('layouts.first')");
+
+        $this->expectException(\\RuntimeException::class);
+        $this->expectExceptionMessage('nesting exceeded 16 levels');
+        (new ViewRenderer($this->views, $this->cache))->render('circular');
+    }
+
     private function removeDirectory(string $directory): void
     {
         if (!is_dir($directory)) {
