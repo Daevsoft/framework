@@ -519,3 +519,11 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Updated the runtime support matrix and checklist; other Swoole releases remain uncertified until added to an explicit matrix.
 - The setup-php action supports selecting a PECL extension version by suffixing the extension name with the version; this syntax is documented by the action maintainers.
 - Verification: no Actions wait; the user will report the latest run.
+
+
+## 2026-11-04 — Final compatibility edge-case pass
+
+- Model::save() now returns a safe no-op when fillable filtering removes every insert field; a regression test confirms no empty INSERT is attempted.
+- Validation now treats whitespace-only required strings as missing and treats a custom rule returning boolean false as a validation failure; regression coverage was added.
+- Common utility, Env/AppEnv, Response, UploadedFile, Session and DsModel adapters remain intentionally explicit about changed semantics rather than recreating unsafe v3 behavior.
+- No GitHub Actions result was awaited; the user will report the latest run.
