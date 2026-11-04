@@ -17,6 +17,7 @@ final class Request
 
     protected array $data = [];
     protected array $headers = [];
+    protected array $files = [];
     protected string $body = '';
     private string $scheme;
 
@@ -25,13 +26,15 @@ final class Request
         array $headers = [],
         string $method = 'GET',
         string $path = '/',
-        string $scheme = 'http'
+        string $scheme = 'http',
+        array $files = []
     ) {
         $this->data = $data;
         $this->headers = self::normalizeHeaders($headers);
         $this->method = strtoupper($method);
         $this->path = self::normalizePath($path);
         $this->scheme = strtolower($scheme) === 'https' ? 'https' : 'http';
+        $this->files = self::normalizeUploadedFiles($files);
         $this->query = [];
     }
 
@@ -49,7 +52,7 @@ final class Request
             || (int) ($_SERVER['SERVER_PORT'] ?? 0) === 443
                 ? 'https'
                 : 'http';
-        $request = new self([], $headers, $_SERVER['REQUEST_METHOD'] ?? 'GET', $path, $scheme);
+        $request = new self([], $headers, $_SERVER['REQUEST_METHOD'] ?? 'GET', $path, $scheme, $_FILES ?? []);
         $request->query = $query;
         $request->body = $body === false ? '' : $body;
         $request->mergeInput($_GET ?? []);
@@ -72,7 +75,14 @@ final class Request
             || (int) ($server['server_port'] ?? 0) === 443
                 ? 'https'
                 : 'http';
-        $request = new self([], $headers, (string) ($server['request_method'] ?? 'GET'), $path, $scheme);
+        $request = new self(
+            [],
+            $headers,
+            (string) ($server['request_method'] ?? 'GET'),
+            $path,
+            $scheme,
+            (array) ($swRequest->files ?? [])
+        );
         $request->query = $query;
         $request->body = method_exists($swRequest, 'rawContent')
             ? (string) ($swRequest->rawContent() ?: '')
@@ -88,6 +98,30 @@ final class Request
     public function getMethod(): string { return $this->method; }
     public function getPath(): string { return $this->path; }
     public function getScheme(): string { return $this->scheme; }
+
+    /** Return one uploaded file without moving it into application storage. */
+    public function file(string $field): ?UploadedFile
+    {
+        $files = $this->files($field);
+        return $files[0] ?? null;
+    }
+
+    /** @return array<int|string, UploadedFile> */
+    public function files(string $field): array
+    {
+        $files = $this->files[$field] ?? [];
+        if ($files instanceof UploadedFile) {
+            return [$files];
+        }
+        return is_array($files)
+            ? array_filter($files, static fn (mixed $file): bool => $file instanceof UploadedFile)
+            : [];
+    }
+
+    public function allFiles(): array
+    {
+        return $this->files;
+    }
     public function getUri(): string
     {
         return $this->path . ($this->query === [] ? '' : '?' . http_build_query($this->query));
@@ -189,6 +223,32 @@ final class Request
                 $this->data[$key] = $value;
             }
         }
+    }
+
+    private static function normalizeUploadedFiles(array $files): array
+    {
+        $normalized = [];
+        foreach ($files as $field => $file) {
+            if (!is_array($file) || !array_key_exists('name', $file)) {
+                continue;
+            }
+
+            if (is_array($file['name'])) {
+                foreach ($file['name'] as $key => $name) {
+                    $entry = [];
+                    foreach (['name', 'type', 'tmp_name', 'error', 'size'] as $attribute) {
+                        $value = $file[$attribute] ?? null;
+                        $entry[$attribute] = is_array($value) ? ($value[$key] ?? null) : $value;
+                    }
+                    $normalized[$field][$key] = new UploadedFile($entry);
+                }
+                continue;
+            }
+
+            $normalized[$field] = new UploadedFile($file);
+        }
+
+        return $normalized;
     }
 
     private static function normalizeHeaders(array $headers): array
