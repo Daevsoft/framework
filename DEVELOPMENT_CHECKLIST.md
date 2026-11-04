@@ -22,8 +22,8 @@ This file is the working checklist for developing applications on v4. It is **no
 - [x] Restore v3 CronJob Job::start()/run() compatibility, add:job generator and named/top-level cronjob CLI runner
 - [x] Explicitly de-scope durable queue semantics: v3 CronJob was a synchronous CLI file runner; v4 Swoole TaskDispatcher is optional ephemeral async dispatch, not a v3 parity requirement
 - [x] Replace v3 Tester/Runner execution with PHPUnit via `php ds test`; the old global `describe()`/`mock()` DSL is documented as a migration change
-- [x] Implement single-worker Swoole WebSocket lifecycle, local channel broadcast and live-client smoke test
-- [ ] Implement cross-worker pub/sub, Redis/SSE transports, heartbeat, bounded backpressure and channel authorization
+- [x] Implement Swoole WebSocket lifecycle, local channel broadcast and same-server cross-worker IPC fan-out (`sendMessage`/`PipeMessage`)
+- [ ] Add Redis/SSE multi-instance transport, heartbeat, bounded backpressure, channel authorization and live multi-worker contention/restart validation
 - [x] Restore Common File/Func adapters, view cache clearer and `php ds cache` CLI
 - [x] Record the currently verified PHP 8.3 / Swoole 6.2.3 / SQLite / FPM baseline in [SUPPORTED_RUNTIMES.md](SUPPORTED_RUNTIMES.md)
 - [ ] Expand the version matrix across pinned PHP/Swoole releases and production database drivers; complete production deployment validation
@@ -54,8 +54,8 @@ This file is the working checklist for developing applications on v4. It is **no
 - [ ] Use parameterized routes and verify route parameters
 - [ ] Use controller callables or the supported v3-style controller group/attributes
 - [ ] Test 404, invalid parameters, unsupported methods and handler exceptions
-- [x] WebSocket mode has a live-client upgrade/message smoke test and worker-local broadcast path
-- [ ] Do not assume WebSocket delivery is cross-worker or horizontally scalable; shared pub/sub, heartbeat, backpressure and channel authorization remain open
+- [x] WebSocket mode has a live-client upgrade/message smoke test and same-server cross-worker IPC fan-out
+- [ ] Do not assume WebSocket delivery works across separate server instances or is production-grade; Redis/SSE, heartbeat, backpressure and channel authorization remain open
 
 ## Middleware and request state
 
