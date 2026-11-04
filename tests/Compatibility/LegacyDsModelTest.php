@@ -116,7 +116,10 @@ final class LegacyDsModelTest extends TestCase
 
         $request = new Request([], [], 'GET', '/people');
         $request->query = ['search' => 'Ada', 'page' => '2'];
-        Context::default()->set('request', $request);
+        $context = Context::default();
+        $hadPreviousRequest = $context->has('request');
+        $previousRequest = $context->get('request');
+        $context->set('request', $request);
 
         try {
             $page = (new LegacyPersonModel())->paginatePage(2);
@@ -129,7 +132,11 @@ final class LegacyDsModelTest extends TestCase
             self::assertSame(3, $page['meta']['last_page']);
             self::assertSame(5, $page['meta']['total']);
         } finally {
-            Context::default()->remove('request');
+            if ($hadPreviousRequest) {
+                $context->set('request', $previousRequest);
+            } else {
+                $context->remove('request');
+            }
         }
     }
 
