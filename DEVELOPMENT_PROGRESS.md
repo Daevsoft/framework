@@ -392,3 +392,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Confirmed the old v3 PageProvider component rendering path contains unfinished dd() debug/termination calls, and v3 Slot references undeclared static state with inverted lookup behavior. These are intentionally replaced by the v4 compiler-managed component/slot model rather than reintroduced.
 - Updated migration inventory/checklist to document the replacement path and remaining uncommon directive/custom-extension audit.
 - Verification: pending user-reported GitHub Actions; development continued without waiting.
+
+
+## 2026-11-04 — Request context and legacy helper compatibility
+
+- Request now retains a normalized http/https scheme captured from FPM server metadata or Swoole request server data.
+- RequestDispatcher installs the current Request in coroutine-local Context for the duration of dispatch and restores/removes it in finally, including 404 and exception paths. Nested dispatch restores the previous request rather than leaking the inner request.
+- Added app_url(): validated absolute APP_URL is preferred; otherwise it uses the current request host/scheme (or FPM server metadata) and rejects malformed hosts. Production deployments should configure APP_URL, especially behind reverse proxies.
+- Added v3 namespace adapters Ds\\Helper\\Date::timestamp() and Ds\\Helper\\Str::{contains,replace,empty,nullEmpty} using native PHP functions only.
+- Added tests for request context cleanup/restoration, configured app URL validation and helper behavior.
+- Verification: pending user-reported GitHub Actions; implementation continues without waiting.
