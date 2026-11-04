@@ -8,7 +8,7 @@ namespace Ds\Foundations\Session;
  * Request-local compatibility facade. It deliberately does not hold static
  * session data, so Swoole workers cannot leak one user's state to another.
  */
-final class SessionManager
+class SessionManager
 {
     public static function init(): self
     {
