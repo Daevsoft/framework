@@ -24,7 +24,7 @@ final class AddJob extends GeneratorCommand
                 $segments = $this->segments($name);
                 $class = $this->className($segments);
                 $namespace = $this->namespaceFor('App\\CronJobs', $segments);
-                $relative = 'app/cronjobs/' . implode('/', $segments) . '.job.php';
+                $relative = 'app/CronJobs/' . implode('/', $segments) . '.job.php';
                 $content = "<?php\n\ndeclare(strict_types=1);\n\nnamespace {$namespace};\n\n"
                     . "use Ds\\Foundations\\Commands\\CronJob\\Job;\n\n"
                     . "final class {$class} extends Job\n{\n"
