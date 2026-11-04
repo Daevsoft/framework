@@ -270,6 +270,63 @@ abstract class DsModel extends Model
         return new static();
     }
 
+    protected function size(?array $where = null): int
+    {
+        $query = static::query();
+        foreach ($where ?? [] as $column => $value) {
+            $query->where((string) $column, $value);
+        }
+        return $query->count();
+    }
+
+    /**
+     * Legacy pagination payload backed by the v4 QueryBuilder.
+     * Query parameters are preserved and page numbers are clamped to valid bounds.
+     */
+    protected function paginate(int $limit = 10): array
+    {
+        if ($limit < 1) {
+            throw new \InvalidArgumentException('Pagination limit must be greater than zero.');
+        }
+
+        $request = \Ds\Context\Context::default()->get('request');
+        $queryParams = $request instanceof \Ds\Http\Request ? $request->query : [];
+        $requestedPage = $request instanceof \Ds\Http\Request
+            ? (int) $request->getQuery('page', 1)
+            : 1;
+        $size = $this->size();
+        $lastPage = max(1, (int) ceil($size / $limit));
+        $currentPage = min(max(1, $requestedPage), $lastPage);
+        $start = ($currentPage - 1) * $limit;
+        $path = $request instanceof \Ds\Http\Request ? $request->getPath() : '';
+
+        $data = static::query()->limit($limit)->offset($start)->get();
+        $link = static function (int $page) use ($path, $queryParams): string {
+            $params = $queryParams;
+            $params['page'] = $page;
+            return $path . '?' . http_build_query($params);
+        };
+
+        return [
+            'data' => $data,
+            'links' => [
+                'prev' => $currentPage <= 1 ? null : $link($currentPage - 1),
+                'next' => $currentPage >= $lastPage ? null : $link($currentPage + 1),
+                'first' => $link(1),
+                'last' => $link($lastPage),
+            ],
+            'meta' => [
+                'current_page' => $currentPage,
+                'from' => $start,
+                'last_page' => $lastPage,
+                'path' => $path,
+                'per_page' => $limit,
+                'to' => $size,
+                'total' => $size,
+            ],
+        ];
+    }
+
     private function filterLegacyFillable(array $attributes): array
     {
         if ($this->fillable === null) {
