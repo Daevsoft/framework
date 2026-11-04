@@ -502,3 +502,12 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 
 - Added a two-worker Swoole CI smoke test that opens clients on distinct worker IDs, broadcasts from one worker and asserts delivery to the other through PipeMessage. The run result is pending the user's latest GitHub Actions report.
+
+
+## 2026-11-04 — Legacy Env/AppEnv compatibility
+
+- Added Ds\\Foundations\\Config\\Env::get() as a namespace adapter to the v4 env() helper.
+- Added AppEnv::create()/generateConfig() compatibility that parses simple KEY=VALUE files, honors existing process variables and populates only missing environment values.
+- The adapter deliberately does not generate executable PHP cache files from .env contents; v4 bootstrap loading and ConfigRepository cache remain the supported workflow.
+- Added regression coverage for values containing equals signs, quoted values, existing process precedence and default values.
+- Updated method inventory and migration guidance; the interactive v3 EnvGenerator command is replaced by .env.example/bootstrap/config cache.
