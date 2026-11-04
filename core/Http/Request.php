@@ -95,6 +95,107 @@ final class Request
         return $request;
     }
 
+    /**
+     * Store the current local URI in session history for the legacy back/referrer API.
+     * Only the latest two local paths are retained; no request objects or headers
+     * are stored in the long-lived worker.
+     */
+    public static function trackRoute(?string $uri = null): void
+    {
+        $session = self::routeHistorySession();
+        $request = Context::default()->get('request');
+        $uri ??= $request instanceof self ? $request->getUri() : null;
+
+        if (!is_string($uri) || !self::isSafeLocalUri($uri)) {
+            throw new \\InvalidArgumentException('Route history requires a local absolute-path URI.');
+        }
+
+        $history = self::normalizeRouteHistory($session->get('track_route', []));
+        if (($history[count($history) - 1] ?? null) !== $uri) {
+            $history[] = $uri;
+        }
+
+        $session->put('track_route', array_slice($history, -2));
+    }
+
+    /** Return and consume the latest local route history entries. */
+    public static function getTrackRoute(): array
+    {
+        $session = self::routeHistorySession();
+        $history = self::normalizeRouteHistory($session->get('track_route', []));
+        $session->forget('track_route');
+
+        return $history;
+    }
+
+    /** Return the previous local URI, or the current URI when no history exists. */
+    public static function getReferrer(): string
+    {
+        $history = self::getTrackRoute();
+        if (count($history) >= 2) {
+            return $history[count($history) - 2];
+        }
+        if ($history !== []) {
+            return $history[0];
+        }
+
+        $request = Context::default()->get('request');
+        return $request instanceof self ? $request->getUri() : '/';
+    }
+
+    /**
+     * Return a redirect response instead of emitting headers directly.
+     * Controllers should return this response to the HTTP kernel.
+     */
+    public static function getBack(): Response
+    {
+        return Response::redirect(self::getReferrer());
+    }
+
+    private static function routeHistorySession(): \\Ds\\Session\\SessionManager
+    {
+        $session = Context::default()->get('session');
+        if (!$session instanceof \\Ds\\Session\\SessionManager) {
+            throw new \\RuntimeException('Route history requires SessionMiddleware.');
+        }
+
+        return $session;
+    }
+
+    private static function normalizeRouteHistory(mixed $history): array
+    {
+        if (is_string($history)) {
+            // Read the v3 serialized representation without allowing object creation.
+            try {
+                $decoded = @unserialize($history, ['allowed_classes' => false, 'max_depth' => 8]);
+            } catch (\\Throwable) {
+                return [];
+            }
+            $history = $decoded;
+        }
+
+        if (!is_array($history)) {
+            return [];
+        }
+
+        $routes = [];
+        foreach ($history as $uri) {
+            if (is_string($uri) && self::isSafeLocalUri($uri)) {
+                $routes[] = $uri;
+            }
+        }
+
+        return array_slice($routes, -2);
+    }
+
+    private static function isSafeLocalUri(string $uri): bool
+    {
+        return $uri !== ''
+            && str_starts_with($uri, '/')
+            && !str_starts_with($uri, '//')
+            && preg_match('/[\\\\r\\\\n\\\\x00-\\\\x1F\\\\x7F]/', $uri) !== 1;
+    }
+
     public function getMethod(): string { return $this->method; }
     public function getPath(): string { return $this->path; }
     public function getScheme(): string { return $this->scheme; }
