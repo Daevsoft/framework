@@ -323,3 +323,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Scanned all 76 tracked PHP files in the v3 tree and recorded principal public/protected methods for core/bootstrap, commands, generators, utilities, collections, database/query/model, HTTP, routing, security, sessions, validation, views and global helpers.
 - Added `V3_PUBLIC_METHOD_INVENTORY.md` and linked it from the documentation index and migration inventory.
 - This closes the broad declaration-discovery baseline, not the method-by-method v4 compatibility audit. The next step remains mapping each listed method to current v4 code and tests, beginning with database/model, request/response, sessions, views and helpers.
+
+
+## 2026-11-04 — DB compatibility audit: safe empty model updates
+
+- Audited the v4 Model, transitional DsModel adapter, SchemaBuilder/Blueprint, and their current PHPUnit coverage against the v3 public method inventory and migration matrix.
+- Confirmed that v4 model hydration and explicit-key relationship query helpers are present, while the legacy adapter remains intentionally partial; full Active Record iterator/pagination/query-result parity is not established.
+- Found an edge case in Model::updateById(): when a fillable whitelist rejects every supplied field (or only the primary key is supplied), the method forwarded an empty update to QueryBuilder, which throws instead of behaving as a safe no-op.
+- Changed updateById() to return 0 before issuing SQL when no mutable fields remain, and added a regression test that verifies the stored row is unchanged.
+- Schema audit: the current SchemaBuilder is deliberately limited to create/drop/hasTable and Blueprint supports basic column definitions; it does not implement v3 Scheme::alter() semantics. No unsafe generic ALTER adapter was added because driver-specific DDL and legacy Column raw-SQL behavior need a dedicated migration design.
+- Verification: pending GitHub Actions for this commit.
