@@ -8,7 +8,7 @@ namespace Ds\Foundations\Common;
  * Lightweight v3 File facade. Operations use native filesystem calls and
  * exclusive locks instead of retaining open handles between chained calls.
  */
-final class File
+class File
 {
     public const READ_ONLY = 'r';
     public const READ_PLUS = 'r+';
