@@ -332,12 +332,12 @@ final class PieTemplateTest extends TestCase
         try {
             $renderer->render('../outside');
             self::fail('Expected view path traversal to be rejected.');
-        } catch (\\RuntimeException $exception) {
+        } catch (\RuntimeException $exception) {
             self::assertStringContainsString('not found', $exception->getMessage());
         }
 
         file_put_contents($this->views . '/traversal.pie.php', "@use('../outside')");
-        $this->expectException(\\RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $renderer->render('traversal');
     }
 
@@ -347,7 +347,7 @@ final class PieTemplateTest extends TestCase
         file_put_contents($this->views . '/layouts/second.pie.php', "@use('layouts.first')");
         file_put_contents($this->views . '/circular.pie.php', "@use('layouts.first')");
 
-        $this->expectException(\\RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('nesting exceeded 16 levels');
         (new ViewRenderer($this->views, $this->cache))->render('circular');
     }
