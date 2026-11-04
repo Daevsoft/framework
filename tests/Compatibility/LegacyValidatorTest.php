@@ -53,6 +53,21 @@ final class LegacyValidatorTest extends TestCase
         $validator->validate();
     }
 
+    public function testRequiredRejectsWhitespaceAndFalseCustomRuleResults(): void
+    {
+        $required = LegacyValidator::make(['name' => '   '], ['name' => 'required']);
+        self::assertTrue($required->fails());
+
+        ValidationProvider::register(new ValidationRule(
+            'always_false_compat_test',
+            ' is invalid',
+            static fn (): bool => false
+        ));
+        $custom = LegacyValidator::make(['code' => 'x'], ['code' => 'always_false_compat_test']);
+        self::assertTrue($custom->fails());
+        self::assertSame('code is invalid', $custom->errors()['code']);
+    }
+
     public function testUnknownLegacyRuleFailsClosed(): void
     {
         $this->expectException(\InvalidArgumentException::class);
