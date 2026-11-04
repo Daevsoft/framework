@@ -14,7 +14,7 @@ The v3 tree contains 90 tracked files (including assets, templates, tests and me
 
 - v4 is a new Swoole-first implementation, not a drop-in v3 replacement.
 - HTTP routing, request/response, middleware, validation, sessions, views, DI, database and CLI have v4 implementations, but compatibility coverage varies by subsystem.
-- The v3 console exposed `serve`, `add:*`, `config`, `test`, `cronjob`, `migrate` and `cache`. v4 now includes `add:helper`, `add:job` and a namespaced `cronjob` CLI runner; the old `cache` CLI and exact option/output parity remain open.
+- The v3 console exposed `serve`, `add:*`, `config`, `test`, `cronjob`, `migrate` and `cache`. v4 now includes `add:helper`, `add:job`, a namespaced `cronjob` runner and `cache` view-cache clearing; exact aliases/options/output parity remains open.
 - v3 generators included controller, model, view, helper, test, job and migration templates. v4 now includes helper and job generators; generated jobs extend a compatibility Job base and can also be dispatched through the Swoole TaskDispatcher.
 - v3 CronJob `Job`/`Worker` is a CLI runner that discovers and executes `*.job.php` files. v4 now provides a namespaced `app/cronjobs/*.job.php` runner and a Job adapter implementing the Task contract. The Scheduler remains a timer for bounded callbacks, not a durable queue.
 - v4 now has a Swoole WebSocket server path, `Open`/`Message`/`Close` callbacks, per-worker connection registry, channel subscriptions and worker-local broadcast delivery. Redis/SSE transports, cross-worker pub/sub, heartbeat policy, bounded send queues/backpressure and WebSocket channel authorization remain open.
@@ -38,7 +38,7 @@ The v3 tree contains 90 tracked files (including assets, templates, tests and me
 | Sessions/CSRF: `Session/*`, `Security/Csrf.php` | SessionManager/provider and CSRF helpers | v4 session/CSRF middleware and helpers | Compare cookie/storage/session regeneration and flash semantics |
 | Validation: `Validator/*` | Validator, rules, result/provider and old input | v4 Validator plus v3 namespace adapter for required/min/max and registered callbacks; structured errors replace redirect/echo/exit | Compare remaining rule vocabulary/messages; legacy response termination is intentionally removed |
 | Cache/files/collections: `Common/Cache.php`, `Collection.php`, `File.php`, `Func.php` | File cache, collection transformations, filesystem helpers | Replaced/partial | Method-by-method compatibility, serialization and filesystem safety review |
-| CLI: `Commands/Terminal.php`, `Console.php`, `Runner.php` | `serve`, `add:*`, `config`, `test`, `cronjob`, `migrate`, `cache` | Different `ConsoleKernel` and `php ds` commands | Command aliases, flags, output, exit codes and interactive behavior |
+| CLI: `Commands/Terminal.php`, `Console.php`, `Runner.php` | `serve`, `add:*`, `config`, `test`, `cronjob`, `migrate`, `cache` | v4 `php ds` now has helper/job generators, cronjob runner and view cache clear alongside serving/config/migration/test commands | Remaining aliases, flags, output, exit codes and interactive behavior |
 | Generators: `Commands/Generator/AddFile.php` + templates | controller, helper, job, migration, model, test, unit-test and view templates | v4 controller/model/view/test/migration/domain plus helper/job generators are present; generated paths follow PSR-4 namespace casing | Compare remaining template output, nested paths, options and generated-code conventions |
 | Background jobs: `Commands/CronJob/Job.php`, `Worker.php`, `job.empty` | CLI executes named/all `*.job.php` classes through `Job::run()` and protected `start()` | Partial compatibility: `Ds\\Foundations\\Commands\\CronJob\\Job` preserves `start()/run()` and implements v4 Task; `add:job` generates compatible classes; `cronjob` CLI runs named/all top-level jobs | Add nested/all-job discovery policy, live task-worker integration, durable queue/retry/failure storage and scheduled recurring-job orchestration |
 | Tester/debugger/exceptions: `Commands/Tester/*`, `Debugger/Debug.php`, exception renderer | Custom Tester/Assert/Runner, debug bar and exception view | PHPUnit/CLI test, Inspector/Profiler and new error path | Compatibility mapping and configurable safe error rendering |
@@ -60,7 +60,7 @@ The v3 tree contains 90 tracked files (including assets, templates, tests and me
 | `test` | `test` | Replaced by PHPUnit |
 | `cronjob` | `cronjob` CLI runner plus Swoole Scheduler/TaskDispatcher | Partial replacement; synchronous CLI discovery restored, durable queue semantics not provided |
 | `migrate` | `migrate` | Replaced; legacy migration bridge partial |
-| `cache` | No direct CLI equivalent confirmed | Missing / review |
+| `cache` | `cache` | Present; clears generated PieTemplate view cache `.php`/`.tmp` files only; application data/FileCache is preserved |
 
 ## Realtime/Broadcasting implementation check
 
