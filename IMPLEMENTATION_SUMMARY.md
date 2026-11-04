@@ -26,15 +26,15 @@ Ds Framework 4 is an actively developed **Swoole-first framework** with an expli
 | Session/CSRF | Request-isolated sessions, signed CSRF tokens and helpers |
 | Collections/cache | Native Collection, legacy Collection bridge and atomic TTL FileCache |
 | Compatibility helpers | v3 Ds\\Helper\\Date/Str adapters; request-aware app_url() with APP_URL override |
-| CLI | Swoole/FPM serving, domain/controller/model/view/test/migration generators, route list, config and test commands |
+| CLI | Swoole/FPM serving, domain/controller/model/view/test/migration/helper/job generators, named/top-level cronjob runner, route list, config and test commands |
 | Testing | PHPUnit suites, Swoole HTTP smoke tests, compatibility tests and targeted lifecycle audits |
 
 ## Important limitations
 
 - **Authentication:** the built-in AuthMiddleware is fail-closed with HTTP 501. AuthManager/Guard/RBAC/ACL must not be represented as a production authentication/authorization system until real providers, credential verification, token/session integration and policy enforcement are implemented and tested.
-- **WebSocket:** `Route::ws()` is a declaration placeholder. The HTTP Swoole server does not yet provide a complete WebSocket upgrade/connection lifecycle.
+- **WebSocket:** Swoole WebSocket upgrade callbacks, per-worker connection tracking and local channel broadcast are implemented and smoke-tested with a live client. Cross-worker pub/sub, Redis/SSE, heartbeat, bounded backpressure and channel authorization remain open.
 - **v3 database parity:** DsModel is a transitional adapter, not a full clone of v3 Active Record, query-chain, result-object and relationship behavior. SchemaBuilder supports validated single-column add/drop operations, but legacy Scheme::alter callback semantics, column modification/rename and older SQLite table rebuilds are not drop-in compatible.
-- **Background jobs:** the v4 Scheduler handles bounded Swoole timers; it is not a replacement for the v3 CronJob/Job/Worker queue/runner subsystem.
+- **Background jobs:** v3-style Job::start()/run() is bridged to v4 Task, with add:job generation and a synchronous cronjob CLI runner. Swoole TaskDispatcher is ephemeral; it has no durable queue, retries, delayed jobs or failed-job persistence.
 - **Console parity:** common generators and CLI commands exist, but v3 generator templates/options and custom Tester/Runner APIs have not been proven equivalent.
 - **Production validation:** CI and synthetic audits do not replace deployment testing, supported-version matrices, realistic database/Redis adapters, sustained load, or security review.
 
