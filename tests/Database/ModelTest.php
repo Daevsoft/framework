@@ -44,6 +44,12 @@ final class ModelTest extends TestCase
         self::assertSame('Deva', TestPersonModel::allModels()[0]->name);
     }
 
+    public function testSaveWithNoFillableInsertFieldsIsANoOp(): void
+    {
+        self::assertSame(0, TestPersonModel::save(['is_admin' => true]));
+        self::assertSame(0, TestPersonModel::count());
+    }
+
     public function testSaveUpdatesByGuardedPrimaryKey(): void
     {
         self::assertSame(1, TestPersonModel::save(['name' => 'Ada', 'active' => 1]));
