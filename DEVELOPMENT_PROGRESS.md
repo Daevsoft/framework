@@ -333,3 +333,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Changed updateById() to return 0 before issuing SQL when no mutable fields remain, and added a regression test that verifies the stored row is unchanged.
 - Schema audit: the current SchemaBuilder is deliberately limited to create/drop/hasTable and Blueprint supports basic column definitions; it does not implement v3 Scheme::alter() semantics. No unsafe generic ALTER adapter was added because driver-specific DDL and legacy Column raw-SQL behavior need a dedicated migration design.
 - Verification: pending GitHub Actions for this commit.
+
+
+## 2026-11-04 — SchemaBuilder safe ALTER primitives
+
+- Added SchemaBuilder::addColumn() using the existing Blueprint/ColumnDefinition validation and requiring exactly one column per ALTER operation.
+- Added SchemaBuilder::dropColumn() with quoted identifiers and an explicit SQLite version guard (SQLite 3.35.0+); older SQLite versions receive a clear rebuild-table instruction instead of an opaque SQL failure.
+- Added regression coverage for add/drop behavior and rejection of multi-column ALTER definitions.
+- Updated the migration matrix, development checklist and implementation summary to describe the new supported scope without claiming legacy Scheme::alter parity.
+- Column modification, rename, enum emulation and legacy raw-SQL callback semantics remain explicit migration work because they need driver-specific behavior and data-preserving rebuild plans.
+- Verification: pending user-reported GitHub Actions; work continues without waiting for CI.
