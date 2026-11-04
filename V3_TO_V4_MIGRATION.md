@@ -34,7 +34,7 @@ v4 has reimplemented the framework around a new Swoole-first runtime, HTTP kerne
 | CronJob / scheduled worker | Not ported as v3 subsystem | v4 bounded Swoole timer Scheduler for short callbacks | v3 `CronJob/Job/Worker` queue/runner semantics need a separate design and implementation |
 | Tester / Runner | Replaced / partial | PHPUnit-based tests and `php ds test` command | v3 custom Tester/Assert/Runner API is not a drop-in compatibility layer |
 | Debugger | Replaced / partial | v4 Inspector and Profiler | Compare v3 Debug API and exception rendering before claiming parity |
-| Environment helpers / generator | Partial | v4 environment loader and helper functions | v3 EnvGenerator / interactive .env generation is not confirmed as parity |
+| Environment helpers / generator | Expanded helper compatibility | v4 env/config helpers, app_url() with APP_URL override and request-aware fallback, plus Ds\\Helper\\Date and Ds\\Helper\\Str adapters | v3 AppEnv/EnvGenerator file-writing behavior is intentionally replaced by the config repository/cache workflow; review legacy environment precedence and any custom generator options |
 | Broadcasting / WebSocket | Partial: single-worker WebSocket lifecycle and channel broadcast | Swoole WebSocket Server callbacks, peer registry/subscriptions and local broadcast implemented; Redis/SSE and cross-worker pub/sub are not | Add shared pub/sub, heartbeat, bounded backpressure, channel authorization and real-client integration tests. See `V3_API_INVENTORY.md` |
 
 ## Verified v4 behavior
