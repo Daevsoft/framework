@@ -372,3 +372,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added tests for nested mutation, null-valued pull, serialization round-trip and magic property/debug access.
 - Kept the implementation on native PHP ArrayIterator and arrays; no per-element proxy/cache or third-party collection runtime was introduced.
 - Verification: pending user-reported GitHub Actions; development continues without waiting for CI.
+
+
+## 2026-11-04 — v3 Validator namespace adapter
+
+- Added the missing v3 namespace compatibility classes: Validator, ValidationProvider, ValidationRule and ValidationResult.
+- Preserved required/min/max rules and the legacy four-argument callback shape; custom rules can be registered once in the provider registry.
+- The adapter exposes make(), doValidate(), passes(), fails(), errors(), validated(), validate() and oldValue(). Unknown rules fail closed with InvalidArgumentException.
+- Deliberately removed v3 validation side effects (header redirect, echo and die). Failures are inspectable and validate() throws the v4 structured ValidationException, preventing library code from terminating a Swoole worker/request process unexpectedly.
+- Added regression coverage for built-in rules, custom callback registration, structured failure and unsupported rule rejection.
+- Verification: pending user-reported GitHub Actions; implementation continued without waiting for CI.
