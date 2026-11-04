@@ -9,7 +9,7 @@ final class Func
 {
     public static bool $isDebug = false;
 
-    public static function check(mixed $value, bool $force = false): void
+    public static function check(mixed $value, mixed $force = false): void
     {
         if (self::$isDebug || $force) {
             echo '<pre>' . htmlspecialchars(print_r($value, true), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</pre>';
