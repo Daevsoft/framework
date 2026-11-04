@@ -343,3 +343,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Updated the migration matrix, development checklist and implementation summary to describe the new supported scope without claiming legacy Scheme::alter parity.
 - Column modification, rename, enum emulation and legacy raw-SQL callback semantics remain explicit migration work because they need driver-specific behavior and data-preserving rebuild plans.
 - Verification: pending user-reported GitHub Actions; work continues without waiting for CI.
+
+
+## 2026-11-04 — DsModel query-chain compatibility expansion
+
+- Expanded the base Model where() contract to accept both two-argument equality and three-argument operator comparisons; added matching static orWhere() support without introducing per-instance query state.
+- Expanded the legacy DsModel adapter with select-chain entry points, first(), asc()/desc(), groupBy(), distinct(), join/leftJoin/rightJoin(), and orLike(). Query operations continue to return isolated v4 QueryBuilder instances rather than retaining mutable builder state on long-lived model instances.
+- Added QueryBuilder compatibility result aliases: get_object(), get_array(), get_assoc(), row(), get_row_object() and get_exist(). These preserve v4 array/null result types and intentionally do not emulate v3 object hydration.
+- Added regression tests for selected-column chains, comparison operators, OR predicates, row access and existence checks.
+- Explicitly not ported in this batch: v3 dynamic magic scope dispatch, stateful result/iterator object semantics, pagination URL generation, bulk insert callback/upsert semantics and less common PDO fetch modes.
+- Verification: pending user-reported GitHub Actions; implementation continued without waiting for CI.
