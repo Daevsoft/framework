@@ -118,7 +118,7 @@ final class FakeWebSocketServer
     public array $frames = [];
     public array $messages = [];
     public array $disconnected = [];
-    public ?\\Closure $onDisconnect = null;
+    public ?\Closure $onDisconnect = null;
 
     public function push(int $fd, string $data): bool
     {
