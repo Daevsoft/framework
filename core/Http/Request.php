@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ds\Http;
 
+use Ds\Context\Context;
 use Ds\Validation\Validator;
 /**
  * Immutable-per-request HTTP data. Never reads PHP superglobals from a
@@ -107,7 +108,7 @@ final class Request
         $uri ??= $request instanceof self ? $request->getUri() : null;
 
         if (!is_string($uri) || !self::isSafeLocalUri($uri)) {
-            throw new \\InvalidArgumentException('Route history requires a local absolute-path URI.');
+            throw new \InvalidArgumentException('Route history requires a local absolute-path URI.');
         }
 
         $history = self::normalizeRouteHistory($session->get('track_route', []));
@@ -152,11 +153,11 @@ final class Request
         return Response::redirect(self::getReferrer());
     }
 
-    private static function routeHistorySession(): \\Ds\\Session\\SessionManager
+    private static function routeHistorySession(): \Ds\Session\SessionManager
     {
         $session = Context::default()->get('session');
-        if (!$session instanceof \\Ds\\Session\\SessionManager) {
-            throw new \\RuntimeException('Route history requires SessionMiddleware.');
+        if (!$session instanceof \Ds\Session\SessionManager) {
+            throw new \RuntimeException('Route history requires SessionMiddleware.');
         }
 
         return $session;
@@ -168,7 +169,7 @@ final class Request
             // Read the v3 serialized representation without allowing object creation.
             try {
                 $decoded = @unserialize($history, ['allowed_classes' => false, 'max_depth' => 8]);
-            } catch (\\Throwable) {
+            } catch (\Throwable) {
                 return [];
             }
             $history = $decoded;
@@ -193,7 +194,8 @@ final class Request
         return $uri !== ''
             && str_starts_with($uri, '/')
             && !str_starts_with($uri, '//')
-            && preg_match('/[\\\\r\\\\n\\\\x00-\\\\x1F\\\\x7F]/', $uri) !== 1;
+            && preg_match('/[\x00-\x1F\x7F]/', $uri) !== 1
+            && strpbrk($uri, "\r\n") === false;
     }
 
     public function getMethod(): string { return $this->method; }
