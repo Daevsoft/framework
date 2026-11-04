@@ -109,7 +109,9 @@ final class Request
 
     public function old(string $key, mixed $default = null): mixed
     {
-        return old($key, $default);
+        // v3 Request::setOld() stores each field under "_old_{key}", not
+        // inside the aggregate "_old_input" payload used by old().
+        return flash('_old_' . $key, $default);
     }
 
     public function setOld(string $key, mixed $value): void
