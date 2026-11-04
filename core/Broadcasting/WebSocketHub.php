@@ -140,9 +140,13 @@ final class WebSocketHub
 
     public function clear(): void
     {
-        foreach ($this->connections as $connection) {
+        // Detach the registry before invoking server callbacks. A close callback
+        // may re-enter the hub; it must not observe stale peers during teardown.
+        $connections = $this->connections;
+        $this->connections = [];
+
+        foreach ($connections as $connection) {
             $connection->close();
         }
-        $this->connections = [];
     }
 }
