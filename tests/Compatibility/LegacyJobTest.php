@@ -4,12 +4,42 @@ declare(strict_types=1);
 
 namespace Tests\Compatibility;
 
+use Ds\Console\Commands\AddHelper;
+use Ds\Console\Commands\AddJob;
 use Ds\Console\Commands\CronJob as CronJobCommand;
 use Ds\Foundations\Commands\CronJob\Job;
 use PHPUnit\Framework\TestCase;
 
 final class LegacyJobTest extends TestCase
 {
+    public function testLegacyHelperAndJobGeneratorsUsePsr4CasedPaths(): void
+    {
+        $jobDirectory = base_path('app/CronJobs/TestFixtures');
+        $helperDirectory = base_path('app/Helpers/TestFixtures');
+        mkdir($jobDirectory, 0775, true);
+        mkdir($helperDirectory, 0775, true);
+        $jobFile = $jobDirectory . '/GeneratedJobFixture.job.php';
+        $helperFile = $helperDirectory . '/GeneratedHelperFixture.php';
+
+        try {
+            $jobCommand = new AddJob();
+            $jobCommand->setParameters(['TestFixtures/GeneratedJobFixture']);
+            self::assertSame(0, $jobCommand->handle());
+            self::assertStringContainsString('namespace App\\CronJobs\\TestFixtures;', file_get_contents($jobFile));
+            self::assertStringContainsString('extends Job', file_get_contents($jobFile));
+
+            $helperCommand = new AddHelper();
+            $helperCommand->setParameters(['TestFixtures/GeneratedHelperFixture']);
+            self::assertSame(0, $helperCommand->handle());
+            self::assertStringContainsString('namespace App\\Helpers\\TestFixtures;', file_get_contents($helperFile));
+        } finally {
+            @unlink($jobFile);
+            @unlink($helperFile);
+            @rmdir($jobDirectory);
+            @rmdir($helperDirectory);
+        }
+    }
+
     public function testLegacyJobCanRunDirectlyOrThroughTheTaskWorkerContract(): void
     {
         $job = new class extends Job {
