@@ -20,7 +20,7 @@ The v3 tree contains 90 tracked files (including assets, templates, tests and me
 - v4 has a Swoole WebSocket server path, `Open`/`Message`/`Close` callbacks, per-worker connection registry, channel subscriptions and same-server cross-worker fan-out via `sendMessage`/`PipeMessage`. Redis/SSE multi-instance transports, heartbeat policy, bounded send queues/backpressure and WebSocket channel authorization remain open.
 - v4 authentication now supports pluggable Bearer-token provider resolvers, fail-closed 401 middleware, role permission checks, ACL grants and explicit policy callbacks. There is no built-in persistent token/user provider, password workflow or session guard implementation; authentication is extensible but not production-complete by itself.
 - v4 dispatches serializable `Task` objects to configured Swoole task workers; the legacy Job bridge implements this contract. This is ephemeral async dispatch, not a durable queue: retries, persistence, delayed jobs, failed-job storage and exactly-once semantics are not implemented.
-- v4 CI has a live Swoole WebSocket client handshake/message round-trip smoke test. Cross-worker IPC fan-out has unit coverage; live multi-worker contention/restart behavior, real task-worker dispatch and sustained backpressure remain unverified.
+- v4 CI has a live Swoole WebSocket client handshake/message round-trip smoke test and now includes a two-worker PipeMessage fan-out smoke test. Cross-worker IPC also has unit coverage; live multi-worker contention/restart behavior, real task-worker dispatch and sustained backpressure remain unverified until the new workflow run is confirmed.
 
 ## Subsystem inventory and disposition
 
