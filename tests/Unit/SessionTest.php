@@ -152,6 +152,25 @@ final class SessionTest extends TestCase
         self::assertTrue(LegacyCsrf::verify(LegacyCsrf::generate()));
     }
 
+    public function testLegacyRequestOldInputUsesPerFieldFlashKeys(): void
+    {
+        $first = SessionManager::start(new Request(), $this->directory);
+        Context::default()->set('session', $first);
+        (new Request())->setOld('email', 'ada@example.test');
+        $first->save();
+        $cookie = $first->cookieHeader();
+        Context::default()->remove('session');
+
+        $second = SessionManager::start(
+            new Request([], ['cookie' => $cookie], 'GET', '/'),
+            $this->directory
+        );
+        Context::default()->set('session', $second);
+
+        self::assertSame('ada@example.test', (new Request())->old('email'));
+        self::assertSame('fallback', (new Request())->old('missing', 'fallback'));
+    }
+
     public function testDestroyExpiresTheSessionCookie(): void
     {
         $session = SessionManager::start(new Request(), $this->directory);
