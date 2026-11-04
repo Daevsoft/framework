@@ -18,7 +18,7 @@ A source scan was performed across all **76 tracked PHP files** in the v3 tree. 
 | `Commands\\Console` | static `write($text, $color)`, `writeln($text, $color)` | v4 Console output/command APIs differ; compatibility not established |
 | `Commands\\Terminal` | `__construct($argv)`, `start()` | v4 ConsoleKernel; command names, parsing and exit codes differ |
 | `Commands\\Runner` | `__construct($options)`, `setup()`, `run()` | v4 PHPUnit runner; custom Runner behavior is not drop-in |
-| `Commands\\EnvGenerator` | `run()` | v4 config command is not confirmed to preserve interactive generation |
+| `Commands\\EnvGenerator` | `run()` | Replaced by committed `.env.example`, bootstrap .env loader and `php ds config`; interactive EnvGenerator UI is intentionally not carried |
 | `Commands\\CronJob\\Job` | `run()`, protected `start()` | v4 Task/Scheduler are different APIs |
 | `Commands\\CronJob\\Worker` | `run()` | v4 `cronjob` CLI command restores named/top-level `.job.php` discovery and runs compatibility Job classes; async Swoole Task dispatch is available but not a durable queue |
 | `Commands\\Generator\\AddFile` | `run()` | v4 individual generators replace this command; output and options need parity checks |
@@ -34,8 +34,8 @@ A source scan was performed across all **76 tracked PHP files** in the v3 tree. 
 | `Common\\File` | `__construct($path,$mode)`, `close()`, `rewrite()`, `append()`, `create()`, `delete()`, `getContent()`, `getFilename()` | v4 compatibility facade now implements these methods using locked native file operations; no long-lived stream handle is retained |
 | `Common\\Cache` | `run()`, `clearAllPages()`, `resetCacheRecord()`, `clearReferences()` | v4 adapter clears generated PieTemplate `.php`/`.tmp` files and resets the default renderer; no timestamp manifest/reference registry exists |
 | `Common\\Func` | static `check()`, `isSlash()`, `replaceSlash()` | v4 adapter provides escaped debug output, platform-aware slash detection and path normalization |
-| `Config\\Env` | static `get($key,$default)` | v4 env/config helpers; precedence and coercion need parity tests |
-| `Config\\AppEnv` | `__construct($envfile)`, `generateConfig()` | v4 config cache/generator differs |
+| `Config\\Env` | static `get($key,$default)` | v4 `Ds\\Foundations\\Config\\Env::get()` delegates to env() and preserves default/precedence behavior |
+| `Config\\AppEnv` | `__construct($envfile)`, `generateConfig()` | v4 safe adapter parses simple KEY=VALUE files and populates only missing process variables; it no longer generates executable PHP from .env contents |
 
 ## Database, query builder and model
 
