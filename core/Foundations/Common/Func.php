@@ -12,7 +12,7 @@ final class Func
     public static function check(mixed $value, bool $force = false): void
     {
         if (self::$isDebug || $force) {
-            \dump($value);
+            echo '<pre>' . htmlspecialchars(print_r($value, true), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</pre>';
         }
     }
 
