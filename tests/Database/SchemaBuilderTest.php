@@ -49,6 +49,38 @@ final class SchemaBuilderTest extends TestCase
         });
     }
 
+    public function testAddsAndDropsColumnsWithValidatedDefinitions(): void
+    {
+        $schema = $this->database->schema();
+        $schema->create('schema_alter_notes', static function ($table): void {
+            $table->id();
+            $table->string('title', 80);
+        });
+
+        $schema->addColumn('schema_alter_notes', static function ($table): void {
+            $table->boolean('published')->default(false);
+        });
+        $columns = $this->database->select('PRAGMA table_info(schema_alter_notes)');
+        self::assertContains('published', array_column($columns, 'name'));
+
+        $schema->dropColumn('schema_alter_notes', 'published');
+        $columns = $this->database->select('PRAGMA table_info(schema_alter_notes)');
+        self::assertNotContains('published', array_column($columns, 'name'));
+    }
+
+    public function testAlterAddRequiresExactlyOneColumn(): void
+    {
+        $this->database->schema()->create('schema_alter_invalid', static function ($table): void {
+            $table->id();
+        });
+
+        $this->expectException(\\LogicException::class);
+        $this->database->schema()->addColumn('schema_alter_invalid', static function ($table): void {
+            $table->string('first');
+            $table->string('second');
+        });
+    }
+
     public function testDropIfExistsIsIdempotent(): void
     {
         $this->database->schema()->dropIfExists('missing_table');
