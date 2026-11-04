@@ -26,6 +26,7 @@ This file is the working checklist for developing applications on v4. It is **no
 - [ ] Confirm the new two-worker PipeMessage smoke test passes; then add Redis/SSE multi-instance transport, heartbeat, bounded backpressure, channel authorization and contention/restart validation
 - [x] Restore Common File/Func adapters, view cache clearer and `php ds cache` CLI
 - [x] Record the currently verified PHP 8.3 / Swoole 6.2.3 / SQLite / FPM baseline in [SUPPORTED_RUNTIMES.md](SUPPORTED_RUNTIMES.md)
+- [x] Pin all CI/audit workflows to the audited Swoole 6.2.3 extension
 - [ ] Expand the version matrix across pinned PHP/Swoole releases and production database drivers; complete production deployment validation
 - [x] Restore v3 Date/Str helper namespaces, Env::get/AppEnv adapters and request-aware app_url() with APP_URL override
 - [x] Verify PieTemplate layout/component dependency invalidation and reject view/dependency path traversal
