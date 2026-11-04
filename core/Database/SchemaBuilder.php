@@ -19,6 +19,39 @@ final class SchemaBuilder
         $this->database->execute($sql);
     }
 
+    /**
+     * Add one column using the same validated column definitions as CREATE TABLE.
+     * DDL is intentionally issued directly because transaction support varies by driver.
+     */
+    public function addColumn(string $table, callable $callback): void
+    {
+        $blueprint = new Blueprint();
+        $callback($blueprint);
+        $column = $blueprint->compileColumn($this->database);
+
+        $this->database->execute(
+            'ALTER TABLE ' . $this->database->quoteIdentifier($table) . ' ADD COLUMN ' . $column
+        );
+    }
+
+    /** Drop a column on database versions that support ALTER TABLE DROP COLUMN. */
+    public function dropColumn(string $table, string $column): void
+    {
+        if ($this->database->driver() === 'sqlite') {
+            $version = $this->database->select('SELECT sqlite_version() AS version')[0]['version'] ?? '0.0.0';
+            if (version_compare((string) $version, '3.35.0', '<')) {
+                throw new \\RuntimeException(
+                    'SQLite DROP COLUMN requires SQLite 3.35.0 or newer; rebuild the table for older versions.'
+                );
+            }
+        }
+
+        $this->database->execute(
+            'ALTER TABLE ' . $this->database->quoteIdentifier($table)
+                . ' DROP COLUMN ' . $this->database->quoteIdentifier($column)
+        );
+    }
+
     public function drop(string $table): void
     {
         $this->database->execute('DROP TABLE ' . $this->database->quoteIdentifier($table));
