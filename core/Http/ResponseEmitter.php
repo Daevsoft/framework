@@ -8,6 +8,7 @@ class ResponseEmitter
 {
     public function emit(Response $response): void
     {
+        $response = Response::consumeLegacyOverrides($response);
         http_response_code($response->status());
         foreach ($response->headers() as $name => $value) {
             header("{$name}: {$value}");
