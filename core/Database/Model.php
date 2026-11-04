@@ -129,9 +129,11 @@ abstract class Model
     public static function save(array $attributes): int
     {
         $model = new static();
-        $attributes = $model->filterFillable($attributes);
         $primaryKey = (string) $model->primaryKey;
+        // Resolve the identifier before applying fillable filtering. Primary
+        // keys are commonly guarded, but a supplied id must still select update.
         $id = $attributes[$primaryKey] ?? null;
+        $attributes = $model->filterFillable($attributes);
 
         if ($id === null) {
             return db()->table($model->resolveTable())->insert($attributes);
