@@ -24,6 +24,7 @@ This file is the working checklist for developing applications on v4. It is **no
 - [ ] Map remaining custom Tester/Runner APIs to PHPUnit or document replacement
 - [x] Implement single-worker Swoole WebSocket lifecycle, local channel broadcast and live-client smoke test
 - [ ] Implement cross-worker pub/sub, Redis/SSE transports, heartbeat, bounded backpressure and channel authorization
+- [x] Restore Common File/Func adapters, view cache clearer and `php ds cache` CLI
 - [ ] Finish supported PHP/Swoole compatibility matrix and production deployment validation
 - [x] Restore v3 Date/Str helper namespaces and add request-aware app_url() with APP_URL override
 - [x] Verify PieTemplate layout/component dependency invalidation and reject view/dependency path traversal
