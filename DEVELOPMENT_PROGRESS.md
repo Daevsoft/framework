@@ -422,3 +422,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Corrected API WebSocket status: current v4 has Swoole WebSocket upgrade callbacks, worker-local hub/broadcast and a live-client smoke test; cross-worker pub/sub, Redis/SSE, heartbeat, backpressure and channel authorization remain open.
 - Updated migration completion criteria to focus on remaining durable queue, cross-worker realtime, upload and Tester/Runner gaps rather than claiming those base runtimes are absent.
 - Verification: documentation/source reconciliation only; no CI wait.
+
+
+## 2026-11-04 — Secure request upload metadata adapter
+
+- Added immutable Http\\UploadedFile metadata with original filename, client MIME, size and PHP upload error information.
+- Request now normalizes both single and multi-file FPM/Swoole upload structures and exposes file(), files() and allFiles() without automatically moving files or emitting output.
+- UploadedFile::store() requires a valid PHP HTTP upload, applies configurable UPLOAD_MAX_BYTES (10 MiB default), rejects common executable/script extensions, validates caller-supplied basenames, creates storage directories with restrictive permissions and refuses overwrite collisions.
+- Added tests for single/multiple file normalization and rejection of non-upload temporary paths.
+- This is a safer migration than the v3 Request implementation, which moved files automatically, echoed errors and had ineffective extension filtering. Callers must now explicitly call store() and choose a private application-controlled directory.
+- Verification: pending user-reported GitHub Actions; development continues without waiting.
