@@ -84,9 +84,24 @@ abstract class Model
         return $relatedModel::query()->where($ownerKey, $value);
     }
 
-    public static function where(string $column, mixed $value): QueryBuilder
-    {
-        return static::query()->where($column, $value);
+    public static function where(
+        string $column,
+        mixed $operatorOrValue,
+        mixed $value = null
+    ): QueryBuilder {
+        return func_num_args() === 2
+            ? static::query()->where($column, $operatorOrValue)
+            : static::query()->where($column, $operatorOrValue, $value);
+    }
+
+    public static function orWhere(
+        string $column,
+        mixed $operatorOrValue,
+        mixed $value = null
+    ): QueryBuilder {
+        return func_num_args() === 2
+            ? static::query()->orWhere($column, $operatorOrValue)
+            : static::query()->orWhere($column, $operatorOrValue, $value);
     }
 
     public static function count(): int
