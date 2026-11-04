@@ -59,7 +59,7 @@ The v3 → v4 migration should only be marked **complete** after all of the foll
 2. Assign each item one explicit outcome: compatible, adapter provided, replaced with documented migration, intentionally removed, or not implemented.
 3. Add compatibility tests for every item marked compatible or adapter provided, including return types, exceptions and side effects.
 4. Provide migration examples for every replaced API and identify breaking changes.
-5. Implement or explicitly de-scope the remaining subsystems (notably CronJob/worker semantics and WebSocket runtime).
+5. Implement or explicitly de-scope the remaining subsystem boundaries (notably durable queue/retry semantics, cross-worker WebSocket pub/sub, upload handling and the remaining Tester/Runner behavior).
 6. Update root documentation and examples so no document describes scaffolding as operational.
 7. Run the complete CI suite and focused compatibility tests on the supported PHP/Swoole matrix.
 8. Keep this matrix, `DEVELOPMENT_CHECKLIST.md`, `IMPLEMENTATION_SUMMARY.md`, `AUDIT_AND_ROADMAP.md` and `DEVELOPMENT_PROGRESS.md` consistent.
