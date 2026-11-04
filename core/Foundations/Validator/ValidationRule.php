@@ -6,10 +6,10 @@ namespace Ds\Foundations\Validator;
 
 use Closure;
 
-final class ValidationRule
+class ValidationRule
 {
-    public readonly string $key;
-    public readonly string $message;
+    public string $key;
+    public string $message;
     private readonly Closure $action;
 
     public function __construct(string $key, string $message, callable $action)
