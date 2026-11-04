@@ -41,6 +41,7 @@ final class LegacyCommonUtilitiesTest extends TestCase
         self::assertSame('replaced', $file->getContent());
         self::assertTrue($file->delete());
         self::assertFalse(file_exists($path));
+        @rmdir(dirname($path));
     }
 
     public function testLegacyCacheAdapterOnlyRemovesGeneratedCacheFiles(): void
