@@ -33,7 +33,7 @@ final class CronJob extends GeneratorCommand
             foreach ($names as $name) {
                 $segments = $this->segments($name);
                 $class = $this->className($segments);
-                $file = base_path('app/cronjobs/' . implode(DIRECTORY_SEPARATOR, $segments) . '.job.php');
+                $file = base_path('app/CronJobs/' . implode(DIRECTORY_SEPARATOR, $segments) . '.job.php');
                 if (!is_file($file)) {
                     throw new \RuntimeException("Job file not found: {$file}");
                 }
