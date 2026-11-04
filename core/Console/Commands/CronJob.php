@@ -17,7 +17,7 @@ final class CronJob extends GeneratorCommand
         try {
             $names = $this->names();
             if ($names === []) {
-                $directory = base_path('app/cronjobs');
+                $directory = base_path('app/CronJobs');
                 $files = glob($directory . DIRECTORY_SEPARATOR . '*.job.php') ?: [];
                 $names = array_map(
                     static fn (string $file): string => basename($file, '.job.php'),
