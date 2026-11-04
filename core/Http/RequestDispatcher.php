@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ds\Http;
 
 use Ds\Container\Container;
+use Ds\Context\Context;
 use Ds\Middleware\MiddlewareRegistry;
 use Ds\Routing\Route;
 use Ds\Routing\Router;
@@ -26,32 +27,45 @@ final class RequestDispatcher
 
     public function dispatch(Request $request): Response
     {
-        $route = $this->router->match($request->getMethod(), $request->getPath());
-        if ($route === null) {
-            return new Response(404, ['Content-Type' => 'text/plain; charset=utf-8'], 'Not Found');
-        }
+        $context = Context::default();
+        $hadPreviousRequest = $context->has('request');
+        $previousRequest = $context->get('request');
+        $context->set('request', $request);
 
         try {
-            $destination = fn (Request $current): Response => $this->dispatchHandler($route, $current);
-
-            if ($route->middlewares === []) {
-                return $destination($request);
+            $route = $this->router->match($request->getMethod(), $request->getPath());
+            if ($route === null) {
+                return new Response(404, ['Content-Type' => 'text/plain; charset=utf-8'], 'Not Found');
             }
 
-            $next = $destination;
-            foreach (array_reverse($route->middlewares) as $middlewareName) {
-                $middleware = MiddlewareRegistry::resolve($middlewareName, $this->container);
-                $downstream = $next;
-                $next = static function (Request $current) use ($middleware, $downstream): Response {
-                    return $middleware->handle($current, $downstream)
-                        ?? Response::text('Forbidden', 403);
-                };
-            }
+            try {
+                $destination = fn (Request $current): Response => $this->dispatchHandler($route, $current);
 
-            return $next($request);
-        } catch (Throwable $exception) {
-            error_log((string) $exception);
-            return new Response(500, ['Content-Type' => 'text/plain; charset=utf-8'], 'Internal Server Error');
+                if ($route->middlewares === []) {
+                    return $destination($request);
+                }
+
+                $next = $destination;
+                foreach (array_reverse($route->middlewares) as $middlewareName) {
+                    $middleware = MiddlewareRegistry::resolve($middlewareName, $this->container);
+                    $downstream = $next;
+                    $next = static function (Request $current) use ($middleware, $downstream): Response {
+                        return $middleware->handle($current, $downstream)
+                            ?? Response::text('Forbidden', 403);
+                    };
+                }
+
+                return $next($request);
+            } catch (Throwable $exception) {
+                error_log((string) $exception);
+                return new Response(500, ['Content-Type' => 'text/plain; charset=utf-8'], 'Internal Server Error');
+            }
+        } finally {
+            if ($hadPreviousRequest) {
+                $context->set('request', $previousRequest);
+            } else {
+                $context->remove('request');
+            }
         }
     }
 
