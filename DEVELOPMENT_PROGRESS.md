@@ -402,3 +402,14 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added v3 namespace adapters Ds\\Helper\\Date::timestamp() and Ds\\Helper\\Str::{contains,replace,empty,nullEmpty} using native PHP functions only.
 - Added tests for request context cleanup/restoration, configured app URL validation and helper behavior.
 - Verification: pending user-reported GitHub Actions; implementation continues without waiting.
+
+
+## 2026-11-04 — Legacy CronJob and generator compatibility
+
+- Added the v3 namespace Job base as a v4 Task adapter: existing subclasses can continue overriding protected start(), while TaskDispatcher invokes handle().
+- Added add:job generation under PSR-4-correct App\\CronJobs paths and a cronjob CLI command for named jobs or all top-level .job.php files.
+- Added add:helper generation under PSR-4-correct App\\Helpers paths.
+- Registered the new commands in ConsoleKernel and added regression tests for direct/Task execution and the namespaced CLI runner.
+- Corrected generator/runner path casing to match Composer PSR-4 on case-sensitive Linux filesystems.
+- Scope boundary: synchronous CLI job execution and Task dispatch are available; durable queue semantics, retry/failure storage, delayed jobs and recurring orchestration remain unimplemented. Nested named jobs work; no-argument discovery currently scans top-level job files only.
+- Updated README, API inventory, migration matrix, checklist and implementation summary. Verification remains pending user-reported Actions; development continues without waiting.
