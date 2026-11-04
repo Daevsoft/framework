@@ -486,7 +486,7 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added a conservative runtime matrix documenting the verified PHP 8.3, Swoole 6.2.3, PDO SQLite, FPM smoke and coroutine-fallback baseline, plus combinations that are not yet certified.
 - Updated the main CI CLI verification step to assert the new add:helper, add:job, cronjob and cache commands are registered.
 - Linked the runtime matrix from README, documentation index, completion status and migration guidance.
-- The Swoole extension remains unpinned in CI; the matrix explicitly records that policy gap instead of implying a stable version range.
+- Superseded by the 2026-11-04 pinning batch below: all seven CI/audit workflows now use PECL Swoole 6.2.3.
 - Verification: no CI wait; user will report the latest GitHub Actions result.
 
 
@@ -527,3 +527,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Validation now treats whitespace-only required strings as missing and treats a custom rule returning boolean false as a validation failure; regression coverage was added.
 - Common utility, Env/AppEnv, Response, UploadedFile, Session and DsModel adapters remain intentionally explicit about changed semantics rather than recreating unsafe v3 behavior.
 - No GitHub Actions result was awaited; the user will report the latest run.
+
+
+## 2026-11-05 — WebSocket worker teardown and compatibility audit continuation
+
+- Hardened WebSocketHub::clear(): the worker-local connection registry is detached before close callbacks run, so re-entrant lifecycle callbacks cannot observe stale peers. The detached snapshot is then closed without retaining it in the hub.
+- Added a regression test asserting the registry is already empty from inside a disconnect callback and repeated clear remains idempotent.
+- Re-inspected the v3 Request route-history methods. Their implementation consumes session state on read and unserializes session data without disabling object creation; the legacy behavior is not copied blindly. Route-history/referrer behavior remains an explicit compatibility item until a request-scoped, safe contract is designed.
+- Reconfirmed the WebSocket production boundary: same-server IPC fan-out exists, but private/presence channel authorization, cross-instance transport, heartbeat and bounded outbound backpressure are not yet implemented. No unauthenticated private-channel behavior is being introduced.
+- Workstreams remain active: v3 method-by-method parity, schema/model edge cases, template/helper/CLI comparison, Swoole lifecycle/performance hardening and FPM regression coverage.
+- Verification: source and GitHub Contents API responses checked; PHPUnit/PHP lint and GitHub Actions have not been run or awaited in this session. User will report the latest Actions result.
