@@ -75,6 +75,7 @@ This file is the working checklist for developing applications on v4. It is **no
 - [ ] Create v4 migrations in `database/migrations`
 - [ ] Run `php ds migrate --status` before deployment
 - [ ] Test migration rollback on a disposable database
+- [x] Normalize FPM/Swoole request upload metadata into UploadedFile objects with explicit validated storage
 - [ ] Review legacy v3 model/schema/migration usage against [the migration matrix](V3_TO_V4_MIGRATION.md)
 
 ## Authentication, sessions and CSRF
