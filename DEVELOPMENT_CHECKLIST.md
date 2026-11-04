@@ -13,6 +13,8 @@ This file is the working checklist for developing applications on v4. It is **no
 - [x] CLI commands for common generators, route listing, config, tests and migrations
 - [x] CI coverage and lifecycle audit workflows through AUDIT-06
 - [ ] Complete public v3 API/method/command/template inventory
+- [x] Fix guarded-primary-key Model::save() updates and add direct legacy DsModel result accessors
+- [x] Preserve explicit null values in SessionManager::get()
 - [ ] Complete and test Active Record/query/schema/migration parity or document each replacement
 - [x] Add a safe v3 validation namespace adapter with structured errors and registered custom rules
 - [x] Add validated single-column schema add/drop operations; retain explicit migration path for modify/rename and older SQLite table rebuilds
