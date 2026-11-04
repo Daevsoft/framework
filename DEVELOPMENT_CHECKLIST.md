@@ -49,7 +49,8 @@ This file is the working checklist for developing applications on v4. It is **no
 - [ ] Use parameterized routes and verify route parameters
 - [ ] Use controller callables or the supported v3-style controller group/attributes
 - [ ] Test 404, invalid parameters, unsupported methods and handler exceptions
-- [ ] Do not assume `Route::ws()` starts a working WebSocket server
+- [x] WebSocket mode has a live-client upgrade/message smoke test and worker-local broadcast path
+- [ ] Do not assume WebSocket delivery is cross-worker or horizontally scalable; shared pub/sub, heartbeat, backpressure and channel authorization remain open
 
 ## Middleware and request state
 
@@ -79,7 +80,7 @@ This file is the working checklist for developing applications on v4. It is **no
 ## Authentication, sessions and CSRF
 
 - [ ] Implement a real authentication guard/provider before protecting production routes
-- [ ] Do not treat the built-in AuthMiddleware placeholder (HTTP 501) as authentication
+- [x] AuthMiddleware fails closed with HTTP 401 and Bearer challenge; configure a real token-provider resolver before protecting routes
 - [ ] Add SessionMiddleware before CsrfMiddleware when using sessions and CSRF
 - [ ] Configure a strong APP_KEY and secure cookie settings
 - [ ] Test authorization failures and session isolation
