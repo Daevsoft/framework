@@ -10,6 +10,7 @@ use Ds\Container\Container;
 use Ds\Database\DatabaseManager;
 use Ds\Context\Context;
 use Ds\Http\Request;
+use Ds\Http\Response;
 use Ds\Lifecycle\LifecycleManager;
 use Ds\Pool\PoolManager;
 use Ds\Tasks\Scheduler;
@@ -159,6 +160,7 @@ final class SwooleServer
 
             $httpKernel = is_callable($kernel) ? $kernel() : ($kernel ?? $container->make(\App\Http\Kernel::class));
             $response = $httpKernel->handle($request);
+            $response = Response::consumeLegacyOverrides($response);
 
             foreach ($response->headers() as $name => $value) $swooleResponse->header((string) $name, (string) $value);
             $swooleResponse->status($response->status());
