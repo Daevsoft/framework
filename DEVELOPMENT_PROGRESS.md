@@ -382,3 +382,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Deliberately removed v3 validation side effects (header redirect, echo and die). Failures are inspectable and validate() throws the v4 structured ValidationException, preventing library code from terminating a Swoole worker/request process unexpectedly.
 - Added regression coverage for built-in rules, custom callback registration, structured failure and unsupported rule rejection.
 - Verification: pending user-reported GitHub Actions; implementation continued without waiting for CI.
+
+
+## 2026-11-04 — PieTemplate security and legacy view audit
+
+- Compared v3 PageProvider, View, Slot and CacheView against v4 ViewRenderer/PieCompiler and the existing PieTemplate regression suite.
+- Confirmed v4 coverage for layouts/parts/slots, imported component macros, nested components, caller-scoped slot variables, isolated component scopes and cache invalidation when layouts/imported/nested components change.
+- Added security regressions proving view paths and layout dependencies cannot escape the configured view root, and circular layout expansion fails at the bounded 16-level limit.
+- Confirmed the old v3 PageProvider component rendering path contains unfinished dd() debug/termination calls, and v3 Slot references undeclared static state with inverted lookup behavior. These are intentionally replaced by the v4 compiler-managed component/slot model rather than reintroduced.
+- Updated migration inventory/checklist to document the replacement path and remaining uncommon directive/custom-extension audit.
+- Verification: pending user-reported GitHub Actions; development continued without waiting.
