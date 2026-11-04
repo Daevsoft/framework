@@ -294,9 +294,9 @@ class Collection extends ArrayIterator implements JsonSerializable
     public function pull(string|int $key, mixed $default = null): mixed
     {
         $items = $this->getArrayCopy();
-        $value = $items[$key] ?? $default;
+        $value = array_key_exists($key, $items) ? $items[$key] : $default;
+        self::forgetNested($items, (string) $key);
         $this->exchangeArray($items);
-        $this->offsetUnset($key);
         return $value;
     }
 
@@ -324,6 +324,7 @@ class Collection extends ArrayIterator implements JsonSerializable
     {
         $items = $this->getArrayCopy();
         self::setNested($items, (string) $key, $value);
+        $this->exchangeArray($items);
         return $items;
     }
 
@@ -428,7 +429,33 @@ class Collection extends ArrayIterator implements JsonSerializable
         return $this->toJson() ?: '';
     }
 
+    public function serialize(): string
+    {
+        return serialize($this->getArrayCopy());
+    }
+
+    public function unserialize(string $data): void
+    {
+        $items = unserialize($data, ['allowed_classes' => false]);
+        $this->exchangeArray(is_array($items) ? $items : []);
+    }
+
     public function __serialize(): array
+    {
+        return $this->getArrayCopy();
+    }
+
+    public function __unserialize(array $data): void
+    {
+        $this->__construct($data);
+    }
+
+    public function __get(string $name): mixed
+    {
+        return $this->offsetExists($name) ? $this->offsetGet($name) : null;
+    }
+
+    public function __debugInfo(): array
     {
         return $this->getArrayCopy();
     }
