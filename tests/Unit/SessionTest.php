@@ -12,6 +12,7 @@ use Ds\Middleware\SessionMiddleware;
 use Ds\Security\Csrf;
 use Ds\Session\SessionManager;
 use Ds\Foundations\Session\SessionManager as LegacySessionManager;
+use Ds\Foundations\Session\Session as LegacySession;
 use Ds\Foundations\Security\Csrf as LegacyCsrf;
 use PHPUnit\Framework\TestCase;
 
@@ -65,6 +66,19 @@ final class SessionTest extends TestCase
 
         self::assertNull($third->getFlash('notice'));
         self::assertSame(42, $third->get('user_id'));
+    }
+
+    public function testLegacySessionUserSafelyDecodesScalarAndArrayPayloads(): void
+    {
+        $session = SessionManager::start(new Request(), $this->directory);
+        Context::default()->set('session', $session);
+        $session->put('user', serialize(['id' => 42, 'role' => 'admin']));
+
+        self::assertSame(['id' => 42, 'role' => 'admin'], LegacySession::user());
+
+        $serializedObject = serialize((object) ['id' => 7]);
+        $session->put('user', $serializedObject);
+        self::assertSame($serializedObject, LegacySession::user());
     }
 
     public function testSessionGetDistinguishesStoredNullFromMissingKeys(): void
