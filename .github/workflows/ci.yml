@@ -61,12 +61,12 @@ jobs:
           grep -q '/health' route-list.txt
 
 
-      - name: Swoole HTTP smoke test
+      - name: Swoole HTTP and multi-worker WebSocket smoke test
         shell: bash
         run: |
           set -euo pipefail
-          APP_RUNTIME=swoole SERVER_HOST=127.0.0.1 SERVER_PORT=8123 \
-            SWOOLE_WORKERS=1 SWOOLE_TASK_WORKERS=0 SWOOLE_MAX_REQUEST=1000 \
+          APP_RUNTIME=swoole APP_ENV=testing SERVER_HOST=127.0.0.1 SERVER_PORT=8123 \
+            SWOOLE_WORKERS=2 SWOOLE_DISPATCH_MODE=2 SWOOLE_TASK_WORKERS=0 SWOOLE_MAX_REQUEST=1000 \
             php app/bootstrap/app.php > swoole.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
@@ -101,6 +101,51 @@ jobs:
                   throw new RuntimeException("WebSocket echo frame was not received.");
               }
               $client->close();
+          });
+          '
+
+          php -r '
+          Swoole\Coroutine\run(function (): void {
+              $clients = [];
+              $byWorker = [];
+              for ($attempt = 0; $attempt < 8 && count($byWorker) < 2; $attempt++) {
+                  $client = new Swoole\Coroutine\Http\Client("127.0.0.1", 8123);
+                  $client->set(["timeout" => 4]);
+                  if (!$client->upgrade("/__test/broadcast")) {
+                      throw new RuntimeException("Cross-worker WebSocket upgrade failed: " . $client->errMsg);
+                  }
+                  $connected = $client->recv();
+                  $info = $connected ? json_decode((string) $connected->data, true) : null;
+                  if (!is_array($info) || !isset($info["worker_id"])) {
+                      throw new RuntimeException("Test WebSocket connection did not report its worker ID.");
+                  }
+                  $clients[] = $client;
+                  $workerId = (int) $info["worker_id"];
+                  $byWorker[$workerId] ??= $client;
+              }
+
+              if (count($byWorker) < 2) {
+                  throw new RuntimeException("Could not place WebSocket clients on two distinct workers.");
+              }
+
+              $workers = array_values($byWorker);
+              if (!$workers[0]->push("ci-cross-worker-smoke")) {
+                  throw new RuntimeException("Cross-worker WebSocket sender could not send.");
+              }
+
+              $echo = $workers[0]->recv();
+              $broadcast = $workers[1]->recv();
+              $frame = $broadcast ? json_decode((string) $broadcast->data, true) : null;
+              if (!$echo || !str_contains((string) $echo->data, "ci-cross-worker-smoke")
+                  || !is_array($frame)
+                  || ($frame["event"] ?? null) !== "CiBroadcast"
+                  || ($frame["data"]["message"] ?? null) !== "ci-cross-worker-smoke") {
+                  throw new RuntimeException("Cross-worker PipeMessage broadcast was not received.");
+              }
+
+              foreach ($clients as $client) {
+                  $client->close();
+              }
           });
           '
 
