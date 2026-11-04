@@ -461,3 +461,12 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added tests for request-scoped merge/consumption, duplicate header behavior, CRLF/status rejection and a Swoole response adapter.
 - Response constructor/isValid property semantics remain intentionally different; new code should continue using immutable Response instances.
 - Verification: pending user-reported GitHub Actions; no CI wait.
+
+
+## 2026-11-04 — Common utility and cache CLI compatibility
+
+- Added the v3 Common\\File facade with create/rewrite/append/read/delete/filename methods backed by native locked filesystem calls; it does not retain open handles between calls.
+- Added the v3 Common\\Func debug/path helpers with escaped debug output and platform-aware slash handling.
+- Added Common\\Cache adapter and the `php ds cache` command to clear only generated PieTemplate `.php`/temporary cache files and reset the default renderer; application data and FileCache entries are not deleted.
+- Registered the cache command and added tests for file operations, cache file selection and debug/path helpers.
+- Updated migration matrix, public method inventory, checklist, README and implementation summary. Verification remains pending user-reported Actions; no CI wait.
