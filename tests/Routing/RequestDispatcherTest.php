@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Routing;
 
 use Ds\Container\Container;
+use Ds\Context\Context;
 use Ds\Http\Request;
 use Ds\Http\RequestDispatcher;
 use Ds\Http\Response;
@@ -64,6 +65,39 @@ final class RequestDispatcherTest extends TestCase
 
         self::assertNotNull(RetentionTestController::$lastInstance);
         self::assertNull(RetentionTestController::$lastInstance->get());
+    }
+
+    public function testRequestContextIsAvailableDuringDispatchAndRemovedAfterward(): void
+    {
+        $router = new Router();
+        $router->get('/origin', static fn (): string => app_url());
+        $dispatcher = new RequestDispatcher($router);
+        $context = Context::default();
+        $context->remove('request');
+
+        $response = $dispatcher->dispatch(
+            new Request([], ['host' => 'framework.example.test'], 'GET', '/origin', 'https')
+        );
+
+        self::assertSame('https://framework.example.test', $response->body());
+        self::assertFalse($context->has('request'));
+    }
+
+    public function testNestedDispatchRestoresPreviousRequestContext(): void
+    {
+        $context = Context::default();
+        $previous = new Request([], ['host' => 'previous.example.test'], 'GET', '/', 'https');
+        $context->set('request', $previous);
+        $router = new Router();
+        $router->get('/current', static fn (): string => app_url());
+
+        $response = (new RequestDispatcher($router))->dispatch(
+            new Request([], ['host' => 'current.example.test'], 'GET', '/current')
+        );
+
+        self::assertSame('http://current.example.test', $response->body());
+        self::assertSame($previous, $context->get('request'));
+        $context->remove('request');
     }
 
     public function testUnknownRouteReturnsNotFound(): void
