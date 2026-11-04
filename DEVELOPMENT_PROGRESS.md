@@ -362,3 +362,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added a cross-request regression test that persists old input, starts the next session request using the emitted cookie, and verifies the old value and fallback.
 - The legacy v3 upload implementation was reviewed and deliberately not copied: its extension filtering is incorrect, file size is hard-coded with response text echoed directly, and filenames are not safely constrained. A secure UploadedFile adapter remains a separate migration item.
 - Verification: pending user-reported GitHub Actions; implementation continues without waiting for CI.
+
+
+## 2026-11-04 — Legacy Collection mutation and serialization parity
+
+- Corrected the legacy Collection adapter to retain v3-style mutable behavior for nested set(), forget() and pull(); these methods now update the underlying ArrayIterator instead of returning a modified copy only.
+- Fixed pull() so a present null value is distinguished from a missing key and the caller's default is only used for a missing key.
+- Restored serialize()/unserialize() methods using allowed_classes=false, and added __unserialize(), __get() and __debugInfo() compatibility hooks.
+- Added tests for nested mutation, null-valued pull, serialization round-trip and magic property/debug access.
+- Kept the implementation on native PHP ArrayIterator and arrays; no per-element proxy/cache or third-party collection runtime was introduced.
+- Verification: pending user-reported GitHub Actions; development continues without waiting for CI.
