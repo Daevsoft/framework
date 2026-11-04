@@ -20,7 +20,7 @@ A source scan was performed across all **76 tracked PHP files** in the v3 tree. 
 | `Commands\\Runner` | `__construct($options)`, `setup()`, `run()` | v4 PHPUnit runner; custom Runner behavior is not drop-in |
 | `Commands\\EnvGenerator` | `run()` | v4 config command is not confirmed to preserve interactive generation |
 | `Commands\\CronJob\\Job` | `run()`, protected `start()` | v4 Task/Scheduler are different APIs |
-| `Commands\\CronJob\\Worker` | `run()` | v4 has Swoole task-worker dispatch, not the v3 file-discovery runner |
+| `Commands\\CronJob\\Worker` | `run()` | v4 `cronjob` CLI command restores named/top-level `.job.php` discovery and runs compatibility Job classes; async Swoole Task dispatch is available but not a durable queue |
 | `Commands\\Generator\\AddFile` | `run()` | v4 individual generators replace this command; output and options need parity checks |
 | `Commands\\Tester\\Assert` | `__construct($condition)`, `printResult()`, `commit()`, static `check()`, `equal()`, `notEqual()`, `greaterThan()`, `lowerThan()` | v4 PHPUnit assertions; no custom Assert API adapter |
 | `Commands\\Tester\\Tester` | static `passIncrease()`, `failIncrease()`, `run()` | v4 PHPUnit; no custom Tester compatibility |
