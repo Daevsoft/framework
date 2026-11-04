@@ -18,17 +18,20 @@ final class Request
     protected array $data = [];
     protected array $headers = [];
     protected string $body = '';
+    private string $scheme;
 
     public function __construct(
         array $data = [],
         array $headers = [],
         string $method = 'GET',
-        string $path = '/'
+        string $path = '/',
+        string $scheme = 'http'
     ) {
         $this->data = $data;
         $this->headers = self::normalizeHeaders($headers);
         $this->method = strtoupper($method);
         $this->path = self::normalizePath($path);
+        $this->scheme = strtolower($scheme) === 'https' ? 'https' : 'http';
         $this->query = [];
     }
 
@@ -41,7 +44,12 @@ final class Request
 
         $headers = function_exists('getallheaders') ? (getallheaders() ?: []) : [];
         $body = file_get_contents('php://input');
-        $request = new self([], $headers, $_SERVER['REQUEST_METHOD'] ?? 'GET', $path);
+        $scheme = strtolower((string) ($_SERVER['REQUEST_SCHEME'] ?? '')) === 'https'
+            || (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+            || (int) ($_SERVER['SERVER_PORT'] ?? 0) === 443
+                ? 'https'
+                : 'http';
+        $request = new self([], $headers, $_SERVER['REQUEST_METHOD'] ?? 'GET', $path, $scheme);
         $request->query = $query;
         $request->body = $body === false ? '' : $body;
         $request->mergeInput($_GET ?? []);
@@ -60,7 +68,11 @@ final class Request
         parse_str((string) (parse_url($uri, PHP_URL_QUERY) ?? ''), $query);
 
         $headers = (array) ($swRequest->header ?? []);
-        $request = new self([], $headers, (string) ($server['request_method'] ?? 'GET'), $path);
+        $scheme = strtolower((string) ($server['https'] ?? '')) === 'on'
+            || (int) ($server['server_port'] ?? 0) === 443
+                ? 'https'
+                : 'http';
+        $request = new self([], $headers, (string) ($server['request_method'] ?? 'GET'), $path, $scheme);
         $request->query = $query;
         $request->body = method_exists($swRequest, 'rawContent')
             ? (string) ($swRequest->rawContent() ?: '')
@@ -75,6 +87,7 @@ final class Request
 
     public function getMethod(): string { return $this->method; }
     public function getPath(): string { return $this->path; }
+    public function getScheme(): string { return $this->scheme; }
     public function getUri(): string
     {
         return $this->path . ($this->query === [] ? '' : '?' . http_build_query($this->query));
