@@ -21,7 +21,7 @@ Ds Framework 4 is an actively developed **Swoole-first framework** with an expli
 | Database | PDO manager, prepared query builder, transactions, bounded Swoole pool, joins, grouped predicates and subqueries |
 | Migrations | Transactional v4 migrations, status and rollback commands, validated schema add/drop column operations, partial legacy Scheme bridge |
 | Models | v4 model/query APIs and partial legacy DsModel adapter |
-| Validation | Dependency-free validator with common rules and structured errors |
+| Validation | Dependency-free validator with common rules and structured errors; safe v3 namespace adapter for required/min/max and registered custom callbacks |
 | Views | PieTemplate compiler/renderer and compatibility facade coverage |
 | Session/CSRF | Request-isolated sessions, signed CSRF tokens and helpers |
 | Collections/cache | Native Collection, legacy Collection bridge and atomic TTL FileCache |
