@@ -2,7 +2,7 @@
 
 Repository: `Daevsoft/framework`  
 Source ref: `v3` (tree SHA `0230738252c8ce8ecf563d164bb497863fe22ef5`)  
-Target ref: `v4` (tree SHA `fe42e5989f381174fbce6c5ebee4b5850af18ed9`)  
+Target ref: `v4` (tree SHA `b2b25133f614202cd1cd9932943ed66324d9363c`)  
 Review type: tracked-file inventory + targeted source inspection.  
 Status: **Baseline inventory; not yet a complete method-by-method compatibility certification.**
 
