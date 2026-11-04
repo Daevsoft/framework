@@ -52,7 +52,7 @@ final class AssetHelperTest extends TestCase
         $_ENV['APP_URL'] = 'javascript:alert(1)';
 
         try {
-            $this->expectException(\\RuntimeException::class);
+            $this->expectException(\RuntimeException::class);
             app_url();
         } finally {
             if ($hadValue) {
