@@ -8,6 +8,7 @@ return [
 
     'swoole' => [
         'worker_num' => (int) env('SWOOLE_WORKERS', 4),
+        'dispatch_mode' => (int) env('SWOOLE_DISPATCH_MODE', 2),
         'task_worker_num' => (int) env('SWOOLE_TASK_WORKERS', 0),
         'enable_coroutine' => (bool) env('SWOOLE_COROUTINE', true),
         'max_request' => (int) env('SWOOLE_MAX_REQUEST', 10000),
