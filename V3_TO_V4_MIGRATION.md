@@ -11,7 +11,7 @@ This document compares the tracked v3 source tree (`src/Foundations`) with the c
 
 v4 has reimplemented the framework around a new Swoole-first runtime, HTTP kernel, router, dependency container, PDO database layer, lifecycle handling, and developer tooling. Several v3-facing namespaces and APIs have compatibility bridges. However, some v3 subsystems are only partially mapped, some are intentionally replaced by new APIs, and some have no v4 equivalent yet.
 
-**Do not treat v4 as a drop-in upgrade for an existing v3 application.** Application code should be migrated feature-by-feature and tested against the v4 APIs.
+**Do not treat v4 as a drop-in upgrade for an existing v3 application.** Application code should be migrated feature-by-feature and tested against the v4 APIs. See [SUPPORTED_RUNTIMES.md](SUPPORTED_RUNTIMES.md) for the verified runtime baseline and unverified combinations.
 
 ## Compatibility matrix
 
