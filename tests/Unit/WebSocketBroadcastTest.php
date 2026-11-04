@@ -63,6 +63,24 @@ final class WebSocketBroadcastTest extends TestCase
         $hub->broadcast('large', 'Payload', str_repeat('x', 2048));
     }
 
+    public function testClearDetachesRegistryBeforeInvokingCloseCallbacks(): void
+    {
+        $server = new FakeWebSocketServer();
+        $hub = new WebSocketHub();
+        $connection = new WebSocketConnection($server, 14, $hub);
+        $hub->add($connection);
+        $server->onDisconnect = static function () use ($hub): void {
+            self::assertSame(0, $hub->count(), 'The registry must be detached before close callbacks run.');
+        };
+
+        $hub->clear();
+
+        self::assertSame(0, $hub->count());
+        self::assertSame([14], $server->disconnected);
+        $hub->clear();
+        self::assertSame([14], $server->disconnected, 'Repeated clear must be idempotent.');
+    }
+
     public function testRemovingConnectionStopsFutureBroadcasts(): void
     {
         $server = new FakeWebSocketServer();
@@ -99,6 +117,8 @@ final class FakeWebSocketServer
 {
     public array $frames = [];
     public array $messages = [];
+    public array $disconnected = [];
+    public ?\\Closure $onDisconnect = null;
 
     public function push(int $fd, string $data): bool
     {
@@ -114,6 +134,8 @@ final class FakeWebSocketServer
 
     public function disconnect(int $fd, int $code = 1000, string $reason = ''): bool
     {
+        $this->disconnected[] = $fd;
+        ($this->onDisconnect)?->__invoke();
         return true;
     }
 }
