@@ -257,6 +257,10 @@ The v3-style generator commands are available and create files without overwriti
 php ds add:controller UserController Admin/PostController
 php ds add:model People
 php ds add:view pages/home
+php ds add:helper Formatting/Money
+php ds add:job Maintenance/PruneLogs
+php ds cronjob Maintenance/PruneLogs
+php ds cronjob
 php ds add:test UserTest
 php ds add:test PriceCalculatorTest --unit
 php ds add:migration create_people_table
@@ -267,7 +271,7 @@ php ds config
 php ds config --clear
 ```
 
-Generated models extend the compatibility `DsModel` base, which now delegates to the v4 PDO query builder. It supports basic `all()`, `find()`, `save()`, `create()`, `updateById()`, and `deleteById()` operations returning arrays/row counts. The compatibility model supports legacy array-returning CRUD and lookup methods. Hydrated model instances and explicit-key `hasOne()`, `hasMany()`, and `belongsTo()` query relationships are available through `findModel()` and `allModels()`. The query builder supports validated inner, left, and right joins through `join()`, `innerJoin()`, `leftJoin()`, and `rightJoin()`, with an optional fifth alias argument; use qualified column names when joining tables. Nested predicates are composed with `whereGroup(fn ($q) => ...)` and `orWhereGroup(fn ($q) => ...)`. Compose one-column query builders with `whereInSubquery()` or `whereNotInSubquery()`; values remain parameterized and identifiers are validated.
+Generated models extend the compatibility `DsModel` base, which delegates to the v4 PDO query builder. The legacy adapter supports array-returning CRUD/lookups, select-chain entry points, comparison-aware predicates, common ordering/grouping/distinct/joins and result accessor aliases. It does not recreate v3 stateful result objects, iterator/pagination behavior or every bulk-write mode. Generated helper classes use the `App\\Helpers` namespace. Generated jobs extend the v3-compatible `Job` bridge, can be run synchronously with `php ds cronjob [Name]`, and implement the v4 `Task` contract for Swoole task-worker dispatch. Task dispatch is ephemeral and not a durable queue. Hydrated model instances and explicit-key `hasOne()`, `hasMany()`, and `belongsTo()` query relationships are available through `findModel()` and `allModels()`. The query builder supports validated inner, left, and right joins through `join()`, `innerJoin()`, `leftJoin()`, and `rightJoin()`, with an optional fifth alias argument; use qualified column names when joining tables. Nested predicates are composed with `whereGroup(fn ($q) => ...)` and `orWhereGroup(fn ($q) => ...)`. Compose one-column query builders with `whereInSubquery()` or `whereNotInSubquery()`; values remain parameterized and identifiers are validated.
 
 `php ds config` writes a PHP configuration cache from `app/config/*.php`; run it again after changing environment/config values. Use `php ds config --clear` to remove it.
 
