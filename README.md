@@ -324,7 +324,7 @@ Tune worker counts against CPU, memory, and workload. Use `SWOOLE_MAX_REQUEST` a
 
 ## Middleware
 
-Register global middleware once during bootstrap through the container-managed stack. Middleware can be a class implementing `Ds\Middleware\MiddlewareInterface` or a callable. The built-in CORS middleware uses immutable response headers. The authentication middleware is a fail-closed placeholder (HTTP 501), not a production authentication system.
+Register global middleware once during bootstrap through the container-managed stack. Middleware can be a class implementing `Ds\Middleware\MiddlewareInterface` or a callable. The built-in CORS middleware uses immutable response headers. The authentication middleware fails closed with HTTP 401 and a Bearer challenge. Configure a real token-provider resolver; persistent identity storage and password/session authentication remain application responsibilities.
 
 
 ## Validation
