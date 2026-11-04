@@ -25,7 +25,7 @@ final class WebSocketHub
         private readonly ?object $server = null,
         private readonly ?int $workerId = null,
         private readonly int $workerCount = 1,
-        private readonly int $maxBroadcastBytes = 65536
+        private readonly int $maxBroadcastBytes = 8192
     ) {
     }
 
