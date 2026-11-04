@@ -138,6 +138,12 @@ abstract class Model
         $attributes = $model->filterFillable($attributes);
         unset($attributes[(string) $model->primaryKey]);
 
+        // A fillable whitelist may remove every requested field. Treat that as
+        // a safe no-op instead of forwarding an empty SET clause to the builder.
+        if ($attributes === []) {
+            return 0;
+        }
+
         return db()->table($model->resolveTable())
             ->where((string) $model->primaryKey, $id)
             ->update($attributes);
