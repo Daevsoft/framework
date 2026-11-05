@@ -195,7 +195,7 @@ final class Router
         }
         if ($baseUrl === null || filter_var($baseUrl, FILTER_VALIDATE_URL) === false
             || !in_array(strtolower((string) parse_url($baseUrl, PHP_URL_SCHEME)), ['http', 'https'], true)
-            || parse_url($baseUrl, PHP_URL_HOST) === null) {
+            || parse_url($baseUrl, PHP_URL_HOST) === null\n            || parse_url($baseUrl, PHP_URL_USER) !== null\n            || parse_url($baseUrl, PHP_URL_PASS) !== null\n            || parse_url($baseUrl, PHP_URL_QUERY) !== null\n            || parse_url($baseUrl, PHP_URL_FRAGMENT) !== null) {
             throw new InvalidArgumentException('Absolute route URLs require a valid HTTP(S) base URL.');
         }
         return rtrim($baseUrl, '/') . $path;
@@ -284,7 +284,11 @@ final class Router
             }
             $params = [];
             foreach ($compiled['names'] as $name => $group) {
-                $params[$name] = rawurldecode((string) ($matches[$group] ?? ''));
+                $value = rawurldecode((string) ($matches[$group] ?? ''));
+                if (preg_match('/%2f/i', $value) === 1 || str_contains($value, "\\0")) {
+                    return null;
+                }
+                $params[$name] = $value;
             }
             return $compiled['route']->matched($params);
         }
@@ -319,5 +323,5 @@ final class Router
     public function put(string $path, mixed $handler): void { $this->add('PUT', $path, $handler); }
     public function patch(string $path, mixed $handler): void { $this->add('PATCH', $path, $handler); }
     public function delete(string $path, mixed $handler): void { $this->add('DELETE', $path, $handler); }
-    public function options(string $path, mixed $handler): void { $this->add('OPTIONS', $path, $handler); }
+    public function options(string $path, mixed $handler): void { $this->add('OPTIONS', $path, $handler); }\n    public function head(string $path, mixed $handler): void { $this->add('HEAD', $path, $handler); }
 }
