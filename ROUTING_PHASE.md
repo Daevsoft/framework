@@ -289,3 +289,15 @@ The routing benchmark now measures both low-level Router matching and full `Requ
 
 
 - The route-list audit found that the command loaded only HTTP web/API declarations while the Swoole bootstrap also loads `websocket.php`. Updated `route:list` to include the WebSocket route file and extended its regression assertion to include the `WS /ws` route. Domain/plugin route files remain outside the active bootstrap registration set and are therefore not loaded implicitly by this command.
+
+## GitHub Actions coverage — 2026-11-05
+
+The following verification has been automated on branch `v4`:
+
+- `.github/workflows/ci.yml` now runs Composer validation and dependency audit, PHP syntax checks (including benchmarks), the full PHPUnit suite, CLI route-list checks including WebSocket routes, and the existing Swoole/FPM runtime smoke tests.
+- Added `tests/scripts/routing-http-smoke.sh`, invoked against both Swoole and FPM. It verifies dynamic GET output, 405 + Allow, automatic OPTIONS + Allow, HEAD body suppression, and 404 for unknown paths.
+- Added `.github/workflows/routing-benchmark.yml` for manual, weekly and routing-change benchmark runs. It captures PHP/runner/commit metadata and uploads p50/p95/p99, throughput and memory/bootstrap output as a 30-day artifact.
+- Added [routing CI documentation](docs/audits/routing-ci.md), including limitations of shared-runner performance measurements.
+
+**Important:** workflow definitions have been committed but deliberately not executed yet. Do not mark RTE-03 or RTE-10 certified until the Actions results have been reviewed. CI also cannot replace the remaining v3 application call-site review, production traffic profiling or long-duration worker memory testing.
+
