@@ -10,7 +10,7 @@ use Ds\Http\Response;
 use Ds\Routing\Router;
 use App\Support\Route as RouteDsl;
 use App\Support\RouteRegistry;
-use InvalidArgumentException;
+use Ds\\Routing\\Attributes\\Get;\nuse InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 final class RoutingSemanticsTest extends TestCase
