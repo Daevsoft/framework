@@ -53,6 +53,15 @@ final class Route
         return self::resolveRouter()->urlFor($name, $parameters, $absolute, $baseUrl);
     }
 
+    public static function fallback(mixed $handler): \\Ds\\Routing\\Route
+    {
+        $route = self::resolveRouter()->setFallback($handler);
+        if (self::$middlewares !== []) {
+            $route->middleware(self::$middlewares);
+        }
+        return $route;
+    }
+
     public static function prefix(string $prefix, callable $callback): void
     {
         $previous = self::$prefix;
