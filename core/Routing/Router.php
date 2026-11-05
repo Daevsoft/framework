@@ -188,7 +188,7 @@ final class Router
             }
             $value = (string) $parameters[$parameter];
             if (str_contains($value, '/') || str_contains($value, '\\')
-                || preg_match('/%(?:2f|5c|2e)/i', $value) === 1
+                || preg_match('/%(?:2f|5c|2e|0[0-9a-f]|1[0-9a-f]|7f)/i', $value) === 1
                 || $value === '.' || $value === '..'
                 || preg_match('/[\\x00-\\x1F\\x7F]/', $value) === 1) {
                 throw new InvalidArgumentException("Value for route parameter [{$parameter}] must be a single safe path segment.");
@@ -314,7 +314,7 @@ final class Router
             $constraintsMatch = true;
             foreach ($compiled['names'] as $name => $group) {
                 $value = rawurldecode((string) ($matches[$group] ?? ''));
-                if (preg_match('/%(?:2f|5c|2e)/i', $value) === 1 || $value === '.' || $value === '..'
+                if (preg_match('/%(?:2f|5c|2e|0[0-9a-f]|1[0-9a-f]|7f)/i', $value) === 1 || $value === '.' || $value === '..'
                     || str_contains($value, '\\') || preg_match('/[\\x00-\\x1F\\x7F]/', $value) === 1) {
                     return null;
                 }
