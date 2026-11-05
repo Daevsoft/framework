@@ -310,6 +310,21 @@ final class RoutingSemanticsTest extends TestCase
         self::assertNull($router->match('GET', '/files/%0Aname'));
     }
 
+
+    public function testKernelSuppressesHeadBodyAfterGlobalMiddleware(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/health', static fn () => Response::text('healthy'));
+        $stack = new MiddlewareStack();
+        $stack->push(static fn (Request $request, callable $next): Response => $next($request)->withBody('middleware-body'));
+
+        $kernel = new Kernel(new MiddlewarePipeline($stack), new RequestDispatcher($router));
+        $response = $kernel->handle(new Request([], [], 'HEAD', '/health'));
+
+        self::assertSame(200, $response->status());
+        self::assertSame('', $response->body());
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
