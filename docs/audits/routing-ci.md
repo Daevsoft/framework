@@ -6,7 +6,7 @@ This document describes the GitHub Actions checks added for the v4 routing phase
 
 Workflow: `.github/workflows/ci.yml`
 
-Runs on pushes and pull requests targeting `v4`.
+Runs on pushes and pull requests targeting `v4`, and can also be started manually with `workflow_dispatch`.
 
 The job currently performs:
 
