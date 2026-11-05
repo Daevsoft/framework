@@ -595,3 +595,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Extended the benchmark to include dynamic 405 method negotiation and corrected its memory accounting to report PHP memory deltas rather than an RSS claim.
 - The phase implementation now covers the core functionality in RTE-01 through RTE-08, adds broad RTE-09 regression coverage and provides RTE-10 benchmark tooling. It is **not certified complete** until PHPUnit, Swoole/FPM integration, concurrency stress and benchmark runs are executed.
 - No GitHub Actions were triggered. Local repository checkout remains blocked by unavailable network/DNS, and no local vendor/PHPUnit installation is present.
+
+
+## 2026-11-05 — Routing post-implementation compatibility audit
+
+- Fixed the legacy `Ds\Routing\RouteMatcher` adapter so route constraints, names and middleware are preserved when adapting a route list to the current Router.
+- Extended encoded path validation to reject recursively encoded path separators, backslashes, dot-segments and control bytes in incoming paths, dynamic parameters and named URL generation.
+- Added regression tests for recursively encoded values and RouteMatcher metadata preservation; `RoutingSemanticsTest.php` now contains 40 test methods.
+- Verified the recursive-encoding guard patterns with the local PHP CLI. This does not replace executing the PHPUnit suite.
+- Re-inspected application route declarations and the route-list/dispatcher integration. FPM/Swoole runtime parity, full v3 call-site compatibility and benchmark measurements remain open.
+- No GitHub Actions were run. The environment still lacks a local repository checkout and PHPUnit dependencies.
