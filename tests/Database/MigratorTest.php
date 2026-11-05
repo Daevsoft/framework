@@ -25,8 +25,6 @@ final class MigratorTest extends TestCase
 <?php
 
 use Ds\Database\Migration;
-use PDO;
-
 return new class extends Migration {
     public function up(PDO $connection): void
     {
