@@ -181,6 +181,10 @@ final class Router
                 throw new InvalidArgumentException("Missing or invalid route parameter [{$parameter}].");
             }
             $value = (string) $parameters[$parameter];
+            if (str_contains($value, '/') || preg_match('/%2f/i', $value) === 1
+                || preg_match('/[\\x00-\\x1F\\x7F]/', $value) === 1) {
+                throw new InvalidArgumentException("Value for route parameter [{$parameter}] must be a single safe path segment.");
+            }
             if (isset($route->constraints[$parameter])
                 && preg_match('~^(?:' . $route->constraints[$parameter] . ')$~D', $value) !== 1) {
                 throw new InvalidArgumentException("Value for route parameter [{$parameter}] violates its constraint.");
