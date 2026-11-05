@@ -50,17 +50,29 @@ The following code batches have been pushed to `v4`. Regression tests have been 
 
 | Task | Implementation progress | Remaining verification |
 |---|---|---|
-| RTE-00 | Inspected v4 router/DSL/dispatcher/attributes/route:list and existing tests; reviewed the v3 routing contract in the migration audit | Exhaustive method/signature/side-effect inventory and full caller audit |
+| RTE-00 | Inspected v4 router/DSL/dispatcher/attributes/route:list and v3 Route/BaseRoute/RouteData/RouteProvider/attribute sources; detailed findings added to `V3_API_INVENTORY.md` | Exhaustive v4 call-site inventory and application-specific migration review |
 | RTE-01 | Duplicate definitions, malformed/repeated placeholders, path normalization and deterministic static-before-dynamic precedence | Full edge-case test run and overlap policy review |
-| RTE-02 | Custom and common parameter constraints compile at registration; URL parameter values are encoded and validated | Adversarial regex review and performance tests |
-| RTE-03 | 405 + Allow, automatic OPTIONS, explicit HEAD and HEAD-to-GET fallback with body suppression | FPM/Swoole integration parity |
+| RTE-02 | Custom and common parameter constraints are validated/warmed at registration; matching captures one segment and validates decoded values; URL parameter values are encoded and validated | Adversarial regex review and performance tests |
+| RTE-03 | 405 + Allow, automatic OPTIONS, explicit HEAD and HEAD-to-GET fallback; shared Kernel suppresses HEAD bodies after global middleware | FPM/Swoole integration parity and protocol-level verification |
 | RTE-04 | Unique route names, relative/absolute URL generation and query-string parameters | Request-context absolute URL convenience is intentionally not implicit |
 | RTE-05 | Nested prefix/middleware restoration and attribute middleware composition | Concurrent bootstrap/registration boundary and inherited/repeated attribute tests |
-| RTE-06 | apiResource/resource route registrar, only/except selectors and explicit resource parameter names | Full route matrix and compatibility tests |
+| RTE-06 | resource/apiResource route registrar, only/except selectors, explicit parameter names and PUT/PATCH update endpoints | Full route matrix and compatibility tests |
 | RTE-07 | One explicit fallback route, dispatched only after no path/method match | FPM/Swoole integration and fallback exception coverage |
 | RTE-08 | route:list now reports name, handler, middleware and constraints | CLI output regression tests and optional machine-readable format |
 | RTE-09 | Added unit-level tests for matching, encoded input, groups and request-local matched route clones | Swoole concurrency/security stress tests |
 | RTE-10 | Added `benchmarks/routing.php` for static hits, last dynamic hits, misses and method negotiation at configurable route-table sizes | Execute on a stable local machine, record p50/p95/p99, throughput, bootstrap time and memory; compare before/after any index optimization |
+
+### v3 routing compatibility findings
+
+The tracked v3 routing source was inspected directly and the detailed findings are recorded in [V3_API_INVENTORY.md](V3_API_INVENTORY.md). Key behavior differences that must remain explicit:
+
+- v3 maps `/` to `/index`; v4 intentionally keeps `/` as the root route.
+- v3 route storage is keyed by path only, so a second HTTP method on the same path overwrites the first; v4 uses method-specific registries.
+- v3 supports GET/POST/PUT/DELETE and Get/Post/Put/Delete attributes. v4 adds PATCH/OPTIONS/HEAD/WS.
+- v3 group middleware and prefix stacks are static and not protected by `finally`; v4 restores nested registration state in `finally`.
+- v3 controller discovery instantiates controllers and reflects methods during registration; v4 discovers attributes during bootstrap and resolves controllers during dispatch.
+- v3 has no named route URL generation, constraints, 405/Allow, HEAD/OPTIONS negotiation, fallback or resource route helper.
+- v3 middleware rejection and invalid aliases can echo/terminate; v4 uses response-based middleware and fail-closed behavior.
 
 ## 3. Developer-facing API direction
 
