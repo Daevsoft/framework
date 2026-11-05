@@ -286,3 +286,6 @@ The routing benchmark now measures both low-level Router matching and full `Requ
 
 
 - Added a `route:list` CLI-output regression test asserting the diagnostic columns and a registered application route are present. It has been added but not executed.
+
+
+- The route-list audit found that the command loaded only HTTP web/API declarations while the Swoole bootstrap also loads `websocket.php`. Updated `route:list` to include the WebSocket route file and extended its regression assertion to include the `WS /ws` route. Domain/plugin route files remain outside the active bootstrap registration set and are therefore not loaded implicitly by this command.
