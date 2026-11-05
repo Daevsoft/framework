@@ -466,6 +466,17 @@ final class RoutingSemanticsTest extends TestCase
         self::assertNotNull($router->match('GET', '/posts/12'));
     }
 
+
+    public function testDotSegmentsAndBackslashesAreRejectedAsRouteParameters(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/files/{name}', static fn () => 'ok');
+
+        self::assertNull($router->match('GET', '/files/..'));
+        self::assertNull($router->match('GET', '/files/%2e%2e'));
+        self::assertNull($router->match('GET', '/files/%5Cwindows'));
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
