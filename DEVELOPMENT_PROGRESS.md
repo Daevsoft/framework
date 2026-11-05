@@ -621,3 +621,12 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 
 - Corrected `route:list` to load `app/routes/websocket.php` as the Swoole bootstrap does, so the command no longer omits registered WebSocket endpoints; its regression test now asserts `WS /ws` appears.
+
+### 2026-11-05 — Routing verification automated in GitHub Actions
+- Expanded `.github/workflows/ci.yml` with least-privilege read permissions, bounded job time, push concurrency control, locked Composer dependency auditing, and PHP syntax checks that include benchmark sources.
+- Added a shared HTTP routing smoke script and wired it into both live Swoole and FPM checks. It verifies dynamic GET/parameter output, 405 + Allow, automatic OPTIONS + Allow, HEAD body suppression, and unknown-path 404 behavior.
+- Extended CLI route-list verification to require the WebSocket route declaration.
+- Added `.github/workflows/routing-benchmark.yml`: manual inputs, weekly schedule, routing-change trigger, bounded input validation, runner/PHP/commit metadata, and a 30-day benchmark artifact.
+- Added `docs/audits/routing-ci.md` and updated `ROUTING_PHASE.md` with workflow scope and certification boundaries.
+- **Actions were not run**, as requested. No test pass, runtime parity or benchmark result is claimed. Routing remains in progress until the workflows are executed and reviewed, and non-CI compatibility/performance reviews are complete.
+
