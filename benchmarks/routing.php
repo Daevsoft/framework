@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-require dirname(__DIR__) . '/vendor/autoload.php';
-
 use Ds\Routing\Router;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
 
 $options = getopt('', ['iterations::', 'sizes::']);
 $iterations = max(10, min(10000, (int) ($options['iterations'] ?? 1000)));
