@@ -362,8 +362,26 @@ final class Router
 
     private static function normalizeLookupPath(string $path): ?string
     {
+        // Validate the raw request target before parse_url(): PHP may truncate
+        // or otherwise normalize control bytes, hiding malformed input.
+        if ($path === '' || preg_match('/[\x00-\x1F\x7F]/', $path) === 1) {
+            return null;
+        }
+
         try {
-            return self::normalizePath(parse_url($path, PHP_URL_PATH) ?: '/');
+            $parsedPath = parse_url($path, PHP_URL_PATH);
+            if ($parsedPath === false) {
+                return null;
+            }
+
+            $normalized = self::normalizePath($parsedPath ?: '/');
+            if (self::containsEncodedDangerousByte($normalized)
+                || preg_match('/%(?![A-Fa-f0-9]{2})/', $normalized) === 1
+                || preg_match('/%(?:0[0-9a-f]|1[0-9a-f]|7f)/i', $normalized) === 1) {
+                return null;
+            }
+
+            return $normalized;
         } catch (\Throwable) {
             return null;
         }
