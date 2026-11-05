@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Ds\Http\Request;
+use Ds\Http\RequestDispatcher;
 use Ds\Routing\Router;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -15,7 +17,7 @@ $sizes = isset($options['sizes'])
 function percentile(array $values, float $percentile): float
 {
     sort($values, SORT_NUMERIC);
-    $index = (int) ceil((count($values) - 1) * $percentile);
+    $index = max(0, (int) ceil(count($values) * $percentile) - 1);
     return $values[$index] ?? 0.0;
 }
 
@@ -64,11 +66,16 @@ foreach ($sizes as $size) {
     $bootstrapMs = (hrtime(true) - $bootstrapStart) / 1_000_000;
     $memoryBytes = max(0, memory_get_usage(false) - $memoryBefore);
     $dynamicTarget = '/dynamic/segment-' . ($dynamicCount - 1) . '/42';
+    $dispatcher = new RequestDispatcher($router);
+    $notFoundRequest = new Request([], [], 'GET', '/not-found');
+    $methodNotAllowedRequest = new Request([], [], 'POST', '/static/0');
 
     $scenarios = [
         'static-hit' => static fn () => $router->match('GET', '/static/0'),
         'dynamic-hit-last' => static fn () => $router->match('GET', $dynamicTarget),
         'not-found' => static fn () => $router->match('GET', '/not-found'),
+        'http-404-dispatch' => static fn () => $dispatcher->dispatch($notFoundRequest),
+        'http-405-dispatch' => static fn () => $dispatcher->dispatch($methodNotAllowedRequest),
         'method-negotiation-static' => static fn () => $router->allowedMethods('/static/0'),
         'method-negotiation-dynamic' => static fn () => $router->allowedMethods($dynamicTarget),
     ];
