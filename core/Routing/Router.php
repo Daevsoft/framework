@@ -39,7 +39,7 @@ final class Router
         }
 
         $route = new Route($method, $path, $handler);
-        $route->onDefinitionChanged(fn (Route $changed): mixed => $this->refreshRoute($changed));
+        $route->onDefinitionChanged(function (Route $changed): void { $this->refreshRoute($changed); });
 
         if (!str_contains($path, '{')) {
             $this->staticRoutes[$method][$path] = $route;
@@ -108,6 +108,56 @@ final class Router
     public function hasPath(string $path): bool
     {
         return $this->allowedMethods($path) !== [];
+    }
+
+    /**
+     * Generate a URL from a registered route name. Unused parameters become
+     * a query string; required path parameters must be supplied explicitly.
+     *
+     * @param array<string, scalar|null> $parameters
+     */
+    public function urlFor(string $name, array $parameters = [], bool $absolute = false, ?string $baseUrl = null): string
+    {
+        $route = $this->namedRoutes[$name] ?? null;
+        if ($route === null) {
+            throw new InvalidArgumentException("Named route [{$name}] is not registered.");
+        }
+
+        $used = [];
+        $path = preg_replace_callback('/\\{([A-Za-z_][A-Za-z0-9_]*)\\}/', function (array $matches) use ($route, $parameters, &$used): string {
+            $parameter = $matches[1];
+            if (!array_key_exists($parameter, $parameters) || !is_scalar($parameters[$parameter])) {
+                throw new InvalidArgumentException("Missing or invalid route parameter [{$parameter}].");
+            }
+            $value = (string) $parameters[$parameter];
+            if (isset($route->constraints[$parameter])
+                && preg_match('~^(?:' . $route->constraints[$parameter] . ')$~D', $value) !== 1) {
+                throw new InvalidArgumentException("Value for route parameter [{$parameter}] violates its constraint.");
+            }
+            $used[$parameter] = true;
+            return rawurlencode($value);
+        }, $route->path);
+
+        $query = array_diff_key($parameters, $used);
+        if ($query !== []) {
+            $path .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+        }
+
+        if (!$absolute) {
+            return $path;
+        }
+        if ($baseUrl === null || filter_var($baseUrl, FILTER_VALIDATE_URL) === false
+            || !in_array(strtolower((string) parse_url($baseUrl, PHP_URL_SCHEME)), ['http', 'https'], true)
+            || parse_url($baseUrl, PHP_URL_HOST) === null) {
+            throw new InvalidArgumentException('Absolute route URLs require a valid HTTP(S) base URL.');
+        }
+        return rtrim($baseUrl, '/') . $path;
+    }
+
+    /** @return array<string, Route> */
+    public function namedRoutes(): array
+    {
+        return $this->namedRoutes;
     }
 
     /** @return array{route:Route,pattern:string,names:array<string,string>} */
