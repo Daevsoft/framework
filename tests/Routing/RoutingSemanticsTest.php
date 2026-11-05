@@ -247,9 +247,9 @@ final class RoutingSemanticsTest extends TestCase
 
         try {
             RouteDsl::prefix('/temporary', static function (): void {
-                throw new \\RuntimeException('registration failed');
+                throw new \RuntimeException('registration failed');
             });
-        } catch (\\RuntimeException) {
+        } catch (\RuntimeException) {
             self::assertTrue(true);
         }
         RouteDsl::get('/outside', static fn () => 'ok');
