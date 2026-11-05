@@ -53,8 +53,14 @@ final class Route
         if ($name === '' || preg_match('/\A[A-Za-z_][A-Za-z0-9_.:-]*\z/D', $name) !== 1) {
             throw new \InvalidArgumentException('Route name must be a non-empty identifier.');
         }
+        $previous = $this->routeName;
         $this->routeName = $name;
-        if ($this->definitionChanged !== null) { ($this->definitionChanged)($this); }
+        try {
+            if ($this->definitionChanged !== null) { ($this->definitionChanged)($this); }
+        } catch (\\Throwable $exception) {
+            $this->routeName = $previous;
+            throw $exception;
+        }
         return $this;
     }
 
