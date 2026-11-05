@@ -512,7 +512,7 @@ final class RoutingSemanticsTest extends TestCase
         $router->add('GET', '/users/{id}', static fn (int $id) => $id);
         $results = [];
 
-        \Swoole\Coroutine::run(static function () use ($router, &$results): void {
+        \Swoole\Coroutine\run(static function () use ($router, &$results): void {
             \Swoole\Coroutine::create(static function () use ($router, &$results): void {
                 $route = $router->match('GET', '/users/101');
                 \Swoole\Coroutine::sleep(0.001);
@@ -566,8 +566,8 @@ final class RoutingSemanticsTest extends TestCase
             self::assertTrue(true);
         }
 
-        self::assertSame('first', $router->urlFor('first'));
-        self::assertSame('second', $router->urlFor('second'));
+        self::assertSame('/first', $router->urlFor('first'));
+        self::assertSame('/second', $router->urlFor('second'));
         self::assertSame('second', $second->routeName);
     }
 
