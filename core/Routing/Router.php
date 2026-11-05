@@ -323,5 +323,6 @@ final class Router
     public function put(string $path, mixed $handler): void { $this->add('PUT', $path, $handler); }
     public function patch(string $path, mixed $handler): void { $this->add('PATCH', $path, $handler); }
     public function delete(string $path, mixed $handler): void { $this->add('DELETE', $path, $handler); }
-    public function options(string $path, mixed $handler): void { $this->add('OPTIONS', $path, $handler); }\n    public function head(string $path, mixed $handler): void { $this->add('HEAD', $path, $handler); }
+    public function options(string $path, mixed $handler): void { $this->add('OPTIONS', $path, $handler); }
+    public function head(string $path, mixed $handler): void { $this->add('HEAD', $path, $handler); }
 }
