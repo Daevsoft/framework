@@ -575,3 +575,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Added a reproducible benchmark script for 100/1,000/10,000 route tables. The benchmark has not been run; results must be collected on a stable local host.
 - Added tests for malformed paths, segment-safe custom constraints, explicit OPTIONS, HEAD through global middleware, resource PATCH and request-local match parameters.
 - Local checkout attempt failed because this environment cannot resolve github.com; PHPUnit/vendor dependencies are not present. No GitHub Actions were run, as requested.
+
+
+## 2026-11-05 — Routing parameter and fluent API follow-up
+
+- Added explicit fluent return values to direct Router HTTP verb helpers and a direct WS helper; app-level Route DSL remains backward-compatible.
+- Added an optional Swoole coroutine test that interleaves two matched requests and verifies route parameters remain request-local.
+- Tightened dynamic parameter handling to reject decoded backslashes, encoded separators, encoded dot-segments, literal dot segments and control characters. URL generation applies the same single-segment restrictions.
+- Resource update now exposes both PUT and PATCH; PATCH uses a distinct `<resource>.update.patch` route name while PUT retains the conventional `<resource>.update` name.
+- Updated migration/usage documentation to describe these boundaries.
+- Tests remain unexecuted because PHPUnit dependencies and a repository checkout are unavailable in this environment. No GitHub Actions were run.
