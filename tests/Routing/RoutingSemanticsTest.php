@@ -498,6 +498,21 @@ final class RoutingSemanticsTest extends TestCase
         self::assertSame('second', $second->routeName);
     }
 
+
+    public function testMethodNegotiationRespectsDynamicParameterConstraints(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/orders/{id}', static fn () => 'show')->whereNumber('id');
+        $dispatcher = new RequestDispatcher($router);
+
+        $methodNotAllowed = $dispatcher->dispatch(new Request([], [], 'POST', '/orders/42'));
+        self::assertSame(405, $methodNotAllowed->status());
+        self::assertSame('GET, HEAD, OPTIONS', $methodNotAllowed->headers()['Allow']);
+
+        $invalidParameter = $dispatcher->dispatch(new Request([], [], 'POST', '/orders/not-a-number'));
+        self::assertSame(404, $invalidParameter->status());
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
