@@ -293,7 +293,7 @@ final class Router
             $params = [];
             foreach ($compiled['names'] as $name => $group) {
                 $value = rawurldecode((string) ($matches[$group] ?? ''));
-                if (preg_match('/%2f/i', $value) === 1 || str_contains($value, "\\0")) {
+                if (preg_match('/%2f/i', $value) === 1 || preg_match('/[\\x00-\\x1F\\x7F]/', $value) === 1) {
                     return null;
                 }
                 $params[$name] = $value;
