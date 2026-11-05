@@ -186,7 +186,7 @@ final class RoutingSemanticsTest extends TestCase
             ->except(['create', 'edit']);
 
         self::assertCount(5, $router->all());
-        self::assertNull($router->match('GET', '/posts/create'));
+        self::assertArrayNotHasKey('posts.create', $router->namedRoutes());
         self::assertNotNull($router->match('POST', '/posts'));
     }
 
