@@ -363,6 +363,37 @@ final class RoutingSemanticsTest extends TestCase
         $router->urlFor('files.show', ['name' => 'private/report.txt']);
     }
 
+
+    public function testMatchedParametersAreRequestLocalAndNeverMutateDefinitions(): void
+    {
+        $router = new Router();
+        $definition = $router->add('GET', '/users/{id}', static fn (int $id) => $id);
+
+        $first = $router->match('GET', '/users/10');
+        $second = $router->match('GET', '/users/20');
+
+        self::assertSame(['id' => '10'], $first?->params);
+        self::assertSame(['id' => '20'], $second?->params);
+        self::assertSame([], $definition->params);
+    }
+
+    public function testMiddlewareGroupStateIsRestoredAfterRegistrationException(): void
+    {
+        $router = new Router();
+        RouteRegistry::setRouter($router);
+
+        try {
+            RouteDsl::middleware('temporary-auth', static function (): void {
+                throw new \\RuntimeException('registration failed');
+            });
+        } catch (\\RuntimeException) {
+            self::assertTrue(true);
+        }
+
+        RouteDsl::get('/after-middleware', static fn () => 'ok');
+        self::assertSame([], $router->match('GET', '/after-middleware')?->middlewares);
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
