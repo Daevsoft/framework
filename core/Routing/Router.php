@@ -347,7 +347,7 @@ final class Router
     {
         try {
             return self::normalizePath(parse_url($path, PHP_URL_PATH) ?: '/');
-        } catch (\\Throwable) {
+        } catch (\Throwable) {
             return null;
         }
     }
