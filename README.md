@@ -83,7 +83,7 @@ The router rejects duplicate method/path definitions and malformed or repeated p
 
 `Route::resource()` registers the conventional seven actions. `Route::apiResource()` omits the HTML `create` and `edit` actions. Both return a registrar supporting `only([...])` and `except([...])`; pass an optional third argument to choose the resource parameter name (for example, `Route::apiResource('users', UserController::class, 'user')`). `php ds route:list` displays route names, handlers, middleware and constraints.
 
-For implementation scope, remaining work and acceptance criteria, see [ROUTING_PHASE.md](ROUTING_PHASE.md). Runtime and compatibility certification is still in progress; do not interpret this feature list as a completed phase.
+For implementation scope, remaining work and acceptance criteria, see [ROUTING_PHASE.md](ROUTING_PHASE.md). Runtime and compatibility certification is still in progress; do not interpret this feature list as a completed phase. A synthetic baseline benchmark is available with `php benchmarks/routing.php --iterations=1000 --sizes=100,1000,10000`.
 
 ## Controllers
 
