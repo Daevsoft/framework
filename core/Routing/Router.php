@@ -253,14 +253,14 @@ final class Router
             }
         }
         if ($route->routeName !== null) {
+            $existing = $this->namedRoutes[$route->routeName] ?? null;
+            if ($existing !== null && $existing !== $route) {
+                throw new InvalidArgumentException("Duplicate route name [{$route->routeName}].");
+            }
             foreach ($this->namedRoutes as $name => $registered) {
                 if ($registered === $route && $name !== $route->routeName) {
                     unset($this->namedRoutes[$name]);
                 }
-            }
-            $existing = $this->namedRoutes[$route->routeName] ?? null;
-            if ($existing !== null && $existing !== $route) {
-                throw new InvalidArgumentException("Duplicate route name [{$route->routeName}].");
             }
             $this->namedRoutes[$route->routeName] = $route;
         }
