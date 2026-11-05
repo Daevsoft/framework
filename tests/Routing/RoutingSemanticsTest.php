@@ -414,6 +414,19 @@ final class RoutingSemanticsTest extends TestCase
         $route->where('id', '(');
     }
 
+
+    public function testMalformedRequestPathFailsAsNotFoundInsteadOfThrowing(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/health', static fn () => 'ok');
+
+        self::assertNull($router->match('GET', "/health\0bad"));
+        self::assertSame([], $router->allowedMethods("/health\0bad"));
+
+        $response = (new RequestDispatcher($router))->dispatch(new Request([], [], 'GET', "/health\0bad"));
+        self::assertSame(404, $response->status());
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
