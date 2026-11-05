@@ -42,11 +42,11 @@ final class RequestDispatcher
                     if ($method === 'OPTIONS') {
                         return new Response(204, $headers);
                     }
-                    return new Response(405, $headers + ['Content-Type' => 'text/plain; charset=utf-8'], 'Method Not Allowed');
+                    $response = new Response(405, $headers + ['Content-Type' => 'text/plain; charset=utf-8'], 'Method Not Allowed');\n                    return $method === 'HEAD' ? $response->withBody('') : $response;
                 }
                 $fallback = $this->router->fallbackRoute();
                 if ($fallback === null) {
-                    return new Response(404, ['Content-Type' => 'text/plain; charset=utf-8'], 'Not Found');
+                    $response = new Response(404, ['Content-Type' => 'text/plain; charset=utf-8'], 'Not Found');\n                    return $method === 'HEAD' ? $response->withBody('') : $response;
                 }
                 $route = $fallback->matched([
                     'path' => $request->getPath(),
