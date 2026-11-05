@@ -57,6 +57,34 @@ Route::prefix('/api', function (): void {
 
 Static routes use a direct lookup table. Parameterized routes are compiled once during application bootstrap, then matched without rebuilding regular expressions for every request.
 
+### Routing features
+
+Named routes, parameter constraints, resource routes and HTTP method negotiation are available:
+
+```php
+Route::get('/users/{id}', [UserController::class, 'show'])
+    ->whereNumber('id')
+    ->name('users.show');
+
+$url = Route::url('users.show', ['id' => 42]);
+$absoluteUrl = Route::url('users.show', ['id' => 42], true, 'https://example.com');
+
+Route::middleware(['auth'], function (): void {
+    Route::apiResource('/users', UserController::class)
+        ->only(['index', 'show', 'store']);
+});
+
+Route::fallback(NotFoundController::class);
+```
+
+Built-in constraints include `whereNumber()`, `whereAlpha()`, `whereAlphaNumeric()`, and `whereUuid()`; use `where($parameter, $trustedRegex)` for a custom bootstrap-time expression. Route parameter constraints are compiled once during registration. Custom regular expressions must be trusted application configuration.
+
+The router rejects duplicate method/path definitions and malformed or repeated parameter names. Static routes take precedence over dynamic routes; overlapping dynamic routes use registration order. Encoded slashes are rejected inside route parameters to preserve path segment boundaries. A path that exists for another HTTP method returns **405 Method Not Allowed** with an `Allow` header; unknown paths return **404**. `HEAD` falls back to `GET` with the response body suppressed, and `OPTIONS` is answered automatically unless an explicit OPTIONS route is registered.
+
+`Route::resource()` registers the conventional seven actions. `Route::apiResource()` omits the HTML `create` and `edit` actions. Both return a registrar supporting `only([...])` and `except([...])`. `php ds route:list` displays route names, handlers, middleware and constraints.
+
+For implementation scope, remaining work and acceptance criteria, see [ROUTING_PHASE.md](ROUTING_PHASE.md). Runtime and compatibility certification is still in progress; do not interpret this feature list as a completed phase.
+
 ## Controllers
 
 ```php
