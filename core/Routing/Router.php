@@ -41,7 +41,7 @@ final class Router
         }
 
         $route = new Route($method, $path, $handler);
-        $route->onDefinitionChanged(function (Route $changed): void { $this->refreshRoute($changed); });
+        $route->onDefinitionChanged(function (Route $changed, ?string $previousName = null): void { $this->refreshRoute($changed, $previousName); });
 
         if (!str_contains($path, '{')) {
             $this->staticRoutes[$method][$path] = $route;
@@ -261,7 +261,7 @@ final class Router
         return ['route' => $route, 'pattern' => $compiledPattern, 'names' => $names];
     }
 
-    private function refreshRoute(Route $route): void
+    private function refreshRoute(Route $route, ?string $previousName = null): void
     {
         if (str_contains($route->path, '{')) {
             foreach ($this->dynamicRoutes[$route->method] ?? [] as $index => $compiled) {
@@ -274,6 +274,9 @@ final class Router
         if ($route->routeName !== null) {
             $existing = $this->namedRoutes[$route->routeName] ?? null;
             if ($existing !== null && $existing !== $route) {
+                if ($previousName === null) {
+                    $this->remove($route);
+                }
                 throw new InvalidArgumentException("Duplicate route name [{$route->routeName}].");
             }
             foreach ($this->namedRoutes as $name => $registered) {
