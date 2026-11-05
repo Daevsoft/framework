@@ -79,7 +79,7 @@ final class Route
         }
 
         if (!str_contains($this->path, '{' . $parameter . '}')) {
-            throw new \\InvalidArgumentException("Route parameter [{$parameter}] does not exist in [{$this->path}].");
+            throw new \InvalidArgumentException("Route parameter [{$parameter}] does not exist in [{$this->path}].");
         }
         $this->constraints[$parameter] = $pattern;
         if ($this->definitionChanged !== null) { ($this->definitionChanged)($this); }
