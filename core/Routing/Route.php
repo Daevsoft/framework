@@ -78,8 +78,11 @@ final class Route
             throw new \InvalidArgumentException('Route parameter constraint is not a valid regular expression.');
         }
 
+        if (!str_contains($this->path, '{' . $parameter . '}')) {
+            throw new \\InvalidArgumentException("Route parameter [{$parameter}] does not exist in [{$this->path}].");
+        }
         $this->constraints[$parameter] = $pattern;
-        ($this->definitionChanged)?->__invoke($this);
+        if ($this->definitionChanged !== null) { ($this->definitionChanged)($this); }
         return $this;
     }
 
