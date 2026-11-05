@@ -273,10 +273,13 @@ The script reports static hit, last dynamic hit, not-found, full HTTP 404/405 di
 - Found that the legacy list-based `RouteMatcher` facade rebuilt route definitions without carrying over constraints, names or middleware. It now preserves those registration-time properties when adapting definitions to the current Router.
 - Hardened encoded path-segment validation against recursively encoded slash, backslash, dot-segment and control-byte sequences. The same guard is applied to incoming paths, decoded dynamic parameters and named URL parameter values.
 - Added regression cases for triple-encoded separators, encoded backslashes, recursively encoded URL parameters and legacy RouteMatcher metadata preservation.
-- The test file now contains 40 routing semantics test methods. This is a source-level count only; PHPUnit has not been executed.
+- The test file now contains 41 routing semantics test methods. This is a source-level count only; PHPUnit has not been executed.
 - Remaining release blockers: full PHPUnit run, FPM/Swoole integration parity, Swoole concurrency stress, complete v3 call-site compatibility review and measured benchmark results. No performance index/trie has been added without benchmark evidence.
 
 
 ### Benchmark coverage refinement
 
 The routing benchmark now measures both low-level Router matching and full `RequestDispatcher` handling for HTTP 404 and 405 responses. Percentiles use nearest-rank indexing. The benchmark remains unexecuted, so no latency, throughput or memory claims are made.
+
+
+- Added an explicit UTF-8 route-parameter round-trip regression test (`José`), covering percent-decoding during matching and RFC 3986 URL generation.
