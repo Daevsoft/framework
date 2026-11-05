@@ -54,7 +54,7 @@ final class Route
             throw new \InvalidArgumentException('Route name must be a non-empty identifier.');
         }
         $this->routeName = $name;
-        ($this->definitionChanged)?->__invoke($this);
+        if ($this->definitionChanged !== null) { ($this->definitionChanged)($this); }
         return $this;
     }
 
@@ -65,7 +65,7 @@ final class Route
             throw new \InvalidArgumentException('Invalid route parameter name.');
         }
         if ($pattern === '' || strlen($pattern) > 256 || preg_match('/[\x00-\x1F\x7F]/', $pattern) === 1
-            || str_contains($pattern, '~') || str_contains($pattern, '{') || str_contains($pattern, '}')) {
+            || str_contains($pattern, '~')) {
             throw new \InvalidArgumentException('Invalid route parameter constraint.');
         }
         if (@preg_match('~^(?:' . $pattern . ')$~D', '') === false) {
