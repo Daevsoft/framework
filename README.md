@@ -81,7 +81,7 @@ Built-in constraints include `whereNumber()`, `whereAlpha()`, `whereAlphaNumeric
 
 The router rejects duplicate method/path definitions and malformed or repeated parameter names. Static routes take precedence over dynamic routes; overlapping dynamic routes use registration order. Encoded slashes are rejected inside route parameters to preserve path segment boundaries. A path that exists for another HTTP method returns **405 Method Not Allowed** with an `Allow` header; unknown paths return **404**. `HEAD` falls back to `GET` with the response body suppressed, and `OPTIONS` is answered automatically unless an explicit OPTIONS route is registered.
 
-`Route::resource()` registers the conventional seven actions. `Route::apiResource()` omits the HTML `create` and `edit` actions. Both return a registrar supporting `only([...])` and `except([...])`. `php ds route:list` displays route names, handlers, middleware and constraints.
+`Route::resource()` registers the conventional seven actions. `Route::apiResource()` omits the HTML `create` and `edit` actions. Both return a registrar supporting `only([...])` and `except([...])`; pass an optional third argument to choose the resource parameter name (for example, `Route::apiResource('users', UserController::class, 'user')`). `php ds route:list` displays route names, handlers, middleware and constraints.
 
 For implementation scope, remaining work and acceptance criteria, see [ROUTING_PHASE.md](ROUTING_PHASE.md). Runtime and compatibility certification is still in progress; do not interpret this feature list as a completed phase.
 
@@ -145,7 +145,7 @@ final class UserController
 }
 ```
 
-The resulting routes are `GET /users/all`, `GET /users/detail/{userId}`, and `POST /users/save`. Supported attributes are `Get`, `Post`, `Put`, `Patch`, `Delete`, and `Options`. Route middleware accepts registered aliases or middleware class names implementing `MiddlewareInterface`.
+The resulting routes are `GET /users/all`, `GET /users/detail/{userId}`, and `POST /users/save`. Supported attributes are `Get`, `Post`, `Put`, `Patch`, `Delete`, `Head`, and `Options`. Route middleware accepts registered aliases or middleware class names implementing `MiddlewareInterface`.
 
 ### PieTemplate views
 
