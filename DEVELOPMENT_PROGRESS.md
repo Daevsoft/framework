@@ -563,3 +563,15 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Updated README, API, migration, roadmap and phase docs. Focused tests have **not yet been executed** because a local checkout/dependency install is unavailable; no GitHub Actions were run, per instruction.
 - Follow-up still required: inspect and execute the full routing suite, audit the complete v3 public routing contract, add FPM/Swoole integration and concurrency tests, then benchmark static/dynamic matching.
 
+
+
+## 2026-11-05 — Routing hardening and benchmark tooling follow-up
+
+- Hardened malformed request-path handling so invalid/control-character paths fail closed as 404 instead of escaping the dispatcher.
+- Enforced parameter constraints against decoded single path segments; custom regex constraints cannot consume multiple URI segments. PCRE patterns are validated/warmed during route registration.
+- Tightened named URL generation to reject slash, encoded slash and control characters in path parameter values; validated absolute URL bases reject credentials, query strings and fragments.
+- Added resource PATCH update routes with a distinct `<resource>.update.patch` name, and retained the conventional PUT update route name.
+- Enforced HEAD body suppression after the complete global middleware pipeline in the shared Kernel, so both FPM and Swoole emit an empty body even if middleware modifies it.
+- Added a reproducible benchmark script for 100/1,000/10,000 route tables. The benchmark has not been run; results must be collected on a stable local host.
+- Added tests for malformed paths, segment-safe custom constraints, explicit OPTIONS, HEAD through global middleware, resource PATCH and request-local match parameters.
+- Local checkout attempt failed because this environment cannot resolve github.com; PHPUnit/vendor dependencies are not present. No GitHub Actions were run, as requested.
