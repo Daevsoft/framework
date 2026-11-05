@@ -134,34 +134,37 @@ final class Route
         }
     }
 
-    public static function resource(string $name, string $controller): ResourceRouteRegistrar
+    public static function resource(string $name, string $controller, string $parameter = 'id'): ResourceRouteRegistrar
     {
-        return self::registerResourceRoutes($name, $controller, false);
+        return self::registerResourceRoutes($name, $controller, false, $parameter);
     }
 
-    public static function apiResource(string $name, string $controller): ResourceRouteRegistrar
+    public static function apiResource(string $name, string $controller, string $parameter = 'id'): ResourceRouteRegistrar
     {
-        return self::registerResourceRoutes($name, $controller, true);
+        return self::registerResourceRoutes($name, $controller, true, $parameter);
     }
 
     /** @internal */
-    private static function registerResourceRoutes(string $name, string $controller, bool $apiOnly): ResourceRouteRegistrar
+    private static function registerResourceRoutes(string $name, string $controller, bool $apiOnly, string $parameter): ResourceRouteRegistrar
     {
+        if (preg_match('/\\A[A-Za-z_][A-Za-z0-9_]*\\z/D', $parameter) !== 1) {
+            throw new \\InvalidArgumentException('Resource parameter must be a valid route parameter name.');
+        }
         $router = self::resolveRouter();
         $baseName = str_replace('/', '.', trim($name, '/'));
         $routes = [];
 
-        self::prefix('/' . trim($name, '/'), static function () use ($controller, $apiOnly, $baseName, &$routes): void {
+        self::prefix('/' . trim($name, '/'), static function () use ($controller, $apiOnly, $baseName, $parameter, &$routes): void {
             $routes['index'][] = self::get('', "{$controller}@index")->name($baseName . '.index');
             if (!$apiOnly) {
                 $routes['create'][] = self::get('/create', "{$controller}@create")->name($baseName . '.create');
             }
             $routes['store'][] = self::post('', "{$controller}@store")->name($baseName . '.store');
-            $routes['show'][] = self::get('/{id}', "{$controller}@show")->name($baseName . '.show');
+            $routes['show'][] = self::get('/{' . $parameter . '}', "{$controller}@show")->name($baseName . '.show');
             if (!$apiOnly) {
-                $routes['edit'][] = self::get('/{id}/edit', "{$controller}@edit")->name($baseName . '.edit');
+                $routes['edit'][] = self::get('/{' . $parameter . '}/edit', "{$controller}@edit")->name($baseName . '.edit');
             }
-            $routes['update'][] = self::put('/{id}', "{$controller}@update")->name($baseName . '.update');
+            $routes['update'][] = self::put('/{' . $parameter . '}', "{$controller}@update")->name($baseName . '.update');
             $routes['destroy'][] = self::delete('/{id}', "{$controller}@destroy")->name($baseName . '.destroy');
         });
 
