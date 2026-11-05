@@ -55,7 +55,10 @@ This file is the working checklist for developing applications on v4. It is **no
 - [ ] Define routes in `app/routes/web.php` or `app/routes/api.php`
 - [ ] Use parameterized routes and verify route parameters
 - [ ] Use controller callables or the supported v3-style controller group/attributes
-- [ ] Test 404, invalid parameters, unsupported methods and handler exceptions
+- [ ] Complete the task breakdown in [ROUTING_PHASE.md](ROUTING_PHASE.md) before marking routing complete
+- [ ] Test 404 vs 405/Allow, HEAD body suppression, OPTIONS/CORS, invalid/encoded parameters and handler exceptions
+- [ ] Verify named route URL generation, parameter constraints, nested middleware order and route:list output
+- [ ] Verify route parameter isolation under concurrent Swoole requests and FPM parity
 - [x] WebSocket mode has a live-client upgrade/message smoke test and same-server cross-worker IPC fan-out
 - [ ] Do not assume WebSocket delivery works across separate server instances or is production-grade; Redis/SSE, heartbeat, backpressure and channel authorization remain open
 
