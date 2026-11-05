@@ -615,3 +615,6 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 
 - Added a UTF-8 dynamic route parameter round-trip regression test for matching and named URL generation; routing semantics suite now contains 41 test methods (not yet executed).
+
+
+- Added a route-list command regression test for the METHOD/URI/NAME/HANDLER/MIDDLEWARE columns and application route output; routing semantics suite now contains 42 test methods (not yet executed).
