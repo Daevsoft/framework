@@ -605,3 +605,10 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Verified the recursive-encoding guard patterns with the local PHP CLI. This does not replace executing the PHPUnit suite.
 - Re-inspected application route declarations and the route-list/dispatcher integration. FPM/Swoole runtime parity, full v3 call-site compatibility and benchmark measurements remain open.
 - No GitHub Actions were run. The environment still lacks a local repository checkout and PHPUnit dependencies.
+
+
+## 2026-11-05 — Routing benchmark coverage refinement
+
+- Expanded `benchmarks/routing.php` with full `RequestDispatcher` scenarios for HTTP 404 and 405 responses, in addition to direct Router matching and method negotiation.
+- Corrected percentile indexing to use nearest-rank calculation.
+- Benchmark execution and measurement on a stable host remain pending; no performance results are claimed.
