@@ -171,7 +171,7 @@ final class Router
      * Generate a URL from a registered route name. Unused parameters become
      * a query string; required path parameters must be supplied explicitly.
      *
-     * @param array<string, scalar|null> $parameters
+     * @param array<string, scalar> $parameters
      */
     public function urlFor(string $name, array $parameters = [], bool $absolute = false, ?string $baseUrl = null): string
     {
