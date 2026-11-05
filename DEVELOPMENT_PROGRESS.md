@@ -538,3 +538,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Reconfirmed the WebSocket production boundary: same-server IPC fan-out exists, but private/presence channel authorization, cross-instance transport, heartbeat and bounded outbound backpressure are not yet implemented. No unauthenticated private-channel behavior is being introduced.
 - Workstreams remain active: v3 method-by-method parity, schema/model edge cases, template/helper/CLI comparison, Swoole lifecycle/performance hardening and FPM regression coverage.
 - Verification: source and GitHub Contents API responses checked; isolated PHP syntax snippets for the new route-history methods, regression-test structure and callback invocation pass `php -l`. The repository files/full PHPUnit suite and GitHub Actions have not been run or awaited in this session. User will report the latest Actions result.
+
+
+## 2026-11-05 — Routing completion phase breakdown
+
+- Inspected the current v4 Router, Route metadata, app-level Route DSL, controller attributes, roadmap, checklist and v3 migration matrix.
+- Created `ROUTING_PHASE.md` with the RTE-00–RTE-10 task breakdown, acceptance criteria, priority/dependency order, performance constraints and explicit deferred candidates.
+- Defined professional application priorities: deterministic route registration, constraints, 404/405/HEAD/OPTIONS semantics, named routes/URL generation, middleware ordering, resource ergonomics, fallback and route introspection.
+- Kept host/subdomain matching, serialized route cache, implicit model binding and router-level rate limiting deferred pending concrete use cases or benchmark evidence.
+- Synchronized `AUDIT_AND_ROADMAP.md`, `DEVELOPMENT_CHECKLIST.md`, `V3_TO_V4_MIGRATION.md` and `IMPLEMENTATION_SUMMARY.md` to reference the phase plan.
+- Documentation-only planning batch. No routing source, tests or runtime behavior changed; no GitHub Actions run.
