@@ -548,3 +548,18 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Kept host/subdomain matching, serialized route cache, implicit model binding and router-level rate limiting deferred pending concrete use cases or benchmark evidence.
 - Synchronized `AUDIT_AND_ROADMAP.md`, `DEVELOPMENT_CHECKLIST.md`, `V3_TO_V4_MIGRATION.md` and `IMPLEMENTATION_SUMMARY.md` to reference the phase plan.
 - Documentation-only planning batch. No routing source, tests or runtime behavior changed; no GitHub Actions run.
+
+
+## 2026-11-05 — Routing implementation batch (RTE-01 through RTE-08)
+
+- Hardened route registration: normalized paths, rejected duplicate method/path definitions and malformed/duplicate parameter placeholders, and kept static lookup ahead of dynamic matching.
+- Added registration-time compiled parameter constraints: `where()`, `whereNumber()`, `whereAlpha()`, `whereAlphaNumeric()`, and `whereUuid()`. Encoded slash, double-encoded slash and decoded control characters are rejected in route parameters.
+- Added HTTP semantics in the dispatcher: 405 with `Allow`, automatic OPTIONS, explicit HEAD routes, HEAD-to-GET fallback and body suppression for HEAD success/error responses.
+- Added unique named routes, `Router::urlFor()` and `Route::url()`; URL parameters use RFC 3986 encoding, required values and constraints are validated, and absolute URLs require an explicit validated HTTP(S) base URL.
+- Added route removal for resource selection, `apiResource()`, fluent `only()` / `except()`, and explicit resource parameter names while retaining the seven-action `resource()` behavior.
+- Added a single explicit fallback route, invoked only when neither a route nor a path-level method match exists.
+- Extended `route:list` with route names, handlers, middleware and constraints; added the `Head` controller attribute.
+- Added `tests/Routing/RoutingSemanticsTest.php` covering registration validation, constraints, HTTP method semantics, URL generation, fallback, resource selection, nested groups and attribute middleware.
+- Updated README, API, migration, roadmap and phase docs. Focused tests have **not yet been executed** because a local checkout/dependency install is unavailable; no GitHub Actions were run, per instruction.
+- Follow-up still required: inspect and execute the full routing suite, audit the complete v3 public routing contract, add FPM/Swoole integration and concurrency tests, then benchmark static/dynamic matching.
+
