@@ -190,9 +190,9 @@ final class RoutingSemanticsTest extends TestCase
         RouteDsl::resource('posts', 'App\\Http\\Controllers\\PostController')
             ->except(['create', 'edit']);
 
-        self::assertCount(5, $router->all());
+        self::assertCount(6, $router->all());
         self::assertArrayNotHasKey('posts.create', $router->namedRoutes());
-        self::assertNotNull($router->match('POST', '/posts'));
+        self::assertNotNull($router->match('POST', '/posts'));\n        self::assertNotNull($router->match('PATCH', '/posts/42'));
     }
 
     public function testFallbackCanOnlyBeRegisteredOnce(): void
