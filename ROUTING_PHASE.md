@@ -44,6 +44,24 @@ This document is the implementation contract and task breakdown for completing v
 
 The current Router keeps static and dynamic routes in separate method registries. Dynamic patterns are compiled on registration. The app-level Route DSL uses static prefix/middleware stacks that are restored in `finally`; this must remain safe under nested registration and must not be used to mutate routes during request handling.
 
+## Implementation progress — 2026-11-05
+
+The following code batches have been pushed to `v4`. Regression tests have been added, but this environment cannot run the repository's PHPUnit suite because the repository checkout/dependencies are not available locally. GitHub Actions have intentionally not been triggered. Therefore, these are **implemented, pending focused test execution and review**, not certified-complete tasks.
+
+| Task | Implementation progress | Remaining verification |
+|---|---|---|
+| RTE-00 | Inspected v4 router/DSL/dispatcher/attributes/route:list and existing tests; reviewed the v3 routing contract in the migration audit | Exhaustive method/signature/side-effect inventory and full caller audit |
+| RTE-01 | Duplicate definitions, malformed/repeated placeholders, path normalization and deterministic static-before-dynamic precedence | Full edge-case test run and overlap policy review |
+| RTE-02 | Custom and common parameter constraints compile at registration; URL parameter values are encoded and validated | Adversarial regex review and performance tests |
+| RTE-03 | 405 + Allow, automatic OPTIONS, explicit HEAD and HEAD-to-GET fallback with body suppression | FPM/Swoole integration parity |
+| RTE-04 | Unique route names, relative/absolute URL generation and query-string parameters | Request-context absolute URL convenience is intentionally not implicit |
+| RTE-05 | Nested prefix/middleware restoration and attribute middleware composition | Concurrent bootstrap/registration boundary and inherited/repeated attribute tests |
+| RTE-06 | apiResource/resource route registrar, only/except selectors and explicit resource parameter names | Full route matrix and compatibility tests |
+| RTE-07 | One explicit fallback route, dispatched only after no path/method match | FPM/Swoole integration and fallback exception coverage |
+| RTE-08 | route:list now reports name, handler, middleware and constraints | CLI output regression tests and optional machine-readable format |
+| RTE-09 | Added unit-level tests for matching, encoded input, groups and request-local matched route clones | Swoole concurrency/security stress tests |
+| RTE-10 | Not started | Reproducible benchmarks and release certification |
+
 ## 3. Developer-facing API direction
 
 Keep the existing API working:
