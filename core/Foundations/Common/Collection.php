@@ -26,6 +26,18 @@ class Collection extends ArrayIterator implements JsonSerializable
         // Kept as a no-op for source compatibility with v3 subclasses.
     }
 
+    /**
+     * Replace the iterator contents while retaining the legacy ArrayIterator
+     * inheritance contract. ArrayIterator does not provide exchangeArray()
+     * (that method belongs to ArrayObject).
+     *
+     * Reinitializing the parent also resets its internal iterator position.
+     */
+    private function replaceItems(array $items): void
+    {
+        parent::__construct($items);
+    }
+
     public function add(mixed $key, mixed $value): array
     {
         $items = $this->getArrayCopy();
@@ -296,7 +308,7 @@ class Collection extends ArrayIterator implements JsonSerializable
         $items = $this->getArrayCopy();
         $value = array_key_exists($key, $items) ? $items[$key] : $default;
         self::forgetNested($items, (string) $key);
-        $this->exchangeArray($items);
+        $this->replaceItems($items);
         return $value;
     }
 
@@ -324,7 +336,7 @@ class Collection extends ArrayIterator implements JsonSerializable
     {
         $items = $this->getArrayCopy();
         self::setNested($items, (string) $key, $value);
-        $this->exchangeArray($items);
+        $this->replaceItems($items);
         return $items;
     }
 
@@ -437,7 +449,7 @@ class Collection extends ArrayIterator implements JsonSerializable
     public function unserialize(string $data): void
     {
         $items = unserialize($data, ['allowed_classes' => false]);
-        $this->exchangeArray(is_array($items) ? $items : []);
+        $this->replaceItems(is_array($items) ? $items : []);
     }
 
     public function __serialize(): array
