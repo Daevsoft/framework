@@ -146,8 +146,14 @@ final class RoutingSemanticsTest extends TestCase
         $router = new Router();
         $router->add('GET', '/users', static fn () => 'index')->name('users.index');
 
-        $this->expectException(InvalidArgumentException::class);
-        $router->add('GET', '/users/{id}', static fn () => 'show')->name('users.index');
+        try {
+            $router->add('GET', '/users/{id}', static fn () => 'show')->name('users.index');
+            self::fail('Duplicate route names must be rejected.');
+        } catch (InvalidArgumentException) {
+            self::assertTrue(true);
+        }
+
+        self::assertNull($router->match('GET', '/users/42'));
     }
 
 
