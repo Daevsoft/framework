@@ -167,6 +167,11 @@ final class Router
         return $this->allowedMethods($path) !== [];
     }
 
+    public function isValidPath(string $path): bool
+    {
+        return self::normalizeLookupPath($path) !== null;
+    }
+
     /**
      * Generate a URL from a registered route name. Unused parameters become
      * a query string; required path parameters must be supplied explicitly.
