@@ -265,3 +265,13 @@ php benchmarks/routing.php --iterations=1000 --sizes=100,1000,10000
 ```
 
 The script reports static hit, last dynamic hit, not-found and method-negotiation latency percentiles, throughput, bootstrap time and route-table memory delta. Run multiple times on an otherwise idle machine using the same PHP build. Do not use synthetic results as production capacity claims.
+
+
+## 2026-11-05 — Post-implementation compatibility audit
+
+- Re-audited the current Router, Route, RequestDispatcher, Kernel, Route DSL, resource registrar, RouteMatcher, route-list command and application route declarations.
+- Found that the legacy list-based `RouteMatcher` facade rebuilt route definitions without carrying over constraints, names or middleware. It now preserves those registration-time properties when adapting definitions to the current Router.
+- Hardened encoded path-segment validation against recursively encoded slash, backslash, dot-segment and control-byte sequences. The same guard is applied to incoming paths, decoded dynamic parameters and named URL parameter values.
+- Added regression cases for triple-encoded separators, encoded backslashes, recursively encoded URL parameters and legacy RouteMatcher metadata preservation.
+- The test file now contains 40 routing semantics test methods. This is a source-level count only; PHPUnit has not been executed.
+- Remaining release blockers: full PHPUnit run, FPM/Swoole integration parity, Swoole concurrency stress, complete v3 call-site compatibility review and measured benchmark results. No performance index/trie has been added without benchmark evidence.
