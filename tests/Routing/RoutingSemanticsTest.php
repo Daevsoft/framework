@@ -247,7 +247,7 @@ final class RoutingSemanticsTest extends TestCase
         }
 
         self::assertSame(0, $exitCode);
-        foreach (['METHOD', 'URI', 'NAME', 'HANDLER', 'MIDDLEWARE', '/health'] as $expected) {
+        foreach (['METHOD', 'URI', 'NAME', 'HANDLER', 'MIDDLEWARE', '/health', 'WS', '/ws'] as $expected) {
             self::assertStringContainsString($expected, $output);
         }
     }
