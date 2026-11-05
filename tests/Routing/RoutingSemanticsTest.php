@@ -419,6 +419,7 @@ final class RoutingSemanticsTest extends TestCase
     {
         $router = new Router();
         $router->add('GET', '/health', static fn () => 'ok');
+        $router->setFallback(static fn () => Response::text('fallback'));
 
         self::assertNull($router->match('GET', "/health\0bad"));
         self::assertSame([], $router->allowedMethods("/health\0bad"));
