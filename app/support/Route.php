@@ -45,7 +45,7 @@ final class Route
     public static function patch(string $path, mixed $handler): \Ds\Routing\Route { return self::register('PATCH', $path, $handler); }
     public static function delete(string $path, mixed $handler): \Ds\Routing\Route { return self::register('DELETE', $path, $handler); }
     public static function options(string $path, mixed $handler): \Ds\Routing\Route { return self::register('OPTIONS', $path, $handler); }
-    public static function head(string $path, mixed $handler): \\Ds\\Routing\\Route { return self::register('HEAD', $path, $handler); }\n    public static function ws(string $path, mixed $handler): \Ds\Routing\Route { return self::register('WS', $path, $handler); }
+    public static function head(string $path, mixed $handler): \Ds\Routing\Route { return self::register('HEAD', $path, $handler); }\n    public static function ws(string $path, mixed $handler): \Ds\Routing\Route { return self::register('WS', $path, $handler); }
 
     /** Generate a URL for a named route registered during application bootstrap. */
     public static function url(string $name, array $parameters = [], bool $absolute = false, ?string $baseUrl = null): string
@@ -53,7 +53,7 @@ final class Route
         return self::resolveRouter()->urlFor($name, $parameters, $absolute, $baseUrl);
     }
 
-    public static function fallback(mixed $handler): \\Ds\\Routing\\Route
+    public static function fallback(mixed $handler): \Ds\Routing\Route
     {
         $route = self::resolveRouter()->setFallback($handler);
         if (self::$middlewares !== []) {
