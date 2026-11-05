@@ -11,6 +11,7 @@ use Ds\Middleware\MiddlewareStack;
 use Ds\Http\RequestDispatcher;
 use Ds\Http\Response;
 use Ds\Routing\Router;
+use Ds\Routing\RouteMatcher;
 use App\Support\Route as RouteDsl;
 use App\Support\RouteRegistry;
 use Ds\Routing\Attributes\Get;
@@ -52,6 +53,25 @@ final class RoutingSemanticsTest extends TestCase
 
         self::assertSame('42', $router->match('GET', '/orders/42')?->params['id']);
         self::assertNull($router->match('GET', '/orders/not-a-number'));
+    }
+
+    public function testLegacyRouteMatcherPreservesConstraintsMiddlewareAndNames(): void
+    {
+        $definition = (new Router())
+            ->add('GET', '/orders/{id}', static fn (int $id): string => (string) $id)
+            ->whereNumber('id')
+            ->middleware('auth')
+            ->name('orders.show');
+
+        $matcher = new RouteMatcher();
+        $matched = $matcher->match('GET', '/orders/42', [$definition]);
+
+        self::assertNotNull($matched);
+        self::assertSame(['id' => '42'], $matched->params);
+        self::assertSame(['id' => '[0-9]+'], $matched->constraints);
+        self::assertSame(['auth'], $matched->middlewares);
+        self::assertSame('orders.show', $matched->routeName);
+        self::assertNull($matcher->match('GET', '/orders/not-a-number', [$definition]));
     }
 
     public function testUuidConstraintSupportsQuantifiers(): void
