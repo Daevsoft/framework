@@ -62,7 +62,7 @@ foreach ($sizes as $size) {
     }
 
     $bootstrapMs = (hrtime(true) - $bootstrapStart) / 1_000_000;
-    $memoryBytes = max(0, memory_get_usage(true) - $memoryBefore);
+    $memoryBytes = max(0, memory_get_usage(false) - $memoryBefore);
     $dynamicTarget = '/dynamic/segment-' . ($dynamicCount - 1) . '/42';
 
     $scenarios = [
@@ -88,7 +88,7 @@ foreach ($sizes as $size) {
     printf(
         "         bootstrap: %.3f ms | route-table memory delta: %d bytes | peak PHP memory: %d bytes\n",
         $bootstrapMs,
-        max(0, $memoryBytes - memory_get_usage(true)),
+        $memoryBytes,
         memory_get_peak_usage(false)
     );
     unset($router, $scenarios);
