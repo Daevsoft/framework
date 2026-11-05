@@ -612,3 +612,6 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Expanded `benchmarks/routing.php` with full `RequestDispatcher` scenarios for HTTP 404 and 405 responses, in addition to direct Router matching and method negotiation.
 - Corrected percentile indexing to use nearest-rank calculation.
 - Benchmark execution and measurement on a stable host remain pending; no performance results are claimed.
+
+
+- Added a UTF-8 dynamic route parameter round-trip regression test for matching and named URL generation; routing semantics suite now contains 41 test methods (not yet executed).
