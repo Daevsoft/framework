@@ -618,3 +618,6 @@ This document is the durable work log and implementation roadmap for the v4 bran
 
 
 - Added a route-list command regression test for the METHOD/URI/NAME/HANDLER/MIDDLEWARE columns and application route output; routing semantics suite now contains 42 test methods (not yet executed).
+
+
+- Corrected `route:list` to load `app/routes/websocket.php` as the Swoole bootstrap does, so the command no longer omits registered WebSocket endpoints; its regression test now asserts `WS /ws` appears.
