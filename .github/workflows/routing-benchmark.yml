@@ -1,4 +1,5 @@
 name: Routing Benchmark
+# Workflow definition update also provides a push-triggered validation run.
 
 on:
   workflow_dispatch:
