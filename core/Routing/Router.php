@@ -17,6 +17,8 @@ final class Router
     /** @var array<string, Route> */
     protected array $namedRoutes = [];
 
+    private ?Route $fallbackRoute = null;
+
     /** @var array<string, string> */
     private const METHODS = ['GET' => 'GET', 'POST' => 'POST', 'PUT' => 'PUT', 'PATCH' => 'PATCH',
         'DELETE' => 'DELETE', 'OPTIONS' => 'OPTIONS', 'HEAD' => 'HEAD', 'WS' => 'WS'];
@@ -64,6 +66,9 @@ final class Router
                 $routes[] = $compiled['route'];
             }
         }
+        if ($this->fallbackRoute !== null) {
+            $routes[] = $this->fallbackRoute;
+        }
         return $routes;
     }
 
@@ -103,6 +108,48 @@ final class Router
         }
         sort($allowed);
         return $allowed;
+    }
+
+    public function remove(Route $route): bool
+    {
+        $removed = false;
+        if (isset($this->staticRoutes[$route->method][$route->path])
+            && $this->staticRoutes[$route->method][$route->path] === $route) {
+            unset($this->staticRoutes[$route->method][$route->path]);
+            $removed = true;
+        }
+        foreach ($this->dynamicRoutes[$route->method] ?? [] as $index => $compiled) {
+            if ($compiled['route'] === $route) {
+                array_splice($this->dynamicRoutes[$route->method], $index, 1);
+                $removed = true;
+                break;
+            }
+        }
+        foreach ($this->namedRoutes as $name => $named) {
+            if ($named === $route) {
+                unset($this->namedRoutes[$name]);
+            }
+        }
+        $route->onDefinitionChanged(null);
+        return $removed;
+    }
+
+    public function setFallback(mixed $handler): Route
+    {
+        if ($this->fallbackRoute !== null) {
+            throw new InvalidArgumentException('Only one fallback route may be registered.');
+        }
+        if (!is_callable($handler) && !(is_array($handler) && count($handler) === 2)
+            && !(is_string($handler) && str_contains($handler, '@'))) {
+            throw new InvalidArgumentException('Fallback handler must be callable or a controller handler.');
+        }
+        $this->fallbackRoute = new Route('FALLBACK', '*', $handler);
+        return $this->fallbackRoute;
+    }
+
+    public function fallbackRoute(): ?Route
+    {
+        return $this->fallbackRoute;
     }
 
     public function hasPath(string $path): bool
