@@ -175,4 +175,3 @@ final class Route
         return new ResourceRouteRegistrar($router, $routes);
     }
 }
-}
