@@ -479,6 +479,25 @@ final class RoutingSemanticsTest extends TestCase
         self::assertNull($router->match('GET', '/files/%250Aname'));
     }
 
+
+    public function testFailedRouteRenamePreservesPreviousNameRegistration(): void
+    {
+        $router = new Router();
+        $first = $router->add('GET', '/first', static fn () => 'first')->name('first');
+        $second = $router->add('GET', '/second', static fn () => 'second')->name('second');
+
+        try {
+            $second->name('first');
+            self::fail('Duplicate route names must be rejected.');
+        } catch (InvalidArgumentException) {
+            self::assertTrue(true);
+        }
+
+        self::assertSame('first', $router->urlFor('first'));
+        self::assertSame('second', $router->urlFor('second'));
+        self::assertSame('second', $second->routeName);
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
