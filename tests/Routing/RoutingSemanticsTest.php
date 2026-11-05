@@ -8,7 +8,9 @@ use Ds\Http\Request;
 use Ds\Http\RequestDispatcher;
 use Ds\Http\Response;
 use Ds\Routing\Router;
-use App\\Support\\Route as RouteDsl;\nuse App\\Support\\RouteRegistry;\nuse InvalidArgumentException;
+use App\Support\Route as RouteDsl;
+use App\Support\RouteRegistry;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 final class RoutingSemanticsTest extends TestCase
