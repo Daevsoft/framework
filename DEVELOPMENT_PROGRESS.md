@@ -585,3 +585,13 @@ This document is the durable work log and implementation roadmap for the v4 bran
 - Resource update now exposes both PUT and PATCH; PATCH uses a distinct `<resource>.update.patch` route name while PUT retains the conventional `<resource>.update` name.
 - Updated migration/usage documentation to describe these boundaries.
 - Tests remain unexecuted because PHPUnit dependencies and a repository checkout are unavailable in this environment. No GitHub Actions were run.
+
+## 2026-11-05 — Routing phase final implementation batch (verification pending)
+
+- Added request-path validity checks so malformed paths return 404 and cannot be consumed by a custom fallback handler.
+- Extended the routing regression suite with constrained dynamic 405 behavior, route-name rename rollback, fluent Router verb helpers, encoded/double-encoded control checks and an optional Swoole coroutine parameter-isolation test.
+- Hardened dynamic segments against decoded slash/backslash, dot-segment traversal values and residual double-encoded separators/control bytes; URL generation applies matching segment restrictions.
+- Added `Router::isValidPath()` for the dispatcher boundary and retained the direct static lookup path.
+- Extended the benchmark to include dynamic 405 method negotiation and corrected its memory accounting to report PHP memory deltas rather than an RSS claim.
+- The phase implementation now covers the core functionality in RTE-01 through RTE-08, adds broad RTE-09 regression coverage and provides RTE-10 benchmark tooling. It is **not certified complete** until PHPUnit, Swoole/FPM integration, concurrency stress and benchmark runs are executed.
+- No GitHub Actions were triggered. Local repository checkout remains blocked by unavailable network/DNS, and no local vendor/PHPUnit installation is present.
