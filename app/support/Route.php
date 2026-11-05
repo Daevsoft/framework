@@ -124,16 +124,37 @@ final class Route
         }
     }
 
-    public static function resource(string $name, string $controller): void
+    public static function resource(string $name, string $controller): ResourceRouteRegistrar
     {
-        self::prefix('/' . trim($name, '/'), static function () use ($controller): void {
-            self::get('', "{$controller}@index");
-            self::get('/create', "{$controller}@create");
-            self::post('', "{$controller}@store");
-            self::get('/{id}', "{$controller}@show");
-            self::get('/{id}/edit', "{$controller}@edit");
-            self::put('/{id}', "{$controller}@update");
-            self::delete('/{id}', "{$controller}@destroy");
+        return self::registerResourceRoutes($name, $controller, false);
+    }
+
+    public static function apiResource(string $name, string $controller): ResourceRouteRegistrar
+    {
+        return self::registerResourceRoutes($name, $controller, true);
+    }
+
+    /** @internal */
+    private static function registerResourceRoutes(string $name, string $controller, bool $apiOnly): ResourceRouteRegistrar
+    {
+        $router = self::resolveRouter();
+        $baseName = str_replace('/', '.', trim($name, '/'));
+        $routes = [];
+
+        self::prefix('/' . trim($name, '/'), static function () use ($controller, $apiOnly, $baseName, &$routes): void {
+            $routes['index'][] = self::get('', "{$controller}@index")->name($baseName . '.index');
+            if (!$apiOnly) {
+                $routes['create'][] = self::get('/create', "{$controller}@create")->name($baseName . '.create');
+            }
+            $routes['store'][] = self::post('', "{$controller}@store")->name($baseName . '.store');
+            $routes['show'][] = self::get('/{id}', "{$controller}@show")->name($baseName . '.show');
+            if (!$apiOnly) {
+                $routes['edit'][] = self::get('/{id}/edit', "{$controller}@edit")->name($baseName . '.edit');
+            }
+            $routes['update'][] = self::put('/{id}', "{$controller}@update")->name($baseName . '.update');
+            $routes['destroy'][] = self::delete('/{id}', "{$controller}@destroy")->name($baseName . '.destroy');
         });
+
+        return new ResourceRouteRegistrar($router, $routes);
     }
 }
