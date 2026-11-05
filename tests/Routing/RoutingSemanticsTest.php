@@ -86,7 +86,7 @@ final class RoutingSemanticsTest extends TestCase
 
         $methodNotAllowed = $dispatcher->dispatch(new Request([], [], 'GET', '/items'));
         self::assertSame(405, $methodNotAllowed->status());
-        self::assertSame('POST, OPTIONS', $methodNotAllowed->headers()['Allow']);
+        self::assertSame('OPTIONS, POST', $methodNotAllowed->headers()['Allow']);
 
         $notFound = $dispatcher->dispatch(new Request([], [], 'GET', '/missing'));
         self::assertSame(404, $notFound->status());
@@ -102,6 +102,45 @@ final class RoutingSemanticsTest extends TestCase
 
         self::assertSame(204, $response->status());
         self::assertSame('GET, HEAD, OPTIONS, POST', $response->headers()['Allow']);
+    }
+
+
+    public function testNamedRouteGeneratesEncodedRelativeAndAbsoluteUrls(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/users/{id}', static fn () => 'show')
+            ->whereNumber('id')
+            ->name('users.show');
+
+        self::assertSame('/users/42?tab=profile', $router->urlFor('users.show', ['id' => 42, 'tab' => 'profile']));
+        self::assertSame('https://example.test/users/42', $router->urlFor('users.show', ['id' => 42], true, 'https://example.test'));
+    }
+
+    public function testNamedRouteRejectsMissingAndConstraintViolatingParameters(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/users/{id}', static fn () => 'show')
+            ->whereNumber('id')
+            ->name('users.show');
+
+        try {
+            $router->urlFor('users.show');
+            self::fail('Missing route parameters must fail.');
+        } catch (InvalidArgumentException) {
+            self::assertTrue(true);
+        }
+
+        $this->expectException(InvalidArgumentException::class);
+        $router->urlFor('users.show', ['id' => 'not-numeric']);
+    }
+
+    public function testDuplicateRouteNamesAreRejected(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/users', static fn () => 'index')->name('users.index');
+
+        $this->expectException(InvalidArgumentException::class);
+        $router->add('GET', '/users/{id}', static fn () => 'show')->name('users.index');
     }
 
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
