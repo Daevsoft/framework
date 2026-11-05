@@ -454,6 +454,18 @@ final class RoutingSemanticsTest extends TestCase
         self::assertSame(['first' => '101', 'second' => '202'], $results);
     }
 
+
+    public function testRouterVerbHelpersReturnFluentRouteDefinitions(): void
+    {
+        $router = new Router();
+        $route = $router->get('/posts/{id}', static fn () => 'show')
+            ->whereNumber('id')
+            ->name('posts.show');
+
+        self::assertSame('posts.show', $route->routeName);
+        self::assertNotNull($router->match('GET', '/posts/12'));
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
