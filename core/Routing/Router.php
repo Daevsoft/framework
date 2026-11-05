@@ -84,7 +84,11 @@ final class Router
 
         // RFC-compatible HEAD fallback: execute the GET handler, but let the
         // dispatcher/emitter suppress the response body for the HEAD request.
-        if ($method !== 'HEAD') {\n            return null;\n        }\n        $getRoute = $this->matchMethod('GET', $path);\n        return $getRoute?->matched($getRoute->params, 'HEAD');
+        if ($method !== 'HEAD') {
+            return null;
+        }
+        $getRoute = $this->matchMethod('GET', $path);
+        return $getRoute?->matched($getRoute->params, 'HEAD');
     }
 
     /** @return list<string> Methods explicitly registered for this path. */
@@ -195,7 +199,11 @@ final class Router
         }
         if ($baseUrl === null || filter_var($baseUrl, FILTER_VALIDATE_URL) === false
             || !in_array(strtolower((string) parse_url($baseUrl, PHP_URL_SCHEME)), ['http', 'https'], true)
-            || parse_url($baseUrl, PHP_URL_HOST) === null\n            || parse_url($baseUrl, PHP_URL_USER) !== null\n            || parse_url($baseUrl, PHP_URL_PASS) !== null\n            || parse_url($baseUrl, PHP_URL_QUERY) !== null\n            || parse_url($baseUrl, PHP_URL_FRAGMENT) !== null) {
+            || parse_url($baseUrl, PHP_URL_HOST) === null
+            || parse_url($baseUrl, PHP_URL_USER) !== null
+            || parse_url($baseUrl, PHP_URL_PASS) !== null
+            || parse_url($baseUrl, PHP_URL_QUERY) !== null
+            || parse_url($baseUrl, PHP_URL_FRAGMENT) !== null) {
             throw new InvalidArgumentException('Absolute route URLs require a valid HTTP(S) base URL.');
         }
         return rtrim($baseUrl, '/') . $path;
