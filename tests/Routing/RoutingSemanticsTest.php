@@ -343,6 +343,16 @@ final class RoutingSemanticsTest extends TestCase
         self::assertNull($router->match('GET', '/slugs/My_Post'));
     }
 
+
+    public function testCustomConstraintCannotConsumeMultiplePathSegments(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/files/{name}', static fn () => 'ok')->where('name', '.*');
+
+        self::assertNotNull($router->match('GET', '/files/report.txt'));
+        self::assertNull($router->match('GET', '/files/private/report.txt'));
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
