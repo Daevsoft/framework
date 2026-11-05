@@ -183,8 +183,9 @@ final class SwooleServer
             $swooleResponse->status(500);
             $swooleResponse->end('Internal Server Error');
         } finally {
+            // Lifecycle observers must not break request teardown or leak output into the response.
             try { $lifecycle->emit('request.handled', ['request' => $request, 'response' => $response]); }
-            catch (Throwable $exception) { error_log((string) $exception); }
+            catch (Throwable) { /* The request has already been handled; cleanup must continue quietly. */ }
             try { $container->endRequest(); }
             finally {
                 $context?->clear();
@@ -199,8 +200,9 @@ final class SwooleServer
         mixed $server,
         int $workerId
     ): void {
+        // A failing application listener must not prevent worker resource cleanup.
         try { $lifecycle->emit('worker.stop', ['server' => $server, 'worker_id' => $workerId]); }
-        catch (Throwable $exception) { error_log((string) $exception); }
+        catch (Throwable) { /* Cleanup continues; do not write exception traces to CLI output. */ }
 
         WebSocketHub::default()->clear();
         WebSocketHub::replaceDefault(null);
