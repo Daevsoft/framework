@@ -52,15 +52,15 @@ The following code batches have been pushed to `v4`. Regression tests have been 
 |---|---|---|
 | RTE-00 | Inspected v4 router/DSL/dispatcher/attributes/route:list and v3 Route/BaseRoute/RouteData/RouteProvider/attribute sources; detailed findings added to `V3_API_INVENTORY.md` | Exhaustive v4 call-site inventory and application-specific migration review |
 | RTE-01 | Duplicate definitions, malformed/repeated placeholders, path normalization and deterministic static-before-dynamic precedence | Full edge-case test run and overlap policy review |
-| RTE-02 | Custom and common parameter constraints are validated/warmed at registration; matching captures one segment and validates decoded values; URL parameter values are encoded and validated | Adversarial regex review and performance tests |
+| RTE-02 | Custom and common parameter constraints are validated/warmed at registration; matching captures one segment and validates decoded values; encoded separators, dot segments and control characters are rejected; URL parameter values are encoded and validated | Adversarial regex review and performance tests |
 | RTE-03 | 405 + Allow, automatic OPTIONS, explicit HEAD and HEAD-to-GET fallback; shared Kernel suppresses HEAD bodies after global middleware | FPM/Swoole integration parity and protocol-level verification |
 | RTE-04 | Unique route names, relative/absolute URL generation and query-string parameters | Request-context absolute URL convenience is intentionally not implicit |
 | RTE-05 | Nested prefix/middleware restoration and attribute middleware composition | Concurrent bootstrap/registration boundary and inherited/repeated attribute tests |
 | RTE-06 | resource/apiResource route registrar, only/except selectors, explicit parameter names and PUT/PATCH update endpoints | Full route matrix and compatibility tests |
 | RTE-07 | One explicit fallback route, dispatched only after no path/method match | FPM/Swoole integration and fallback exception coverage |
 | RTE-08 | route:list now reports name, handler, middleware and constraints | CLI output regression tests and optional machine-readable format |
-| RTE-09 | Added unit-level tests for matching, encoded input, groups and request-local matched route clones | Swoole concurrency/security stress tests |
-| RTE-10 | Added `benchmarks/routing.php` for static hits, last dynamic hits, misses and method negotiation at configurable route-table sizes | Execute on a stable local machine, record p50/p95/p99, throughput, bootstrap time and memory; compare before/after any index optimization |
+| RTE-09 | Added unit tests for matching, encoded input, groups, request-local matched route clones and optional Swoole coroutine interleaving | Swoole concurrency/security stress tests |
+| RTE-10 | Added `benchmarks/routing.php` for static hits, last dynamic hits, misses, and static/dynamic method negotiation at configurable route-table sizes | Execute on a stable local machine, record p50/p95/p99, throughput, bootstrap time and memory; compare before/after any index optimization |
 
 ### v3 routing compatibility findings
 
