@@ -74,6 +74,18 @@ final class RoutingSemanticsTest extends TestCase
         self::assertNull($matcher->match('GET', '/orders/not-a-number', [$definition]));
     }
 
+    public function testUnicodePathParametersAreDecodedAndEncodedSafely(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/users/{name}', static fn (string $name): string => $name)
+            ->name('users.show');
+
+        $matched = $router->match('GET', '/users/Jos%C3%A9');
+        self::assertNotNull($matched);
+        self::assertSame('José', $matched->params['name']);
+        self::assertSame('/users/Jos%C3%A9', $router->urlFor('users.show', ['name' => 'José']));
+    }
+
     public function testUuidConstraintSupportsQuantifiers(): void
     {
         $router = new Router();
