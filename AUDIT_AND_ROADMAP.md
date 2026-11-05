@@ -52,7 +52,7 @@ The table below records findings from the initial v4 audit; it is not a statemen
 
 - [x] Implement the initial Swoole WebSocket server lifecycle, per-worker connection registry, subscriptions and local channel broadcast. **Implemented and unit-tested.**
 - [ ] Add WebSocket heartbeat, bounded backpressure, channel authorization, shared cross-worker pub/sub and real-client integration coverage. See `V3_API_INVENTORY.md`.
-- [ ] Complete route naming/URL generation, constraints, method-not-allowed handling and HEAD support.
+- [ ] Complete routing phase RTE-00–RTE-10 as specified in [ROUTING_PHASE.md](ROUTING_PHASE.md): registration correctness, constraints, 404/405/HEAD/OPTIONS, named URLs, middleware/attribute consistency, resource routes, fallback, route diagnostics, isolation/security and benchmarks.
 - [ ] Complete uploaded-file handling, cookie APIs and content negotiation.
 - [x] Add Swoole task-worker dispatch for serializable `Task` objects via `TaskDispatcher`. This is ephemeral async execution only.
 - [ ] Add durable queue storage, retries, delayed scheduling, failed-job persistence and worker integration tests; timer Scheduler and task dispatch are not a durable queue.
