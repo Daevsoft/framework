@@ -35,8 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      BENCH_ITERATIONS: ${{ inputs.iterations || '1000' }}
-      BENCH_SIZES: ${{ inputs.sizes || '100,1000,10000' }}
+      BENCH_ITERATIONS: ${{ github.event.inputs.iterations || '1000' }}
+      BENCH_SIZES: ${{ github.event.inputs.sizes || '100,1000,10000' }}
 
     steps:
       - name: Checkout
@@ -56,9 +56,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          [[ "$BENCH_ITERATIONS" =~ ^[0-9]+$ ]]
+          [[ "$BENCH_ITERATIONS" =~ ^[1-9][0-9]*$ ]]
           (( BENCH_ITERATIONS >= 10 && BENCH_ITERATIONS <= 5000 ))
-          [[ "$BENCH_SIZES" =~ ^[0-9]+(,[0-9]+)*$ ]]
+          [[ "$BENCH_SIZES" =~ ^[1-9][0-9]*(,[1-9][0-9]*)*$ ]]
           IFS=',' read -ra sizes <<< "$BENCH_SIZES"
           for size in "${sizes[@]}"; do
             (( size >= 2 && size <= 10000 ))
