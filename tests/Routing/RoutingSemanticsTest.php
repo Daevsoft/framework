@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Routing;
 
+use Ds\Console\Commands\RouteList;
 use Ds\Http\Request;
 use Ds\Http\Kernel;
 use Ds\Middleware\MiddlewarePipeline;
@@ -232,6 +233,23 @@ final class RoutingSemanticsTest extends TestCase
         self::assertArrayNotHasKey('posts.create', $router->namedRoutes());
         self::assertNotNull($router->match('POST', '/posts'));
         self::assertNotNull($router->match('PATCH', '/posts/42'));
+    }
+
+    public function testRouteListDisplaysDiagnosticColumnsAndRegisteredRoutes(): void
+    {
+        ob_start();
+        try {
+            $exitCode = (new RouteList())->handle();
+            $output = (string) ob_get_contents();
+        } finally {
+            ob_end_clean();
+            RouteRegistry::setRouter(new Router());
+        }
+
+        self::assertSame(0, $exitCode);
+        foreach (['METHOD', 'URI', 'NAME', 'HANDLER', 'MIDDLEWARE', '/health'] as $expected) {
+            self::assertStringContainsString($expected, $output);
+        }
     }
 
     public function testFallbackCanOnlyBeRegisteredOnce(): void
