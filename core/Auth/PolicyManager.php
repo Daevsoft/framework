@@ -24,8 +24,7 @@ final class PolicyManager
 
         try {
             return $policy($subject) === true;
-        } catch (Throwable $exception) {
-            error_log((string) $exception);
+        } catch (Throwable) {
             return false;
         }
     }
