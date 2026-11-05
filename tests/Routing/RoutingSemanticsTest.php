@@ -474,7 +474,8 @@ final class RoutingSemanticsTest extends TestCase
 
         self::assertNull($router->match('GET', '/files/..'));
         self::assertNull($router->match('GET', '/files/%2e%2e'));
-        self::assertNull($router->match('GET', '/files/%5Cwindows'));\n        self::assertNull($router->match('GET', '/files/%250Aname'));
+        self::assertNull($router->match('GET', '/files/%5Cwindows'));
+        self::assertNull($router->match('GET', '/files/%250Aname'));
     }
 
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
