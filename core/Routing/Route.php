@@ -56,7 +56,7 @@ final class Route
         $previous = $this->routeName;
         $this->routeName = $name;
         try {
-            if ($this->definitionChanged !== null) { ($this->definitionChanged)($this); }
+            if ($this->definitionChanged !== null) { ($this->definitionChanged)($this, $previous); }
         } catch (\Throwable $exception) {
             $this->routeName = $previous;
             throw $exception;
