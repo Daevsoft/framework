@@ -353,6 +353,16 @@ final class RoutingSemanticsTest extends TestCase
         self::assertNull($router->match('GET', '/files/private/report.txt'));
     }
 
+
+    public function testNamedRouteRejectsValuesThatWouldBreakPathSegments(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/files/{name}', static fn () => 'ok')->name('files.show');
+
+        $this->expectException(InvalidArgumentException::class);
+        $router->urlFor('files.show', ['name' => 'private/report.txt']);
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
