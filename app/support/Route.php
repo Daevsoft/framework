@@ -169,7 +169,7 @@ final class Route
                 $routes['edit'][] = self::get('/{' . $parameter . '}/edit', "{$controller}@edit")->name($baseName . '.edit');
             }
             $routes['update'][] = self::put('/{' . $parameter . '}', "{$controller}@update")->name($baseName . '.update');
-            $routes['update'][] = self::patch('/{' . $parameter . '}', "{$controller}@update");
+            $routes['update'][] = self::patch('/{' . $parameter . '}', "{$controller}@update")->name($baseName . '.update.patch');
             $routes['destroy'][] = self::delete('/{' . $parameter . '}', "{$controller}@destroy")->name($baseName . '.destroy');
         });
 
