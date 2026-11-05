@@ -226,9 +226,10 @@ final class Router
         foreach ($matches[0] as $index => [$token, $offset]) {
             $name = $matches[1][$index][0];
             $pattern .= preg_quote(substr($path, $cursor, $offset - $cursor), '~');
-            $constraint = $route->constraints[$name] ?? '[^/]+';
             $group = 'p' . $index;
-            $pattern .= '(?P<' . $group . '>(?:' . $constraint . '))';
+            // Capture exactly one URL segment. The separately validated constraint
+            // is applied to the decoded value after the route regex matches.
+            $pattern .= '(?P<' . $group . '>[^/]+)';
             $names[$name] = $group;
             $cursor = $offset + strlen($token);
         }
@@ -291,12 +292,21 @@ final class Router
                 continue;
             }
             $params = [];
+            $constraintsMatch = true;
             foreach ($compiled['names'] as $name => $group) {
                 $value = rawurldecode((string) ($matches[$group] ?? ''));
                 if (preg_match('/%2f/i', $value) === 1 || preg_match('/[\\x00-\\x1F\\x7F]/', $value) === 1) {
                     return null;
                 }
+                $constraint = $compiled['route']->constraints[$name] ?? null;
+                if ($constraint !== null && preg_match('~^(?:' . $constraint . ')$~D', $value) !== 1) {
+                    $constraintsMatch = false;
+                    break;
+                }
                 $params[$name] = $value;
+            }
+            if (!$constraintsMatch) {
+                continue;
             }
             return $compiled['route']->matched($params);
         }
