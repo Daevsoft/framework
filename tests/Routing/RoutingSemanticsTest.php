@@ -14,6 +14,7 @@ use Ds\Routing\Router;
 use App\Support\Route as RouteDsl;
 use App\Support\RouteRegistry;
 use Ds\Routing\Attributes\Get;
+use Ds\Routing\Attributes\Head;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
@@ -328,6 +329,20 @@ final class RoutingSemanticsTest extends TestCase
         self::assertSame('', $response->body());
     }
 
+
+    public function testCustomConstraintAndHeadAttributeAreSupported(): void
+    {
+        $router = new Router();
+        RouteRegistry::setRouter($router);
+
+        RouteDsl::group('/constraints', RoutingHeadAttributeController::class);
+        $router->add('GET', '/slugs/{slug}', static fn () => 'ok')->where('slug', '[a-z-]+');
+
+        self::assertNotNull($router->match('HEAD', '/constraints/ping'));
+        self::assertNotNull($router->match('GET', '/slugs/my-post'));
+        self::assertNull($router->match('GET', '/slugs/My_Post'));
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
@@ -343,5 +358,14 @@ final class RoutingAttributeController
     public function show(): string
     {
         return 'ok';
+    }
+}
+
+final class RoutingHeadAttributeController
+{
+    #[Head('/ping')]
+    public function ping(): string
+    {
+        return 'head';
     }
 }
