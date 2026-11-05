@@ -44,7 +44,14 @@ final class RequestDispatcher
                     }
                     return new Response(405, $headers + ['Content-Type' => 'text/plain; charset=utf-8'], 'Method Not Allowed');
                 }
-                return new Response(404, ['Content-Type' => 'text/plain; charset=utf-8'], 'Not Found');
+                $fallback = $this->router->fallbackRoute();
+                if ($fallback === null) {
+                    return new Response(404, ['Content-Type' => 'text/plain; charset=utf-8'], 'Not Found');
+                }
+                $route = $fallback->matched([
+                    'path' => $request->getPath(),
+                    'method' => $method,
+                ]);
             }
 
             try {
