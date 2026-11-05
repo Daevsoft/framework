@@ -79,10 +79,7 @@ final class Router
 
         // RFC-compatible HEAD fallback: execute the GET handler, but let the
         // dispatcher/emitter suppress the response body for the HEAD request.
-        return $method === 'HEAD' ? $this->matchMethod('GET', $path)?->matched(
-            $this->matchMethod('GET', $path)->params,
-            'HEAD'
-        ) : null;
+        if ($method !== 'HEAD') {\n            return null;\n        }\n        $getRoute = $this->matchMethod('GET', $path);\n        return $getRoute?->matched($getRoute->params, 'HEAD');
     }
 
     /** @return list<string> Methods explicitly registered for this path. */
