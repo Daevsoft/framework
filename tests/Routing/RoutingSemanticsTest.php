@@ -317,6 +317,8 @@ final class RoutingSemanticsTest extends TestCase
         $router->add('GET', '/files/{name}', static fn () => 'ok');
 
         self::assertNull($router->match('GET', '/files/%252Fetc'));
+        self::assertNull($router->match('GET', '/files/%25252Fetc'));
+        self::assertNull($router->match('GET', '/files/%255cwindows'));
         self::assertNull($router->match('GET', '/files/%0Aname'));
     }
 
@@ -359,6 +361,21 @@ final class RoutingSemanticsTest extends TestCase
         self::assertNull($router->match('GET', '/files/private/report.txt'));
     }
 
+
+    public function testNamedRouteRejectsRecursivelyEncodedPathSeparators(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/files/{name}', static fn () => 'ok')->name('files.show');
+
+        foreach (['%252fetc', '%25252fetc', '%255cwindows', '%252e%252e'] as $value) {
+            try {
+                $router->urlFor('files.show', ['name' => $value]);
+                self::fail('Dangerously encoded path values must be rejected.');
+            } catch (InvalidArgumentException) {
+                self::assertTrue(true);
+            }
+        }
+    }
 
     public function testNamedRouteRejectsValuesThatWouldBreakPathSegments(): void
     {
