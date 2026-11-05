@@ -16,9 +16,14 @@ final class Kernel
 
     public function handle(Request $request): Response
     {
-        return $this->pipeline->handle(
+        $response = $this->pipeline->handle(
             $request,
             fn (Request $current): Response => $this->dispatcher->dispatch($current)
         );
+
+        // Enforce HEAD semantics after global middleware as well as dispatch.
+        return strtoupper($request->getMethod()) === 'HEAD'
+            ? $response->withBody('')
+            : $response;
     }
 }
