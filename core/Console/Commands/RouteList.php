@@ -22,12 +22,37 @@ final class RouteList extends Command
             require base_path('app/routes/web.php');
             require base_path('app/routes/api.php');
 
-            echo sprintf("%-10s %-42s %s\n", 'METHOD', 'URI', 'HANDLER');
-            foreach ($router->all() as $route) {
+            $routes = $router->all();
+            usort($routes, static fn ($left, $right): int =>
+                [$left->method, $left->path] <=> [$right->method, $right->path]
+            );
+
+            echo sprintf("%-9s %-34s %-24s %-34s %s\n", 'METHOD', 'URI', 'NAME', 'HANDLER', 'MIDDLEWARE');
+            foreach ($routes as $route) {
                 $handler = is_array($route->handler)
-                    ? implode('@', $route->handler)
+                    ? implode('@', array_map(
+                        static fn (mixed $part): string => is_object($part) ? $part::class : (string) $part,
+                        $route->handler
+                    ))
                     : (is_string($route->handler) ? $route->handler : 'Closure');
-                echo sprintf("%-10s %-42s %s\n", $route->method, $route->path, $handler);
+                $middleware = implode(',', $route->middlewares);
+                $constraints = [];
+                foreach ($route->constraints as $parameter => $pattern) {
+                    $constraints[] = $parameter . '=' . $pattern;
+                }
+                $details = $middleware;
+                if ($constraints !== []) {
+                    $details .= ($details === '' ? '' : ' ') . 'where:' . implode(',', $constraints);
+                }
+
+                echo sprintf(
+                    "%-9s %-34s %-24s %-34s %s\n",
+                    $route->method,
+                    $route->path,
+                    $route->routeName ?? '-',
+                    $handler,
+                    $details === '' ? '-' : $details
+                );
             }
 
             return 0;
