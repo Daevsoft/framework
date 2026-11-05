@@ -395,6 +395,26 @@ final class RoutingSemanticsTest extends TestCase
         self::assertSame([], $router->match('GET', '/after-middleware')?->middlewares);
     }
 
+
+    public function testExplicitOptionsRouteTakesPrecedenceOverAutomaticOptions(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/items', static fn () => 'list');
+        $router->add('OPTIONS', '/items', static fn () => Response::text('explicit-options'));
+
+        $response = (new RequestDispatcher($router))->dispatch(new Request([], [], 'OPTIONS', '/items'));
+        self::assertSame(200, $response->status());
+        self::assertSame('explicit-options', $response->body());
+    }
+
+    public function testInvalidCustomConstraintIsRejectedAtRegistration(): void
+    {
+        $route = (new Router())->add('GET', '/items/{id}', static fn () => 'ok');
+
+        $this->expectException(InvalidArgumentException::class);
+        $route->where('id', '(');
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
