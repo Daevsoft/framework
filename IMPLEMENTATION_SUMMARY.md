@@ -12,7 +12,7 @@ Ds Framework 4 is an actively developed **Swoole-first framework** with an expli
 |---|---|
 | Runtime/bootstrap | Swoole-first server, shared HTTP kernel, explicit FPM adapter |
 | HTTP | Request/Response objects, dispatcher, response factory/emitter, normalized UploadedFile metadata/explicit secure storage, request-scoped legacy response header bridge |
-| Routing | Static/dynamic routes, constraints, named URL generation, groups/attributes, resource/apiResource selectors, 404/405/HEAD/OPTIONS, fallback and route diagnostics; phase certification pending in [ROUTING_PHASE.md](ROUTING_PHASE.md) |
+| Routing | Static/dynamic routes, constraints, named URL generation, groups/attributes, resource/apiResource selectors, 404/405/HEAD/OPTIONS, fallback and route diagnostics; phase certification and benchmark execution pending in [ROUTING_PHASE.md](ROUTING_PHASE.md) |
 | Dependency injection | Constructor autowiring, circular-dependency checks, transient/singleton/request scopes |
 | Request isolation | Coroutine-local Context, request-scope cleanup in finally paths |
 | Middleware | Global pipeline, route middleware aliases, CORS, session and CSRF middleware |
