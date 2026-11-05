@@ -55,7 +55,7 @@ This file is the working checklist for developing applications on v4. It is **no
 - [ ] Define routes in `app/routes/web.php` or `app/routes/api.php`
 - [ ] Use parameterized routes and verify route parameters
 - [ ] Use controller callables or the supported v3-style controller group/attributes
-- [ ] Complete the task breakdown in [ROUTING_PHASE.md](ROUTING_PHASE.md) before marking routing complete
+- [ ] Execute the regression suite and benchmark in [ROUTING_PHASE.md](ROUTING_PHASE.md), including 100/1,000/10,000 route tables, before marking routing complete
 - [ ] Test 404 vs 405/Allow, HEAD body suppression, OPTIONS/CORS, invalid/encoded parameters and handler exceptions
 - [ ] Verify named route URL generation, parameter constraints, nested middleware order and route:list output
 - [ ] Verify route parameter isolation under concurrent Swoole requests and FPM parity
