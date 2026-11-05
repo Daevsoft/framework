@@ -147,9 +147,13 @@ final class Route
     /** @internal */
     private static function registerResourceRoutes(string $name, string $controller, bool $apiOnly, string $parameter): ResourceRouteRegistrar
     {
-        if (trim($name, '/') === '' || preg_match('/[\\x00-\\x1F\\x7F]/', $name) === 1) {\n            throw new \\InvalidArgumentException('Resource name must be a non-empty route path.');\n        }\n        if (preg_match('/\\A[A-Za-z_][A-Za-z0-9_]*\\z/D', $parameter) !== 1) {
+        if (trim($name, '/') === '' || preg_match('/[\x00-\x1F\x7F]/', $name) === 1) {
+            throw new \InvalidArgumentException('Resource name must be a non-empty route path.');
+        }
+        if (preg_match('/\A[A-Za-z_][A-Za-z0-9_]*\z/D', $parameter) !== 1) {
             throw new \InvalidArgumentException('Resource parameter must be a valid route parameter name.');
         }
+
         $router = self::resolveRouter();
         $baseName = str_replace('/', '.', trim($name, '/'));
         $routes = [];
@@ -170,4 +174,5 @@ final class Route
 
         return new ResourceRouteRegistrar($router, $routes);
     }
+}
 }
