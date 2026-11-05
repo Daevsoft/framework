@@ -3,7 +3,7 @@
 Repository: `Daevsoft/framework`  
 Target branch: `v4`  
 Phase ID: `ROUTING-01`  
-Status: **Planned — implementation not started by this document**  
+Status: **Implementation in progress — focused test execution and performance certification pending**  
 Architecture: **Swoole-first; FPM uses the same router/kernel compatibility path**
 
 This document is the implementation contract and task breakdown for completing v4 routing. A checked item means code, regression tests, documentation and relevant verification are complete; it does not mean the item is already implemented.
@@ -60,7 +60,7 @@ The following code batches have been pushed to `v4`. Regression tests have been 
 | RTE-07 | One explicit fallback route, dispatched only after no path/method match | FPM/Swoole integration and fallback exception coverage |
 | RTE-08 | route:list now reports name, handler, middleware and constraints | CLI output regression tests and optional machine-readable format |
 | RTE-09 | Added unit-level tests for matching, encoded input, groups and request-local matched route clones | Swoole concurrency/security stress tests |
-| RTE-10 | Not started | Reproducible benchmarks and release certification |
+| RTE-10 | Added `benchmarks/routing.php` for static hits, last dynamic hits, misses and method negotiation at configurable route-table sizes | Execute on a stable local machine, record p50/p95/p99, throughput, bootstrap time and memory; compare before/after any index optimization |
 
 ## 3. Developer-facing API direction
 
@@ -242,3 +242,14 @@ These may be considered after this phase, only with a concrete application use c
 - Route annotations beyond PHP attributes.
 
 Do not treat deferred candidates as missing core requirements.
+
+
+## Benchmark usage
+
+Run the committed synthetic benchmark after installing Composer dependencies:
+
+```bash
+php benchmarks/routing.php --iterations=1000 --sizes=100,1000,10000
+```
+
+The script reports static hit, last dynamic hit, not-found and method-negotiation latency percentiles, throughput, bootstrap time and route-table memory delta. Run multiple times on an otherwise idle machine using the same PHP build. Do not use synthetic results as production capacity claims.
