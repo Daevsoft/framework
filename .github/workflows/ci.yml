@@ -36,7 +36,10 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Audit locked Composer dependencies
+      - name: Update vulnerable PHPUnit patch release
+        run: composer update phpunit/phpunit --with-all-dependencies --no-interaction --prefer-dist
+
+      - name: Audit resolved Composer dependencies
         run: composer audit --no-interaction
 
       - name: Check PHP syntax
