@@ -143,6 +143,60 @@ final class RoutingSemanticsTest extends TestCase
         $router->add('GET', '/users/{id}', static fn () => 'show')->name('users.index');
     }
 
+
+    public function testFallbackRunsOnlyWhenNoRegisteredPathMatches(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/known', static fn () => 'known');
+        $router->setFallback(static fn (Request $request) => Response::text('fallback:' . $request->getPath()));
+        $dispatcher = new RequestDispatcher($router);
+
+        self::assertSame('known', $dispatcher->dispatch(new Request([], [], 'GET', '/known'))->body());
+        self::assertSame('fallback:/missing', $dispatcher->dispatch(new Request([], [], 'GET', '/missing'))->body());
+        self::assertSame(405, $dispatcher->dispatch(new Request([], [], 'POST', '/known'))->status());
+    }
+
+    public function testApiResourceRegistersOnlyApiActionsAndSupportsOnlySelector(): void
+    {
+        $router = new Router();
+        RouteRegistry::setRouter($router);
+
+        RouteDsl::apiResource('users', 'App\\Http\\Controllers\\UserController')
+            ->only(['index', 'show']);
+
+        $routes = $router->all();
+        self::assertCount(2, $routes);
+        self::assertSame(['users.index', 'users.show'], array_map(
+            static fn ($route) => $route->routeName,
+            $routes
+        ));
+        self::assertNotNull($router->match('GET', '/users'));
+        self::assertNotNull($router->match('GET', '/users/42'));
+        self::assertNull($router->match('POST', '/users'));
+    }
+
+    public function testResourceExceptSelectorRemovesUnselectedActions(): void
+    {
+        $router = new Router();
+        RouteRegistry::setRouter($router);
+
+        RouteDsl::resource('posts', 'App\\Http\\Controllers\\PostController')
+            ->except(['create', 'edit']);
+
+        self::assertCount(5, $router->all());
+        self::assertNull($router->match('GET', '/posts/create'));
+        self::assertNotNull($router->match('POST', '/posts'));
+    }
+
+    public function testFallbackCanOnlyBeRegisteredOnce(): void
+    {
+        $router = new Router();
+        $router->setFallback(static fn () => 'first');
+
+        $this->expectException(InvalidArgumentException::class);
+        $router->setFallback(static fn () => 'second');
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
