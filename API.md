@@ -74,7 +74,7 @@ See [README.md](README.md) and [SETUP.md](SETUP.md) for full usage and limitatio
 
 The router uses direct static-route lookup and precompiled dynamic route patterns. Static paths take precedence over parameterized paths; overlapping dynamic patterns are resolved in registration order. Duplicate method/path definitions are rejected during bootstrap.
 
-When a path exists but the request method is unsupported, the dispatcher returns 405 with an `Allow` header. Unknown paths return 404. HEAD uses an explicit HEAD route when present, otherwise falls back to GET and suppresses the body. OPTIONS uses an explicit route when registered or returns an automatic 204 response with the allowed methods. WebSocket routes are not included in HTTP method negotiation.
+When a path exists but the request method is unsupported, the dispatcher returns 405 with an `Allow` header. Unknown paths return 404. Encoded separators, dot segments and decoded control characters are rejected in dynamic parameters. HEAD uses an explicit HEAD route when present, otherwise falls back to GET and suppresses the body. OPTIONS uses an explicit route when registered or returns an automatic 204 response with the allowed methods. WebSocket routes are not included in HTTP method negotiation.
 
 See [ROUTING_PHASE.md](ROUTING_PHASE.md) for the implementation plan and certification status.
 
