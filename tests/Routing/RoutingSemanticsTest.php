@@ -285,6 +285,31 @@ final class RoutingSemanticsTest extends TestCase
         self::assertSame(['group-auth', 'attribute-auth'], $route->middlewares);
     }
 
+
+    public function testHeadSuppressesBodiesForMethodNotAllowedAndNotFoundResponses(): void
+    {
+        $router = new Router();
+        $router->add('POST', '/items', static fn () => 'created');
+        $dispatcher = new RequestDispatcher($router);
+
+        $methodNotAllowed = $dispatcher->dispatch(new Request([], [], 'HEAD', '/items'));
+        self::assertSame(405, $methodNotAllowed->status());
+        self::assertSame('', $methodNotAllowed->body());
+
+        $notFound = $dispatcher->dispatch(new Request([], [], 'HEAD', '/missing'));
+        self::assertSame(404, $notFound->status());
+        self::assertSame('', $notFound->body());
+    }
+
+    public function testDoubleEncodedSlashAndEncodedControlCharactersAreRejected(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/files/{name}', static fn () => 'ok');
+
+        self::assertNull($router->match('GET', '/files/%252Fetc'));
+        self::assertNull($router->match('GET', '/files/%0Aname'));
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
