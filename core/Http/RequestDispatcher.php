@@ -33,19 +33,24 @@ final class RequestDispatcher
         $context->set('request', $request);
 
         try {
-            $route = $this->router->match($request->getMethod(), $request->getPath());
+            $method = $request->getMethod();
+            $route = $this->router->match($method, $request->getPath());
             if ($route === null) {
+                $allowed = $this->router->allowedMethods($request->getPath());
+                if ($allowed !== []) {
+                    $headers = ['Allow' => implode(', ', $allowed)];
+                    if ($method === 'OPTIONS') {
+                        return new Response(204, $headers);
+                    }
+                    return new Response(405, $headers + ['Content-Type' => 'text/plain; charset=utf-8'], 'Method Not Allowed');
+                }
                 return new Response(404, ['Content-Type' => 'text/plain; charset=utf-8'], 'Not Found');
             }
 
             try {
                 $destination = fn (Request $current): Response => $this->dispatchHandler($route, $current);
-
-                if ($route->middlewares === []) {
-                    return $destination($request);
-                }
-
                 $next = $destination;
+
                 foreach (array_reverse($route->middlewares) as $middlewareName) {
                     $middleware = MiddlewareRegistry::resolve($middlewareName, $this->container);
                     $downstream = $next;
@@ -55,10 +60,12 @@ final class RequestDispatcher
                     };
                 }
 
-                return $next($request);
+                $response = $next($request);
+                return $method === 'HEAD' ? $response->withBody('') : $response;
             } catch (Throwable $exception) {
                 error_log((string) $exception);
-                return new Response(500, ['Content-Type' => 'text/plain; charset=utf-8'], 'Internal Server Error');
+                $response = new Response(500, ['Content-Type' => 'text/plain; charset=utf-8'], 'Internal Server Error');
+                return $method === 'HEAD' ? $response->withBody('') : $response;
             }
         } finally {
             if ($hadPreviousRequest) {
