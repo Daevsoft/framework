@@ -384,9 +384,9 @@ final class RoutingSemanticsTest extends TestCase
 
         try {
             RouteDsl::middleware('temporary-auth', static function (): void {
-                throw new \\RuntimeException('registration failed');
+                throw new \RuntimeException('registration failed');
             });
-        } catch (\\RuntimeException) {
+        } catch (\RuntimeException) {
             self::assertTrue(true);
         }
 
