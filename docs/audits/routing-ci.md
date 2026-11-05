@@ -10,8 +10,9 @@ Runs on pushes and pull requests targeting `v4`, and can also be started manuall
 
 The job currently performs:
 
-1. Composer configuration validation and locked dependency security audit.
-2. Composer dependency installation.
+1. Composer configuration validation and dependency installation.
+2. Refresh the PHPUnit 12.5 patch release (including compatible transitive dependencies) before the security audit, so the runner does not execute the vulnerable locked PHPUnit 12.5.6.
+3. Composer security audit against the resolved dependency set.
 3. PHP syntax checks for application, framework, tests and benchmark PHP sources.
 4. The complete PHPUnit suite, including the routing semantics tests.
 5. CLI command smoke checks and `route:list` assertions, including the WebSocket route.
@@ -54,4 +55,4 @@ For meaningful before/after comparisons, compare repeated runs on the same runne
 
 ## Verification state
 
-The workflow and smoke-test definitions have been committed to branch `v4`. They have **not been run** as part of this change, as requested. The Routing Phase remains in progress until the user reports the workflow results and remaining non-CI reviews are completed.
+The workflow and smoke-test definitions have been committed to branch `v4`. The first validation run exposed a high-severity advisory in locked `phpunit/phpunit` 12.5.6 (CVE-2026-24765); the CI now resolves the patched 12.5.8-or-newer compatible patch release before auditing. This is a CI-side mitigation: the repository lock file still needs a Composer-generated refresh and commit from a Composer-capable environment. The Routing Phase remains in progress until the full CI suite passes and remaining non-CI reviews are completed.
