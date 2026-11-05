@@ -47,6 +47,7 @@ printf("%-8s %-20s %12s %12s %12s %14s\n", 'ROUTES', 'SCENARIO', 'p50 (us)', 'p9
 printf("%s\n", str_repeat('-', 84));
 
 foreach ($sizes as $size) {
+    $memoryBefore = memory_get_usage(true);
     $router = new Router();
     $bootstrapStart = hrtime(true);
     $staticCount = intdiv($size, 2);
@@ -61,7 +62,7 @@ foreach ($sizes as $size) {
     }
 
     $bootstrapMs = (hrtime(true) - $bootstrapStart) / 1_000_000;
-    $memoryBytes = memory_get_usage(true);
+    $memoryBytes = max(0, memory_get_usage(true) - $memoryBefore);
     $dynamicTarget = '/dynamic/segment-' . ($dynamicCount - 1) . '/42';
 
     $scenarios = [
