@@ -147,7 +147,7 @@ final class Route
     /** @internal */
     private static function registerResourceRoutes(string $name, string $controller, bool $apiOnly, string $parameter): ResourceRouteRegistrar
     {
-        if (preg_match('/\\A[A-Za-z_][A-Za-z0-9_]*\\z/D', $parameter) !== 1) {
+        if (trim($name, '/') === '' || preg_match('/[\\x00-\\x1F\\x7F]/', $name) === 1) {\n            throw new \\InvalidArgumentException('Resource name must be a non-empty route path.');\n        }\n        if (preg_match('/\\A[A-Za-z_][A-Za-z0-9_]*\\z/D', $parameter) !== 1) {
             throw new \InvalidArgumentException('Resource parameter must be a valid route parameter name.');
         }
         $router = self::resolveRouter();
@@ -165,7 +165,7 @@ final class Route
                 $routes['edit'][] = self::get('/{' . $parameter . '}/edit', "{$controller}@edit")->name($baseName . '.edit');
             }
             $routes['update'][] = self::put('/{' . $parameter . '}', "{$controller}@update")->name($baseName . '.update');
-            $routes['destroy'][] = self::delete('/{id}', "{$controller}@destroy")->name($baseName . '.destroy');
+            $routes['destroy'][] = self::delete('/{' . $parameter . '}', "{$controller}@destroy")->name($baseName . '.destroy');
         });
 
         return new ResourceRouteRegistrar($router, $routes);
