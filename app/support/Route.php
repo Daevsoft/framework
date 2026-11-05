@@ -148,7 +148,7 @@ final class Route
     private static function registerResourceRoutes(string $name, string $controller, bool $apiOnly, string $parameter): ResourceRouteRegistrar
     {
         if (preg_match('/\\A[A-Za-z_][A-Za-z0-9_]*\\z/D', $parameter) !== 1) {
-            throw new \\InvalidArgumentException('Resource parameter must be a valid route parameter name.');
+            throw new \InvalidArgumentException('Resource parameter must be a valid route parameter name.');
         }
         $router = self::resolveRouter();
         $baseName = str_replace('/', '.', trim($name, '/'));
