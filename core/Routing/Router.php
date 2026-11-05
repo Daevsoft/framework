@@ -238,8 +238,14 @@ final class Router
             $cursor = $offset + strlen($token);
         }
         $pattern .= preg_quote(substr($path, $cursor), '~');
+        $compiledPattern = '~^' . $pattern . '$~D';
+        // PHP's PCRE engine compiles lazily; warming the generated expression
+        // here keeps first-use compilation out of the request matching path.
+        if (@preg_match($compiledPattern, '') === false) {
+            throw new InvalidArgumentException("Unable to compile route pattern [{$route->path}].");
+        }
 
-        return ['route' => $route, 'pattern' => '~^' . $pattern . '$~D', 'names' => $names];
+        return ['route' => $route, 'pattern' => $compiledPattern, 'names' => $names];
     }
 
     private function refreshRoute(Route $route): void
