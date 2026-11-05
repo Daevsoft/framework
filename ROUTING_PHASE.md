@@ -264,7 +264,7 @@ Run the committed synthetic benchmark after installing Composer dependencies:
 php benchmarks/routing.php --iterations=1000 --sizes=100,1000,10000
 ```
 
-The script reports static hit, last dynamic hit, not-found and method-negotiation latency percentiles, throughput, bootstrap time and route-table memory delta. Run multiple times on an otherwise idle machine using the same PHP build. Do not use synthetic results as production capacity claims.
+The script reports static hit, last dynamic hit, not-found, full HTTP 404/405 dispatch and static/dynamic method-negotiation latency percentiles, throughput, bootstrap time and route-table memory delta. Run multiple times on an otherwise idle machine using the same PHP build. Do not use synthetic results as production capacity claims.
 
 
 ## 2026-11-05 — Post-implementation compatibility audit
@@ -275,3 +275,8 @@ The script reports static hit, last dynamic hit, not-found and method-negotiatio
 - Added regression cases for triple-encoded separators, encoded backslashes, recursively encoded URL parameters and legacy RouteMatcher metadata preservation.
 - The test file now contains 40 routing semantics test methods. This is a source-level count only; PHPUnit has not been executed.
 - Remaining release blockers: full PHPUnit run, FPM/Swoole integration parity, Swoole concurrency stress, complete v3 call-site compatibility review and measured benchmark results. No performance index/trie has been added without benchmark evidence.
+
+
+### Benchmark coverage refinement
+
+The routing benchmark now measures both low-level Router matching and full `RequestDispatcher` handling for HTTP 404 and 405 responses. Percentiles use nearest-rank indexing. The benchmark remains unexecuted, so no latency, throughput or memory claims are made.
