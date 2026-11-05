@@ -21,6 +21,7 @@ final class RouteList extends Command
             RouteRegistry::setRouter($router);
             require base_path('app/routes/web.php');
             require base_path('app/routes/api.php');
+            require base_path('app/routes/websocket.php');
 
             $routes = $router->all();
             usort($routes, static fn ($left, $right): int =>
