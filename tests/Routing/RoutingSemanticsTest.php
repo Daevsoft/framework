@@ -256,11 +256,48 @@ final class RoutingSemanticsTest extends TestCase
         self::assertNotNull($router->match('GET', '/outside'));
     }
 
+
+    public function testResourceRouteSupportsExplicitParameterName(): void
+    {
+        $router = new Router();
+        RouteRegistry::setRouter($router);
+
+        RouteDsl::apiResource('users', 'App\\Http\\Controllers\\UserController', 'user')
+            ->only(['show']);
+
+        self::assertNotNull($router->match('GET', '/users/42'));
+        self::assertSame('42', $router->match('GET', '/users/42')?->params['user']);
+        self::assertNull($router->match('GET', '/users/{user}'));
+    }
+
+    public function testAttributeMiddlewareIsAppendedAfterGroupMiddleware(): void
+    {
+        $router = new Router();
+        RouteRegistry::setRouter($router);
+
+        RouteDsl::middleware('group-auth', static function (): void {
+            RouteDsl::group('/attribute', RoutingAttributeController::class);
+        });
+
+        $route = $router->match('GET', '/attribute/show/7');
+        self::assertNotNull($route);
+        self::assertSame(['group-auth', 'attribute-auth'], $route->middlewares);
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
         $router->add('GET', '/search', static fn () => 'ok');
 
         self::assertNotNull($router->match('GET', '/search?q=router'));
+    }
+}
+
+final class RoutingAttributeController
+{
+    #[Get('/show/{id}', ['attribute-auth'])]
+    public function show(): string
+    {
+        return 'ok';
     }
 }
