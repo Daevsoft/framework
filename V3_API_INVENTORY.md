@@ -28,7 +28,7 @@ The v3 tree contains 90 tracked files (including assets, templates, tests and me
 |---|---|---|---|
 | Core bootstrap: `src/Core/Ds.php`, `src/Core/Application.php`, `src/base.php` | `Ds` constructor, provider install/run, `connect()`, `getProvider()`, `isDebug()`; `AppIndex`, `Dir`, autoload and path constants | Reimplemented around v4 bootstrap/container/kernel | Map provider lifecycle and path/config expectations; document breaking changes |
 | Helpers: `src/Helper/Function.php`, `Date.php`, `Str.php` | `asset`, `view`, `session`, `unsession`, `flash`, `is_flash`, `set_flash`, `old`, `js_source`, `app_url`; date/string helpers | Expanded bridge: Date/Str adapters and request-aware app_url; view returns a string consistently | Verify remaining argument/return edge cases and legacy flash consumption differences |
-| Routing: `src/Foundations/Routing/*` | GET/POST/PUT/DELETE, `middleware()`, `group()`, controller attributes | Broad but partial compatibility; v4 adds PATCH/OPTIONS/resource/prefix | Compare names, route normalization, metadata, constraints, HEAD and method-not-allowed behavior |
+| Routing: `src/Foundations/Routing/*` | GET/POST/PUT/DELETE; route registration returns `BaseRoute` (actual `RouteData`); group-level and per-route middleware; prefix via `group()`; repeatable Get/Post/Put/Delete method attributes | v4 retains controller/callable registration and common verbs, adds PATCH/OPTIONS/HEAD/WS, safe nested prefix/middleware restoration, constraints, named URL generation, resource/apiResource, fallback and method negotiation | v3 has no named URL generation, constraints, fallback, HEAD/OPTIONS, 405/Allow or resource helper. v3 maps `/` to `/index`; v4 keeps `/`. v3 route registry is keyed by path alone, so a second HTTP method on the same path overwrites the first. See the routing contract below. |
 | HTTP: `src/Foundations/Network/*` | Request dynamic fields, JSON, route tracking, old input, file uploads; Response static headers/status and Swoole/PHP application | Reimplemented Request/Response and middleware; safe route-history adapter now stores the latest two local URIs in SessionManager, safely reads legacy serialized arrays, and returns a Response from getBack() | Compare upload validation, request field normalization, exact validated() return semantics and legacy edge cases |
 | Middleware/providers: `Provider.php`, `Network/Middleware.php`, provider classes | install/run provider lifecycle and middleware hooks | Reimplemented container, middleware stack and lifecycle | Method/signature and order compatibility tests |
 | Database: `Connection/Db.php`, `QueryCommon.php`, `SqlModel.php`, set classes | Query chain, raw SQL, joins, filters, ordering, pagination, object/array/row results | New PDO query builder plus partial `DsModel` bridge | Complete method and return-type matrix; raw SQL, cursor/result objects and pagination need explicit decisions |
@@ -43,6 +43,23 @@ The v3 tree contains 90 tracked files (including assets, templates, tests and me
 | Background jobs: `Commands/CronJob/Job.php`, `Worker.php`, `job.empty` | CLI executes named/all `*.job.php` classes through `Job::run()` and protected `start()` | Partial compatibility: `Ds\\Foundations\\Commands\\CronJob\\Job` preserves `start()/run()` and implements v4 Task; `add:job` generates compatible classes; `cronjob` CLI runs named/all top-level jobs | Add nested all-job discovery policy and live task-worker integration if applications require it. Durable queue/retry/failure storage is not a v3 parity requirement; v3 Worker was synchronous CLI execution. |
 | Tester/debugger/exceptions: `Commands/Tester/*`, `Debugger/Debug.php`, exception renderer | Custom Tester/Assert/Runner, debug bar and exception view | PHPUnit/CLI test, Inspector/Profiler and new error path | Compatibility mapping and configurable safe error rendering |
 | Broadcasting/realtime | No complete v3 realtime subsystem found in the tracked v3 source inventory | v4 partial implementation: WebSocket handshake/upgrade callbacks, per-worker registry/subscriptions, same-server cross-worker IPC fan-out and live-client smoke test | Add Redis/SSE multi-instance transports, heartbeat policy, bounded backpressure and channel authorization before claiming production-grade horizontal delivery |
+
+
+## Routing source contract — detailed v3 findings
+
+Targeted inspection of `Route.php`, `BaseRoute.php`, `RouteData.php`, `RouteProvider.php`, and the v3 Get/Post attributes confirms:
+
+- `Route::get()`, `post()`, `put()`, and `delete()` return a `BaseRoute` declaration type, while the registered object is `RouteData`. `RouteData::middleware()` sets its middleware list. The empty `BaseRoute::middleware()` implementation itself is a no-op, so behavior depends on the concrete returned instance.
+- `Route::middleware()` sets a static group middleware list, invokes the callback, then clears it; it does not restore a previous value in a `finally` block. Nested groups and exceptions can therefore corrupt registration state.
+- `Route::group()` manually appends/removes a static group prefix and optionally reflects controller attributes. It instantiates the controller during route discovery and scans its methods. Only Get/Post/Put/Delete attributes are listed in the v3 route facade.
+- Registering `/` rewrites it to `/index`. The v4 router deliberately retains the conventional `/` root path; this is a documented migration difference.
+- `RouteProvider::addRoute()` indexes the registry by path without including the HTTP method. Registering another method for the same path overwrites the earlier definition. v4 stores method-specific registries and rejects duplicate method/path pairs instead.
+- `findRoute()` compares segment counts, matches literal segments or whole-segment `{name}` placeholders, and requires an exact method match. It does not provide regex constraints, named routes, URL generation, fallback, 405/Allow negotiation or HEAD/OPTIONS semantics.
+- The v3 provider executes middleware by resolving aliases, instantiating middleware classes and using echo/die on invalid configuration or rejection. v4 uses the response-based middleware pipeline and fail-closed responses.
+- Controller instances are created during request dispatch in v3; the route target array is mutated to retain the instance. v4 keeps controller discovery at bootstrap and resolves controller instances through the container per request.
+- v3 route attributes are repeatable at the route-facade discovery loop, but controller discovery does not establish inherited-method or static-method behavior as a stable public contract.
+
+These findings are based on tracked source behavior, not assumptions from the README. The remaining RTE-00 work is to map all call sites and verify exact v3 applications' reliance on the root rewrite, route registration order and middleware side effects.
 
 ## CLI and generator comparison
 
@@ -79,7 +96,7 @@ The current v4 branch has moved beyond the original scaffolding baseline:
 | Roadmap item | Current evidence | Status |
 |---|---|---|
 | WebSocket lifecycle and broadcast | Swoole WebSocket callbacks, per-worker hub, same-server cross-worker IPC fan-out, channel delivery and live client handshake/message CI smoke test | Partial; Redis/SSE multi-instance transport, heartbeat policy, bounded backpressure queue, channel authorization and live multi-worker contention/restart test remain open |
-| Route naming/URL generation, constraints, 405 and HEAD | Router has parameterized matching; full parity not demonstrated | Partial / open |
+| Route naming/URL generation, constraints, 405 and HEAD | v4 implementation and regression tests added; execution, FPM/Swoole parity and benchmark certification pending | Implemented, not yet certified |
 | Upload handling, cookie API, content negotiation | v3 Request has file helpers; v4 request upload/cookie/content-negotiation parity not established | Open |
 | Authentication/authorization | Bearer resolver, fail-closed 401 middleware, RBAC/ACL/policy callbacks | Partial; no built-in persistent user/token provider or complete session/password flow |
 | Swoole task-worker dispatch | TaskDispatcher dispatches Task objects through Swoole task workers | Partial; no durable queue, retries, delayed jobs or failed-job persistence |
