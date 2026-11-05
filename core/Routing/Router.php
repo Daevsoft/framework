@@ -362,11 +362,12 @@ final class Router
         return $path === '' ? '/' : $path;
     }
 
-    public function get(string $path, mixed $handler): void { $this->add('GET', $path, $handler); }
-    public function post(string $path, mixed $handler): void { $this->add('POST', $path, $handler); }
-    public function put(string $path, mixed $handler): void { $this->add('PUT', $path, $handler); }
-    public function patch(string $path, mixed $handler): void { $this->add('PATCH', $path, $handler); }
-    public function delete(string $path, mixed $handler): void { $this->add('DELETE', $path, $handler); }
-    public function options(string $path, mixed $handler): void { $this->add('OPTIONS', $path, $handler); }
-    public function head(string $path, mixed $handler): void { $this->add('HEAD', $path, $handler); }
+    public function get(string $path, mixed $handler): Route { return $this->add('GET', $path, $handler); }
+    public function post(string $path, mixed $handler): Route { return $this->add('POST', $path, $handler); }
+    public function put(string $path, mixed $handler): Route { return $this->add('PUT', $path, $handler); }
+    public function patch(string $path, mixed $handler): Route { return $this->add('PATCH', $path, $handler); }
+    public function delete(string $path, mixed $handler): Route { return $this->add('DELETE', $path, $handler); }
+    public function options(string $path, mixed $handler): Route { return $this->add('OPTIONS', $path, $handler); }
+    public function head(string $path, mixed $handler): Route { return $this->add('HEAD', $path, $handler); }
+    public function ws(string $path, mixed $handler): Route { return $this->add('WS', $path, $handler); }
 }
