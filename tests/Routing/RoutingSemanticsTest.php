@@ -1,0 +1,114 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Routing;
+
+use Ds\Http\Request;
+use Ds\Http\RequestDispatcher;
+use Ds\Http\Response;
+use Ds\Routing\Router;
+use InvalidArgumentException;
+use PHPUnit\Framework\TestCase;
+
+final class RoutingSemanticsTest extends TestCase
+{
+    public function testDuplicateRouteDefinitionsFailFast(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/items', static fn () => 'first');
+
+        $this->expectException(InvalidArgumentException::class);
+        $router->add('GET', '/items/', static fn () => 'second');
+    }
+
+    public function testMalformedAndDuplicateParametersAreRejected(): void
+    {
+        $router = new Router();
+
+        try {
+            $router->add('GET', '/items/{id}/{id}', static fn () => 'invalid');
+            self::fail('Duplicate parameter names should be rejected.');
+        } catch (InvalidArgumentException) {
+            self::assertTrue(true);
+        }
+
+        $this->expectException(InvalidArgumentException::class);
+        $router->add('GET', '/items/{bad-name}', static fn () => 'invalid');
+    }
+
+    public function testConstraintsAreCompiledAndAppliedToDynamicRoutes(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/orders/{id}', static fn (int $id) => (string) $id)
+            ->whereNumber('id');
+
+        self::assertSame('42', $router->match('GET', '/orders/42')?->params['id']);
+        self::assertNull($router->match('GET', '/orders/not-a-number'));
+    }
+
+    public function testUuidConstraintSupportsQuantifiers(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/records/{id}', static fn () => 'ok')->whereUuid('id');
+
+        self::assertNotNull($router->match('GET', '/records/550e8400-e29b-41d4-a716-446655440000'));
+        self::assertNull($router->match('GET', '/records/not-a-uuid'));
+    }
+
+    public function testEncodedSlashCannotChangeRouteSegmentBoundaries(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/files/{name}', static fn () => 'ok');
+
+        self::assertNull($router->match('GET', '/files/folder%2Fsecret.txt'));
+    }
+
+    public function testHeadFallsBackToGetAndDispatcherSuppressesBody(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/health', static fn () => Response::text('healthy'));
+
+        $route = $router->match('HEAD', '/health');
+        self::assertNotNull($route);
+        self::assertSame('HEAD', $route->method);
+
+        $response = (new RequestDispatcher($router))->dispatch(new Request([], [], 'HEAD', '/health'));
+        self::assertSame(200, $response->status());
+        self::assertSame('', $response->body());
+    }
+
+    public function testDispatcherDistinguishesMethodNotAllowedFromNotFound(): void
+    {
+        $router = new Router();
+        $router->add('POST', '/items', static fn () => Response::text('created'));
+        $dispatcher = new RequestDispatcher($router);
+
+        $methodNotAllowed = $dispatcher->dispatch(new Request([], [], 'GET', '/items'));
+        self::assertSame(405, $methodNotAllowed->status());
+        self::assertSame('POST, OPTIONS', $methodNotAllowed->headers()['Allow']);
+
+        $notFound = $dispatcher->dispatch(new Request([], [], 'GET', '/missing'));
+        self::assertSame(404, $notFound->status());
+    }
+
+    public function testAutomaticOptionsReturnsAllowHeader(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/items', static fn () => 'list');
+        $router->add('POST', '/items', static fn () => 'create');
+
+        $response = (new RequestDispatcher($router))->dispatch(new Request([], [], 'OPTIONS', '/items'));
+
+        self::assertSame(204, $response->status());
+        self::assertSame('GET, HEAD, OPTIONS, POST', $response->headers()['Allow']);
+    }
+
+    public function testQueryStringDoesNotParticipateInRouteMatching(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/search', static fn () => 'ok');
+
+        self::assertNotNull($router->match('GET', '/search?q=router'));
+    }
+}
