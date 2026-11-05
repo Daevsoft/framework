@@ -47,7 +47,7 @@ printf("%-8s %-20s %12s %12s %12s %14s\n", 'ROUTES', 'SCENARIO', 'p50 (us)', 'p9
 printf("%s\n", str_repeat('-', 84));
 
 foreach ($sizes as $size) {
-    $memoryBefore = memory_get_usage(true);
+    $memoryBefore = memory_get_usage(false);
     $router = new Router();
     $bootstrapStart = hrtime(true);
     $staticCount = intdiv($size, 2);
@@ -86,10 +86,10 @@ foreach ($sizes as $size) {
     }
 
     printf(
-        "         bootstrap: %.3f ms | route-table memory delta: %d bytes | peak RSS: %d bytes\n",
+        "         bootstrap: %.3f ms | route-table memory delta: %d bytes | peak PHP memory: %d bytes\n",
         $bootstrapMs,
         max(0, $memoryBytes - memory_get_usage(true)),
-        memory_get_peak_usage(true)
+        memory_get_peak_usage(false)
     );
     unset($router, $scenarios);
     gc_collect_cycles();
