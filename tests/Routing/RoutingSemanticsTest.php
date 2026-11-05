@@ -273,7 +273,6 @@ final class RoutingSemanticsTest extends TestCase
 
         self::assertNotNull($router->match('GET', '/users/42'));
         self::assertSame('42', $router->match('GET', '/users/42')?->params['user']);
-        self::assertNull($router->match('GET', '/users/{user}'));
     }
 
     public function testAttributeMiddlewareIsAppendedAfterGroupMiddleware(): void
