@@ -75,7 +75,10 @@ final class Router
     public function match(string $method, string $path): ?Route
     {
         $method = strtoupper(trim($method));
-        $path = self::normalizePath(parse_url($path, PHP_URL_PATH) ?: '/');
+        $path = self::normalizeLookupPath($path);
+        if ($path === null) {
+            return null;
+        }
 
         $route = $this->matchMethod($method, $path);
         if ($route !== null) {
@@ -94,7 +97,10 @@ final class Router
     /** @return list<string> Methods explicitly registered for this path. */
     public function allowedMethods(string $path): array
     {
-        $path = self::normalizePath(parse_url($path, PHP_URL_PATH) ?: '/');
+        $path = self::normalizeLookupPath($path);
+        if ($path === null) {
+            return [];
+        }
         $allowed = [];
         foreach (array_keys(self::METHODS) as $method) {
             if ($method === 'WS') {
@@ -289,6 +295,7 @@ final class Router
     {
         if (str_contains($path, '%2f') || str_contains($path, '%2F')
             || preg_match('/%(?![A-Fa-f0-9]{2})/', $path) === 1
+            || preg_match('/%(?:0[0-9a-f]|1[0-9a-f]|7f)/i', $path) === 1
             || preg_match('/[\x00-\x1F\x7F]/', $path) === 1) {
             return null;
         }
@@ -333,6 +340,15 @@ final class Router
         preg_match_all('/\{([A-Za-z_][A-Za-z0-9_]*)\}/', $path, $matches);
         if (count($matches[1]) !== count(array_unique($matches[1]))) {
             throw new InvalidArgumentException("Duplicate route parameter name in [{$path}].");
+        }
+    }
+
+    private static function normalizeLookupPath(string $path): ?string
+    {
+        try {
+            return self::normalizePath(parse_url($path, PHP_URL_PATH) ?: '/');
+        } catch (\\Throwable) {
+            return null;
         }
     }
 
