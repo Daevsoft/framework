@@ -69,7 +69,8 @@ foreach ($sizes as $size) {
         'static-hit' => static fn () => $router->match('GET', '/static/0'),
         'dynamic-hit-last' => static fn () => $router->match('GET', $dynamicTarget),
         'not-found' => static fn () => $router->match('GET', '/not-found'),
-        'method-negotiation' => static fn () => $router->allowedMethods('/static/0'),
+        'method-negotiation-static' => static fn () => $router->allowedMethods('/static/0'),
+        'method-negotiation-dynamic' => static fn () => $router->allowedMethods($dynamicTarget),
     ];
 
     foreach ($scenarios as $name => $operation) {
