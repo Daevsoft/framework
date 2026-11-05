@@ -197,6 +197,63 @@ final class RoutingSemanticsTest extends TestCase
         $router->setFallback(static fn () => 'second');
     }
 
+
+    public function testStaticRoutesTakePrecedenceOverDynamicRoutesRegardlessOfRegistrationOrder(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/users/{id}', static fn () => 'dynamic');
+        $router->add('GET', '/users/me', static fn () => 'static');
+
+        self::assertSame('static', ($router->match('GET', '/users/me')?->handler)());
+        self::assertSame('dynamic', ($router->match('GET', '/users/123')?->handler)());
+    }
+
+    public function testOverlappingDynamicRoutesUseDeterministicRegistrationOrder(): void
+    {
+        $router = new Router();
+        $router->add('GET', '/items/{value}', static fn () => 'first');
+        $router->add('GET', '/items/{slug}', static fn () => 'second');
+
+        self::assertSame('first', ($router->match('GET', '/items/abc')?->handler)());
+    }
+
+    public function testConstraintMustReferenceAnExistingRouteParameter(): void
+    {
+        $route = (new Router())->add('GET', '/items/{id}', static fn () => 'ok');
+
+        $this->expectException(InvalidArgumentException::class);
+        $route->whereNumber('missing');
+    }
+
+    public function testNestedPrefixAndMiddlewareGroupsRestoreState(): void
+    {
+        $router = new Router();
+        RouteRegistry::setRouter($router);
+
+        RouteDsl::prefix('/api', static function (): void {
+            RouteDsl::middleware('outer', static function (): void {
+                RouteDsl::prefix('/v1', static function (): void {
+                    RouteDsl::middleware('inner', static function (): void {
+                        RouteDsl::get('/users', static fn () => 'ok')->middleware('route');
+                    });
+                });
+            });
+        });
+        $route = $router->match('GET', '/api/v1/users');
+        self::assertNotNull($route);
+        self::assertSame(['outer', 'inner', 'route'], $route->middlewares);
+
+        try {
+            RouteDsl::prefix('/temporary', static function (): void {
+                throw new \\RuntimeException('registration failed');
+            });
+        } catch (\\RuntimeException) {
+            self::assertTrue(true);
+        }
+        RouteDsl::get('/outside', static fn () => 'ok');
+        self::assertNotNull($router->match('GET', '/outside'));
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
