@@ -427,6 +427,33 @@ final class RoutingSemanticsTest extends TestCase
         self::assertSame(404, $response->status());
     }
 
+
+    public function testMatchedRouteParametersRemainIsolatedAcrossSwooleCoroutines(): void
+    {
+        if (!class_exists(\\Swoole\\Coroutine::class)) {
+            self::markTestSkipped('Swoole extension is not available.');
+        }
+
+        $router = new Router();
+        $router->add('GET', '/users/{id}', static fn (int $id) => $id);
+        $results = [];
+
+        \\Swoole\\Coroutine::run(static function () use ($router, &$results): void {
+            \\Swoole\\Coroutine::create(static function () use ($router, &$results): void {
+                $route = $router->match('GET', '/users/101');
+                \\Swoole\\Coroutine::sleep(0.001);
+                $results['first'] = $route?->params['id'] ?? null;
+            });
+            \\Swoole\\Coroutine::create(static function () use ($router, &$results): void {
+                $route = $router->match('GET', '/users/202');
+                \\Swoole\\Coroutine::sleep(0.001);
+                $results['second'] = $route?->params['id'] ?? null;
+            });
+        });
+
+        self::assertSame(['first' => '101', 'second' => '202'], $results);
+    }
+
     public function testQueryStringDoesNotParticipateInRouteMatching(): void
     {
         $router = new Router();
