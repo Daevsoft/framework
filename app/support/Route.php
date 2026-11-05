@@ -47,6 +47,12 @@ final class Route
     public static function options(string $path, mixed $handler): \Ds\Routing\Route { return self::register('OPTIONS', $path, $handler); }
     public static function ws(string $path, mixed $handler): \Ds\Routing\Route { return self::register('WS', $path, $handler); }
 
+    /** Generate a URL for a named route registered during application bootstrap. */
+    public static function url(string $name, array $parameters = [], bool $absolute = false, ?string $baseUrl = null): string
+    {
+        return self::resolveRouter()->urlFor($name, $parameters, $absolute, $baseUrl);
+    }
+
     public static function prefix(string $prefix, callable $callback): void
     {
         $previous = self::$prefix;
