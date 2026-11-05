@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Tests\Routing;
 
 use Ds\Http\Request;
+use Ds\Http\Kernel;
+use Ds\Middleware\MiddlewarePipeline;
+use Ds\Middleware\MiddlewareStack;
 use Ds\Http\RequestDispatcher;
 use Ds\Http\Response;
 use Ds\Routing\Router;
