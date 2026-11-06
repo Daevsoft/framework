@@ -19,7 +19,7 @@ status="$(curl --silent --show-error --request OPTIONS --dump-header "$tmp_dir/o
 grep -Eqi '^Allow:.*GET' "$tmp_dir/options.headers"
 grep -Eqi '^Allow:.*OPTIONS' "$tmp_dir/options.headers"
 
-status="$(curl --silent --show-error --head --output "$tmp_dir/head.body" --write-out '%{http_code}' "$base_url/users/42")"
+status="$(curl --silent --show-error --request HEAD --output "$tmp_dir/head.body" --write-out '%{http_code}' "$base_url/users/42")"
 [[ "$status" == "200" ]] || { echo "HEAD /users/42 expected 200, got $status" >&2; exit 1; }
 [[ ! -s "$tmp_dir/head.body" ]] || { echo "HEAD /users/42 must not return a response body" >&2; exit 1; }
 
